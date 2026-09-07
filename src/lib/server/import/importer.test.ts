@@ -44,7 +44,7 @@ async function writeFixtures(dir: string) {
 	lav.addRow(['', 'Spezial', 'Thema Abendmahlsversammlung', 'ZEIT', 'mm:ss', 'Nr 1', 'Anfangslied', 'mm:ss', 'Nr 2', 'Abendmahlslied', 'mm:ss', 'Nr 3', 'Zwischenlied', 'mm:ss', 'Nr. 4', 'Schlusslied', 'Orgel/Klavier', 'Dirigieren', 'Abwesenheit']);
 	lav.addRow([d(2026, 8, 30), null, 'Schwächen', null, null, 47, ' Herr und Gott', null, 61, ' Näher', null, 58, ' Führ', null, 33, ' Hört', 'Vreni', 'Lea', 'Mia']);
 	lav.addRow([d(2026, 10, 11), 'Fastsonntag', null, null, null, 1019, 'Hilf mir, zu lieben, Herr, wie du', null, null, null, null, null, 'PV singt', null, null, null, 'Vreni', null, null]);
-	lav.addRow([d(2026, 10, 18), null, 'Nur Musik geplant', null, null, 47, ' Herr und Gott']);
+	lav.addRow([d(2026, 10, 18), null, 'Nur Musik geplant', null, null, 47, ' Herr und Gott', null, null, null, null, null, null, null, null, null, 'Fritz', 'Trudi']);
 	await lp.xlsx.writeFile(path.join(dir, 'lieder.xlsx'));
 }
 
@@ -126,10 +126,13 @@ describe('importWorkbooks', () => {
 		expect(report.members).toBe(5);
 	});
 	it('ist idempotent', async () => {
+		const musicNoteBefore = loadMeetingFullByDate(db, '2026-10-18')!.meeting.musicNote;
 		const again = await importWorkbooks(db, path.join(dir, 'av.xlsx'), path.join(dir, 'lieder.xlsx'), { today: '2026-09-07' });
 		expect(again.members).toBe(0);
 		expect(again.hymns).toBe(0);
+		expect(again.meetings).toBe(0);
 		expect(listMembers(db)).toHaveLength(7);
 		expect(loadMeetingFullByDate(db, '2026-08-30')!.talks).toHaveLength(3);
+		expect(loadMeetingFullByDate(db, '2026-10-18')!.meeting.musicNote).toBe(musicNoteBefore);
 	});
 });

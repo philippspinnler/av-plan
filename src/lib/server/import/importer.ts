@@ -60,7 +60,7 @@ function importMembers(db: Db, ws: ExcelJS.Worksheet | undefined, report: Import
 }
 
 function importHymns(db: Db, ws: ExcelJS.Worksheet | undefined, report: ImportReport): void {
-	if (!ws) return;
+	if (!ws) { report.warnings.push('Blatt Lieder fehlt'); return; }
 	ws.eachRow((row) => {
 		const number = cellNumber(val(row, 1));
 		const title = txt(row, 2);
@@ -135,9 +135,10 @@ function importProgram(db: Db, ws: ExcelJS.Worksheet | undefined, resolver: Memb
 			if (!t.name) return;
 			const member = resolver.resolve(t.name);
 			if (!member) return;
-			talks.push({ position: i + 1, memberId: member.id, topic: t.topic, durationMinutes: null, status: t.status, note: t.note });
+			talks.push({ position: i + 1, memberId: member.id, topic: t.topic, durationMinutes: t.durationMinutes, status: t.status, note: t.note });
 		});
-		saveTalks(db, id, talks, null);
+		const existingMeeting = getMeetingByDate(db, date);
+		saveTalks(db, id, talks, existingMeeting?.talksStartTime ?? null);
 		const slots = emptySlots();
 		slots.anfang = hymnSlot(db, val(row, 9), val(row, 10), 'anfang', report, date);
 		slots.abendmahl = hymnSlot(db, val(row, 11), val(row, 12), 'abendmahl', report, date);
@@ -181,7 +182,8 @@ function importLiederAv(db: Db, ws: ExcelJS.Worksheet | undefined, resolver: Mem
 			else slots[slot] = hymnSlot(db, val(row, cols[slot][0]), val(row, cols[slot][1]), slot, report, date);
 		}
 		const people = musicPeople(resolver, full.organist ? '' : txt(row, 17), full.conductor ? '' : txt(row, 18));
-		const notes = [full.meeting.musicNote, ...people.notes, txt(row, 19) ? `Abwesend: ${txt(row, 19)}` : ''].filter(Boolean);
+		const existing = (full.meeting.musicNote ?? '').split(/;\s*/).filter(Boolean);
+		const notes = [...existing, ...people.notes, txt(row, 19) ? `Abwesend: ${txt(row, 19)}` : ''].filter(Boolean);
 		saveMusic(db, full.meeting.id, {
 			hymns: slots,
 			organistMemberId: full.organist?.id ?? people.organistId,

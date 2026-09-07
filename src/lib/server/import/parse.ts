@@ -49,7 +49,7 @@ export function cellSeconds(v: unknown): number | null {
 	return parseDuration(cellText(v));
 }
 
-const IGNORED = new Set(['', '-', '–', 'pv', '#n/a', 'nn', '!', 'orgel', 'x', '?']);
+const IGNORED = new Set(['', '-', '–', 'pv', '#n/a', 'nn', '!', 'orgel', 'x', '?', 'gk', 'leer', 'suchname', 'thema', 'ansprache']);
 
 export function isIgnoredToken(s: string): boolean {
 	return IGNORED.has(s.trim().toLowerCase());
@@ -79,14 +79,34 @@ export function parseSpezial(text: string): { kind: MeetingKind; note: string | 
 	return { kind, note: note || null };
 }
 
-export function parseTalk(nameRaw: string, topicRaw: string, isPast: boolean): { name: string | null; topic: string | null; status: Status; note: string | null } {
-	const name = isIgnoredToken(nameRaw) ? null : nameRaw.trim();
-	let topic: string | null = topicRaw.trim() || null;
+const DURATION_MARK = /(\d{1,2})'/;
+
+export function parseTalk(
+	nameRaw: string,
+	topicRaw: string,
+	isPast: boolean
+): { name: string | null; topic: string | null; status: Status; durationMinutes: number | null; note: string | null } {
+	let nameText = nameRaw.trim();
+	let topicText = topicRaw.trim();
+	let durationMinutes: number | null = null;
+	const nameMark = nameText.match(DURATION_MARK);
+	if (nameMark) {
+		durationMinutes = parseInt(nameMark[1], 10);
+		nameText = nameText.replace(DURATION_MARK, '').trim();
+	} else {
+		const topicMark = topicText.match(DURATION_MARK);
+		if (topicMark) {
+			durationMinutes = parseInt(topicMark[1], 10);
+			topicText = topicText.replace(DURATION_MARK, '').trim();
+		}
+	}
+	const name = isIgnoredToken(nameText) ? null : nameText || null;
+	let topic: string | null = topicText || null;
 	let status: Status = 'zugesagt';
 	let note: string | null = null;
 	if (topic && /confirm/i.test(topic)) { status = 'angefragt'; topic = null; }
 	else if (topic && /einladen/i.test(topic)) { status = 'offen'; topic = null; }
 	else if (topic && /\?\?$/.test(topic)) { note = topic; topic = null; }
 	if (isPast) status = 'zugesagt';
-	return { name, topic, status, note };
+	return { name, topic, status, durationMinutes, note };
 }
