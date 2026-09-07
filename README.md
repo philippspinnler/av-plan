@@ -1,42 +1,44 @@
-# sv
+# Abendmahlsversammlung-Tool
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+Webapp zur Planung der Abendmahlsversammlung (Programm, Sprecher, Gebete, Lieder, Leitungszettel). Ersetzt die Google Sheets "AV Programm" und "Liederplanung AV".
 
-## Creating a project
+## Rollen
 
-If you're seeing this, you've probably already done this step. Congrats!
+| Rolle | darf |
+|---|---|
+| Admin | alles, inkl. Benutzer einladen, Personen pflegen, Einstellungen |
+| Bischofschaft | Sonntage planen (Leitung, Gebete, Ansprachen, Bekanntmachungen, Berufungen), Personen anlegen; sieht Musik |
+| Musik | Lieder pro Sonntag, Orgel, Dirigieren, Liederbuch; sieht das Programm |
 
-```sh
-# create a new project
-npx sv create my-app
+## Betrieb mit Docker
+
+```bash
+cp .env.example .env    # ORIGIN anpassen
+docker compose up -d --build
 ```
 
-To recreate this project with the same configuration:
+Beim ersten Aufruf leitet die App auf `/setup`, wo das Admin-Konto angelegt wird. Danach lädt der Admin unter "Benutzer" weitere Personen ein: Die App erzeugt einen Link plus fertigen Text zum Kopieren (kein Mailserver nötig). Einladungslinks gelten 7 Tage.
 
-```sh
-# recreate this project
-npx sv@0.17.0 create --template minimal --types ts --no-install app-tmp
+Die Datenbank liegt in `./data/app.db`. Backup: Datei kopieren oder unter "Benutzer" bzw. "Einstellungen" herunterladen.
+
+## Import der bisherigen Sheets
+
+Beide Google Sheets als `.xlsx` exportieren (Datei → Herunterladen → Microsoft Excel) und ausführen:
+
+```bash
+docker compose run --rm -v "$PWD/import:/import" app npm run import -- /import/av-programm.xlsx /import/liederplanung.xlsx
 ```
 
-## Developing
+oder lokal mit `DATABASE_PATH=data/app.db npm run import -- import/av-programm.xlsx import/liederplanung.xlsx`. Der Import ist wiederholbar. Am Ende listet er Personen, die nur in Programmzeilen vorkamen; diese sind inaktiv angelegt und können unter "Personen" aktiviert werden.
 
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+## Entwicklung
 
-```sh
-npm run dev
-
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
+```bash
+npm install
+npm run dev          # http://localhost:5173
+npm test             # Vitest
+npm run check        # svelte-check
+npm run db:generate  # Migration nach Schema-Änderung erzeugen
 ```
 
-## Building
-
-To create a production version of your app:
-
-```sh
-npm run build
-```
-
-You can preview the production build with `npm run preview`.
-
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
+Umgebungsvariablen: `DATABASE_PATH` (Standard `data/app.db`), `ORIGIN`, `PORT`.

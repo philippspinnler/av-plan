@@ -17,6 +17,7 @@
 </script>
 
 <h1>Benutzer</h1>
+<p><a class="btn btn-small" href="/admin/export">Datenbank herunterladen (Backup)</a></p>
 {#if form?.error}<div class="error">{form.error}</div>{/if}
 
 <div class="section">
