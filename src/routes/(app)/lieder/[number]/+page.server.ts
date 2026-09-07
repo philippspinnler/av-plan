@@ -1,0 +1,34 @@
+import { error, fail } from '@sveltejs/kit';
+import type { Actions, PageServerLoad } from './$types';
+import { formatDateDe } from '$lib/dates';
+import { formatDuration, parseDuration } from '$lib/duration';
+import { str } from '$lib/server/forms';
+import { getHymnByNumber, updateHymn } from '$lib/server/hymns';
+import { SLOT_LABELS } from '$lib/server/meetings';
+import { can, requireRole } from '$lib/server/permissions';
+import { hymnHistory } from '$lib/server/stats';
+
+export const load: PageServerLoad = ({ locals, params }) => {
+	const hymn = getHymnByNumber(locals.db, Number(params.number));
+	if (!hymn) error(404, 'Lied nicht gefunden');
+	return {
+		hymn: { number: hymn.number, title: hymn.title, book: hymn.book, duration: formatDuration(hymn.durationSeconds) },
+		canEdit: can(locals.user!.role, 'hymns.edit'),
+		history: hymnHistory(locals.db, hymn.id).map((h) => ({ date: h.date, dateLabel: formatDateDe(h.date), slot: SLOT_LABELS[h.slot] }))
+	};
+};
+
+export const actions: Actions = {
+	update: async ({ request, locals, params }) => {
+		requireRole(locals.user, 'hymns.edit');
+		const hymn = getHymnByNumber(locals.db, Number(params.number));
+		if (!hymn) error(404, 'Lied nicht gefunden');
+		const fd = await request.formData();
+		const title = str(fd, 'title');
+		const durationText = str(fd, 'duration');
+		if (!title) return fail(400, { error: 'Der Titel darf nicht leer sein.' });
+		if (durationText && parseDuration(durationText) === null) return fail(400, { error: 'Dauer bitte als m:ss angeben, z.B. 3:45.' });
+		updateHymn(locals.db, hymn.id, { title, durationSeconds: parseDuration(durationText) });
+		return { saved: true };
+	}
+};
