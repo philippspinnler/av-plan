@@ -8,9 +8,13 @@ import { requireRole } from '$lib/server/permissions';
 export const GET: RequestHandler = async ({ locals }) => {
 	requireRole(locals.user, 'users.manage');
 	const tmp = path.join(os.tmpdir(), `av-backup-${process.pid}-${Date.now()}.db`);
-	await locals.db.$client.backup(tmp);
-	const data = fs.readFileSync(tmp);
-	fs.unlinkSync(tmp);
+	let data: Buffer<ArrayBuffer>;
+	try {
+		await locals.db.$client.backup(tmp);
+		data = fs.readFileSync(tmp);
+	} finally {
+		if (fs.existsSync(tmp)) fs.unlinkSync(tmp);
+	}
 	return new Response(data, {
 		headers: {
 			'Content-Type': 'application/vnd.sqlite3',

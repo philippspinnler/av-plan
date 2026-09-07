@@ -19,7 +19,7 @@ docker compose up -d --build
 
 Beim ersten Aufruf leitet die App auf `/setup`, wo das Admin-Konto angelegt wird. Danach lädt der Admin unter "Benutzer" weitere Personen ein: Die App erzeugt einen Link plus fertigen Text zum Kopieren (kein Mailserver nötig). Einladungslinks gelten 7 Tage.
 
-Die Datenbank liegt in `./data/app.db`. Backup: Datei kopieren oder unter "Benutzer" bzw. "Einstellungen" herunterladen.
+Die Datenbank liegt in `./data/app.db`. Backup: unter "Benutzer" oder "Einstellungen" die Datenbank herunterladen (konsistenter Snapshot). Die Datei `data/app.db` direkt kopieren nur, wenn der Container gestoppt ist, sonst können Änderungen aus der WAL-Datei fehlen.
 
 ## Import der bisherigen Sheets
 
