@@ -1,2 +1,74 @@
-<h1>Sonntage</h1>
-<p class="muted">Startseite folgt.</p>
+<script lang="ts">
+	import { enhance } from '$app/forms';
+	import { goto } from '$app/navigation';
+	let { data, form } = $props();
+</script>
+
+<div class="section-title">
+	<h1>Sonntage</h1>
+	<div class="actions">
+		{#if data.canCreate}
+			<form method="POST" action="?/ensure" use:enhance><button class="btn" type="submit">Sonntage für 12 Monate anlegen</button></form>
+		{/if}
+	</div>
+</div>
+{#if form?.created !== undefined}<div class="success">{form.created} neue Sonntage angelegt.</div>{/if}
+
+{#if data.next && !data.year}
+	<div class="card big-card">
+		<div class="section-title">
+			<div>
+				<span class="kind-tag">Nächster Sonntag · {data.next.kindLabel}</span>
+				<h2>{data.next.dateLabel}</h2>
+			</div>
+			<div class="actions">
+				<a class="btn btn-primary" href="/sonntag/{data.next.date}">Bearbeiten</a>
+				<a class="btn" href="/sonntag/{data.next.date}/druck">Drucken</a>
+			</div>
+		</div>
+		{#if data.next.theme}<p><strong>Thema:</strong> {data.next.theme}</p>{/if}
+		<p><strong>Leitung:</strong> {data.next.presiding ?? '–'}</p>
+		<p><strong>Sprecher:</strong> {data.next.speakers.length ? data.next.speakers.join(', ') : '–'}</p>
+		<p><strong>Lieder:</strong> {data.next.hymns.length ? data.next.hymns.join(' · ') : '–'}</p>
+		{#if data.next.missingProgram.length}<p class="hint">Programm offen: {data.next.missingProgram.join(', ')}</p>{/if}
+		{#if data.next.missingMusic.length}<p class="hint">Musik offen: {data.next.missingMusic.join(', ')}</p>{/if}
+	</div>
+{/if}
+
+<div class="section">
+	<div class="section-title">
+		<h2>{data.year ? `Alle Sonntage ${data.year}` : 'Kommende Sonntage'}</h2>
+		<div class="actions">
+			<a class="btn btn-small" href="/" class:btn-primary={!data.year}>Kommende</a>
+			{#each data.years as y}<a class="btn btn-small" href="/?jahr={y}" class:btn-primary={data.year === y}>{y}</a>{/each}
+		</div>
+	</div>
+	{#if data.meetings.length === 0}
+		<p class="muted">Keine Sonntage in diesem Zeitraum. {#if data.canCreate}Lege sie mit der Schaltfläche oben an.{/if}</p>
+	{:else}
+		<div class="table-wrap">
+			<table class="table">
+				<thead><tr><th>Datum</th><th>Typ</th><th>Thema</th><th>Programm</th><th>Musik</th></tr></thead>
+				<tbody>
+					{#each data.meetings as m}
+						<tr class="clickable" class:muted={m.date < data.today} onclick={() => goto(`/sonntag/${m.date}`)}>
+							<td><a href="/sonntag/{m.date}">{m.dateLabel}</a></td>
+							<td>{m.kind === 'normal' ? '' : m.kindLabel}</td>
+							<td>{m.theme ?? ''}</td>
+							<td>
+								{#if m.kind === 'normal' || m.kind === 'fastsonntag'}
+									{#if m.missingProgram.length}<span class="badge badge-offen" title={m.missingProgram.join(', ')}>{m.missingProgram.length} offen</span>{:else}<span class="badge badge-zugesagt">bereit</span>{/if}
+								{/if}
+							</td>
+							<td>
+								{#if m.kind === 'normal' || m.kind === 'fastsonntag'}
+									{#if m.missingMusic.length}<span class="badge badge-offen" title={m.missingMusic.join(', ')}>{m.missingMusic.length} offen</span>{:else}<span class="badge badge-zugesagt">bereit</span>{/if}
+								{/if}
+							</td>
+						</tr>
+					{/each}
+				</tbody>
+			</table>
+		</div>
+	{/if}
+</div>
