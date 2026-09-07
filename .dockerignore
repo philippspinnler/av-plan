@@ -7,3 +7,4 @@ docs
 *.db
 *.db-*
 .git
+.env

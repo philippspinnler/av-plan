@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { int, optInt, optStr, str, strList } from './forms';
+import { int, optInt, optStr, rawStr, str, strList } from './forms';
 
 const fd = new FormData();
 fd.append('name', '  Anna ');
@@ -8,6 +8,7 @@ fd.append('x', '');
 fd.append('list', 'a');
 fd.append('list', ' ');
 fd.append('list', 'b');
+fd.append('password', '  geheim  ');
 
 describe('forms', () => {
 	it('liest Strings getrimmt', () => {
@@ -24,5 +25,9 @@ describe('forms', () => {
 	});
 	it('liest Listen ohne Leereinträge', () => {
 		expect(strList(fd, 'list')).toEqual(['a', 'b']);
+	});
+	it('liest Strings ungetrimmt', () => {
+		expect(rawStr(fd, 'password')).toBe('  geheim  ');
+		expect(rawStr(fd, 'fehlt')).toBe('');
 	});
 });

@@ -1,7 +1,7 @@
-import { redirect, type Handle } from '@sveltejs/kit';
+import { redirect, type Handle, type HandleServerError } from '@sveltejs/kit';
 import { getDb } from '$lib/server/db';
 import { userCount, validateSession } from '$lib/server/auth';
-import { SESSION_COOKIE, clearSessionCookie } from '$lib/server/cookies';
+import { SESSION_COOKIE, clearSessionCookie, setSessionCookie } from '$lib/server/cookies';
 
 const PUBLIC = new Set(['/login', '/setup', '/health']);
 
@@ -13,8 +13,12 @@ export const handle: Handle = async ({ event, resolve }) => {
 	const sid = event.cookies.get(SESSION_COOKIE);
 	if (sid) {
 		const session = validateSession(db, sid);
-		if (session) event.locals.user = session.user;
-		else clearSessionCookie(event.cookies);
+		if (session) {
+			event.locals.user = session.user;
+			setSessionCookie(event.cookies, sid, session.expiresAt);
+		} else {
+			clearSessionCookie(event.cookies);
+		}
 	}
 
 	const path = event.url.pathname;
@@ -29,4 +33,9 @@ export const handle: Handle = async ({ event, resolve }) => {
 		redirect(303, `/login?next=${encodeURIComponent(path)}`);
 	}
 	return resolve(event);
+};
+
+export const handleError: HandleServerError = ({ error, status }) => {
+	if (status !== 404) console.error(error);
+	return { message: 'Ein unerwarteter Fehler ist aufgetreten.' };
 };

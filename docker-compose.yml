@@ -10,4 +10,5 @@ services:
       - ORIGIN=${ORIGIN:-http://localhost:3000}
       - DATABASE_PATH=/data/app.db
       - BODY_SIZE_LIMIT=1048576
+      - TZ=Europe/Zurich
     restart: unless-stopped

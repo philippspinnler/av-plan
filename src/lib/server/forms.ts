@@ -3,6 +3,11 @@ export function str(fd: FormData, key: string): string {
 	return typeof v === 'string' ? v.trim() : '';
 }
 
+export function rawStr(fd: FormData, key: string): string {
+	const v = fd.get(key);
+	return typeof v === 'string' ? v : '';
+}
+
 export function optStr(fd: FormData, key: string): string | null {
 	const v = str(fd, key);
 	return v === '' ? null : v;

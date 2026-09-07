@@ -9,19 +9,22 @@
 	let releases = $state<{ personName: string; calling: string }[]>([]);
 	let sustainings = $state<{ personName: string; calling: string }[]>([]);
 	let showQuickAdd = $state(false);
-	let seededDate = $state<string | null>(null);
+	let seededAnnouncements = $state<string | null>(null);
+	let seededCallings = $state<string | null>(null);
 
 	$effect(() => {
 		if (data.missing) return;
-		const first = untrack(() => seededDate) !== data.date;
-		if (first || form?.saved === 'announcements') {
+		const a = JSON.stringify(data.announcements);
+		if (a !== untrack(() => seededAnnouncements)) {
 			announcements = data.announcements.length ? [...data.announcements] : [''];
+			seededAnnouncements = a;
 		}
-		if (first || form?.saved === 'callings') {
+		const c = JSON.stringify([data.releases, data.sustainings]);
+		if (c !== untrack(() => seededCallings)) {
 			releases = [...data.releases];
 			sustainings = [...data.sustainings];
+			seededCallings = c;
 		}
-		if (first) seededDate = data.date;
 	});
 
 	const saved = (key: string) => form?.saved === key;

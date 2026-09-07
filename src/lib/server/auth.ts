@@ -30,6 +30,10 @@ export function userCount(db: Db): number {
 	return db.select({ id: users.id }).from(users).all().length;
 }
 
+export function findUserByEmail(db: Db, email: string): User | undefined {
+	return db.select().from(users).where(eq(users.email, normEmail(email))).get();
+}
+
 export async function createUser(
 	db: Db,
 	input: { email: string; name: string; role: Role; password: string }
@@ -138,6 +142,7 @@ export function getValidInvite(db: Db, tok: string, now: Date = new Date()): Inv
 export async function acceptInvite(db: Db, tok: string, password: string, now: Date = new Date()): Promise<User | null> {
 	const inv = getValidInvite(db, tok, now);
 	if (!inv) return null;
+	if (findUserByEmail(db, inv.email)) return null;
 	const result = db.update(invites).set({ usedAt: iso(now) }).where(and(eq(invites.id, inv.id), isNull(invites.usedAt))).run();
 	if (result.changes === 0) return null;
 	const user = await createUser(db, { email: inv.email, name: inv.name, role: inv.role, password });

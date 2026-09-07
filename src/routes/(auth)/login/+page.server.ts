@@ -2,7 +2,7 @@ import { fail, redirect } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 import { createSession, loginWithPassword, pruneLoginAttempts } from '$lib/server/auth';
 import { setSessionCookie } from '$lib/server/cookies';
-import { str } from '$lib/server/forms';
+import { rawStr, str } from '$lib/server/forms';
 
 function safeNext(next: string | null): string {
 	return next && next.startsWith('/') && !next.startsWith('//') ? next : '/';
@@ -17,7 +17,7 @@ export const actions: Actions = {
 	default: async ({ request, locals, cookies, url }) => {
 		const fd = await request.formData();
 		const email = str(fd, 'email');
-		const password = str(fd, 'password');
+		const password = rawStr(fd, 'password');
 		pruneLoginAttempts(locals.db);
 		const result = await loginWithPassword(locals.db, email, password);
 		if (!result.ok) {

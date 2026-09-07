@@ -1,6 +1,6 @@
 import { fail } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
-import { createInvite, deleteInvite, listOpenInvites, listUsers, setUserActive, updateUserRole } from '$lib/server/auth';
+import { createInvite, deleteInvite, findUserByEmail, listOpenInvites, listUsers, setUserActive, updateUserRole } from '$lib/server/auth';
 import { ROLES, type Role } from '$lib/server/db/schema';
 import { int, str } from '$lib/server/forms';
 import { inviteText } from '$lib/server/invite-text';
@@ -24,6 +24,7 @@ export const actions: Actions = {
 		const email = str(fd, 'email');
 		const role = str(fd, 'role');
 		if (!name || !email.includes('@') || !isRole(role)) return fail(400, { error: 'Bitte Name, gültige E-Mail und Rolle angeben.' });
+		if (findUserByEmail(locals.db, email)) return fail(400, { error: 'Für diese E-Mail gibt es schon ein Konto.' });
 		const inv = createInvite(locals.db, { name, email, role, createdBy: locals.user!.id });
 		const link = `${url.origin}/einladung/${inv.token}`;
 		return { invited: { link, text: inviteText(name, link) } };

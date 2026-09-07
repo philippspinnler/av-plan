@@ -23,13 +23,18 @@ Die Datenbank liegt in `./data/app.db`. Backup: unter "Benutzer" oder "Einstellu
 
 ## Import der bisherigen Sheets
 
-Beide Google Sheets als `.xlsx` exportieren (Datei → Herunterladen → Microsoft Excel) und ausführen:
+Beide Google Sheets als `.xlsx` exportieren (Datei → Herunterladen → Microsoft Excel).
+
+Das Laufzeit-Image enthält kein `scripts/`, `src/` und kein `tsx`, daher läuft der Import lokal auf dem Host gegen dieselbe Datenbankdatei, bei gestopptem Container:
 
 ```bash
-docker compose run --rm -v "$PWD/import:/import" app npm run import -- /import/av-programm.xlsx /import/liederplanung.xlsx
+docker compose stop
+npm install    # einmalig
+DATABASE_PATH=data/app.db npm run import -- import/av-programm.xlsx import/liederplanung.xlsx
+docker compose up -d
 ```
 
-oder lokal mit `DATABASE_PATH=data/app.db npm run import -- import/av-programm.xlsx import/liederplanung.xlsx`. Der Import ist wiederholbar. Am Ende listet er Personen, die nur in Programmzeilen vorkamen; diese sind inaktiv angelegt und können unter "Personen" aktiviert werden.
+Der Import ist wiederholbar. Am Ende listet er Personen, die nur in Programmzeilen vorkamen; diese sind inaktiv angelegt und können unter "Personen" aktiviert werden.
 
 ## Entwicklung
 

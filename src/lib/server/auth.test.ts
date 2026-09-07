@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { createDb, type Db } from './db';
 import {
-	acceptInvite, createInvite, createSession, createUser, deleteSession, getValidInvite,
+	acceptInvite, createInvite, createSession, createUser, deleteSession, findUserByEmail, getValidInvite,
 	hashPassword, listOpenInvites, loginWithPassword, userCount, validateSession, verifyPassword
 } from './auth';
 
@@ -108,5 +108,21 @@ describe('Invites', () => {
 		const user2 = await acceptInvite(db, inv.token, 'passwort2', t0);
 		expect(user2).toBeNull();
 		expect(userCount(db)).toBe(2);
+	});
+	it('lehnt Einladung ab, wenn für die E-Mail schon ein Konto besteht, ohne die Einladung zu verbrennen', async () => {
+		const admin = await createUser(db, { email: 'a@b.ch', name: 'A', role: 'admin', password: 'geheim123' });
+		await createUser(db, { email: 'm@b.ch', name: 'Bestehend', role: 'musik', password: 'geheim123' });
+		const t0 = new Date('2026-09-07T10:00:00Z');
+		const inv = createInvite(db, { email: 'm@b.ch', name: 'M', role: 'musik', createdBy: admin.id }, t0);
+		expect(await acceptInvite(db, inv.token, 'passwort1', t0)).toBeNull();
+		expect(getValidInvite(db, inv.token, t0)).not.toBeNull();
+	});
+});
+
+describe('findUserByEmail', () => {
+	it('findet Benutzer unabhängig von Gross-/Kleinschreibung', async () => {
+		await createUser(db, { email: 'A@B.ch', name: 'A', role: 'admin', password: 'geheim123' });
+		expect(findUserByEmail(db, ' a@b.ch ')?.name).toBe('A');
+		expect(findUserByEmail(db, 'nichts@da.ch')).toBeUndefined();
 	});
 });
