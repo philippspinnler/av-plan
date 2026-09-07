@@ -12,7 +12,7 @@ export const load: PageServerLoad = ({ locals, params }) => {
 	const role = locals.user!.role;
 	const stats = can(role, 'members.stats');
 	return {
-		member,
+		member: { ...member, noteTalk: stats ? member.noteTalk : null, notePrayer: stats ? member.notePrayer : null },
 		title: displayName(member),
 		canEdit: can(role, 'members.edit'),
 		stats,
