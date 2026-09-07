@@ -14,12 +14,12 @@
 
 	$effect(() => {
 		if (data.missing) return;
-		const a = JSON.stringify(data.announcements);
+		const a = JSON.stringify([data.date, data.announcements]);
 		if (a !== untrack(() => seededAnnouncements)) {
 			announcements = data.announcements.length ? [...data.announcements] : [''];
 			seededAnnouncements = a;
 		}
-		const c = JSON.stringify([data.releases, data.sustainings]);
+		const c = JSON.stringify([data.date, data.releases, data.sustainings]);
 		if (c !== untrack(() => seededCallings)) {
 			releases = [...data.releases];
 			sustainings = [...data.sustainings];
