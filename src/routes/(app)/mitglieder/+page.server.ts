@@ -1,0 +1,40 @@
+import { fail, redirect } from '@sveltejs/kit';
+import type { Actions, PageServerLoad } from './$types';
+import { todayIso } from '$lib/dates';
+import { optStr, str } from '$lib/server/forms';
+import { createMember, displayName, listMembers } from '$lib/server/members';
+import { can, requireRole } from '$lib/server/permissions';
+import { memberActivity, weeksAgoLabel, type MemberActivity } from '$lib/server/stats';
+
+export const load: PageServerLoad = ({ locals, url }) => {
+	const role = locals.user!.role;
+	const showAll = url.searchParams.get('alle') === '1';
+	const today = todayIso();
+	const stats = can(role, 'members.stats');
+	const activity = stats ? memberActivity(locals.db, today) : new Map<number, MemberActivity>();
+	const members = listMembers(locals.db, { activeOnly: !showAll }).map((m) => {
+		const a = activity.get(m.id);
+		return {
+			id: m.id,
+			name: displayName(m),
+			active: m.active,
+			lastTalk: stats ? weeksAgoLabel(a?.lastTalk ?? null, today) : '',
+			lastPrayer: stats ? weeksAgoLabel(a?.lastPrayer ?? null, today) : '',
+			noteTalk: stats ? m.noteTalk : null,
+			notePrayer: stats ? m.notePrayer : null
+		};
+	});
+	return { members, showAll, stats, canCreate: can(role, 'members.create') };
+};
+
+export const actions: Actions = {
+	create: async ({ request, locals }) => {
+		requireRole(locals.user, 'members.create');
+		const fd = await request.formData();
+		const firstName = str(fd, 'firstName');
+		const lastName = str(fd, 'lastName');
+		if (!firstName) return fail(400, { error: 'Bitte mindestens einen Vornamen angeben.' });
+		const m = createMember(locals.db, { firstName, lastName, affiliation: optStr(fd, 'affiliation') });
+		redirect(303, `/mitglieder/${m.id}`);
+	}
+};
