@@ -98,7 +98,7 @@ export const load: PageServerLoad = ({ locals, params, url }) => {
 				topic: t.topic,
 				durationMinutes: t.durationMinutes,
 				status: t.status,
-				note: t.note,
+				note: base.canProgram ? t.note : null,
 				options: memberOptions(all, activity, stats ? 'talk' : 'plain', today, t.member?.id ?? null)
 			};
 		}),

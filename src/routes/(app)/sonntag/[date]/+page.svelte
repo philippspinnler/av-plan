@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { untrack } from 'svelte';
 	import { enhance } from '$app/forms';
 	import MemberSelect from '$lib/components/MemberSelect.svelte';
 	import StatusBadge from '$lib/components/StatusBadge.svelte';
@@ -8,13 +9,19 @@
 	let releases = $state<{ personName: string; calling: string }[]>([]);
 	let sustainings = $state<{ personName: string; calling: string }[]>([]);
 	let showQuickAdd = $state(false);
+	let seededDate = $state<string | null>(null);
 
 	$effect(() => {
-		if (!data.missing) {
+		if (data.missing) return;
+		const first = untrack(() => seededDate) !== data.date;
+		if (first || form?.saved === 'announcements') {
 			announcements = data.announcements.length ? [...data.announcements] : [''];
+		}
+		if (first || form?.saved === 'callings') {
 			releases = [...data.releases];
 			sustainings = [...data.sustainings];
 		}
+		if (first) seededDate = data.date;
 	});
 
 	const saved = (key: string) => form?.saved === key;
