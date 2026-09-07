@@ -64,6 +64,16 @@ describe('Sessions', () => {
 		deleteSession(db, s.id);
 		expect(validateSession(db, s.id, t0)).toBeNull();
 	});
+	it('löscht Sessions bei Deaktivierung', async () => {
+		const u = await createUser(db, { email: 'a@b.ch', name: 'A', role: 'musik', password: 'geheim123' });
+		const t0 = new Date('2026-09-07T10:00:00Z');
+		const s = createSession(db, u.id, t0);
+		const v = validateSession(db, s.id, t0);
+		expect(v?.user).not.toBeNull();
+		const { setUserActive } = await import('./auth');
+		setUserActive(db, u.id, false);
+		expect(validateSession(db, s.id, t0)).toBeNull();
+	});
 });
 
 describe('Invites', () => {
@@ -86,5 +96,17 @@ describe('Invites', () => {
 		const t8 = new Date(t0.getTime() + 8 * 86_400_000);
 		expect(getValidInvite(db, inv.token, t8)).toBeNull();
 		expect(await acceptInvite(db, inv.token, 'passwort1', t8)).toBeNull();
+	});
+	it('ist Single-Use nur einmal zu akzeptieren', async () => {
+		const admin = await createUser(db, { email: 'a@b.ch', name: 'A', role: 'admin', password: 'geheim123' });
+		const t0 = new Date('2026-09-07T10:00:00Z');
+		const inv = createInvite(db, { email: 'm@b.ch', name: 'M', role: 'musik', createdBy: admin.id }, t0);
+		expect(userCount(db)).toBe(1);
+		const user1 = await acceptInvite(db, inv.token, 'passwort1', t0);
+		expect(user1).not.toBeNull();
+		expect(userCount(db)).toBe(2);
+		const user2 = await acceptInvite(db, inv.token, 'passwort2', t0);
+		expect(user2).toBeNull();
+		expect(userCount(db)).toBe(2);
 	});
 });

@@ -138,8 +138,9 @@ export function getValidInvite(db: Db, tok: string, now: Date = new Date()): Inv
 export async function acceptInvite(db: Db, tok: string, password: string, now: Date = new Date()): Promise<User | null> {
 	const inv = getValidInvite(db, tok, now);
 	if (!inv) return null;
+	const result = db.update(invites).set({ usedAt: iso(now) }).where(and(eq(invites.id, inv.id), isNull(invites.usedAt))).run();
+	if (result.changes === 0) return null;
 	const user = await createUser(db, { email: inv.email, name: inv.name, role: inv.role, password });
-	db.update(invites).set({ usedAt: iso(now) }).where(eq(invites.id, inv.id)).run();
 	return user;
 }
 
