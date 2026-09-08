@@ -15,7 +15,7 @@
 		calling: c.calling
 	});
 	let showQuickAdd = $state(false);
-	const isFast = $derived(!data.missing && data.meeting.kind === 'fastsonntag');
+	const isFast = $derived(!data.missing && data.fastLike);
 	const steps = $derived([
 		'kopf',
 		...(data.showProgram ? ['begruessung'] : []),

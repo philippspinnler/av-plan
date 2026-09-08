@@ -60,6 +60,12 @@ const KIND_KEYWORDS: [MeetingKind, string][] = [
 	['pfahlkonferenz', 'pfahlkonferenz'],
 	['gemeindekonferenz', 'gemeindekonferenz'],
 	['ostern', 'ostern'],
+	['dka', 'dka'],
+	['fhv', 'fhv'],
+	['aek', 'aek'],
+	['aek', 'äk'],
+	['jd', 'jd'],
+	['jm', 'jm'],
 	['weihnachten', 'weihnacht'],
 	['fastsonntag', 'fastsonntag'],
 	['fastsonntag', 'faststonntag']
@@ -70,9 +76,11 @@ export function parseSpezial(text: string): { kind: MeetingKind; note: string | 
 	let kind: MeetingKind = 'normal';
 	let note = text;
 	for (const [k, kw] of KIND_KEYWORDS) {
-		if (lower.includes(kw)) {
+		const short = kw.length <= 3;
+		const hit = short ? new RegExp(`(^|[\\s,;/(])${kw}(?=$|[\\s,;/)])`, 'i').test(text) : lower.includes(kw);
+		if (hit) {
 			kind = k;
-			note = text.replace(new RegExp(`[^\\s,;/]*${kw}[^\\s,;/]*`, 'i'), '');
+			note = short ? text.replace(new RegExp(`(^|[\\s,;/(])${kw}(?=$|[\\s,;/)])`, 'i'), '$1') : text.replace(new RegExp(`[^\\s,;/]*${kw}[^\\s,;/]*`, 'i'), '');
 			break;
 		}
 	}

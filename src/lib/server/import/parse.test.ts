@@ -48,6 +48,12 @@ describe('parseSpezial', () => {
 		expect(parseSpezial('Gemeindekonferenz')).toEqual({ kind: 'gemeindekonferenz', note: null });
 		expect(parseSpezial('Weihnachten / nur AV')).toEqual({ kind: 'weihnachten', note: 'nur AV' });
 		expect(parseSpezial('Ostern')).toEqual({ kind: 'ostern', note: null });
+		expect(parseSpezial('DKA')).toEqual({ kind: 'dka', note: null });
+		expect(parseSpezial('FHV, Kindersegnung')).toEqual({ kind: 'fhv', note: 'Kindersegnung' });
+		expect(parseSpezial('ÄK')).toEqual({ kind: 'aek', note: null });
+		expect(parseSpezial('JD')).toEqual({ kind: 'jd', note: null });
+		expect(parseSpezial('Fastsonntag, JM')).toEqual({ kind: 'jm', note: 'Fastsonntag' });
+		expect(parseSpezial('Objdekt')).toEqual({ kind: 'normal', note: 'Objdekt' });
 		expect(parseSpezial('Weihnachtsversammlung')).toEqual({ kind: 'weihnachten', note: null });
 	});
 });

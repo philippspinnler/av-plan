@@ -3,13 +3,18 @@ import { addMonths, isSunday, sundaysBetween } from '../dates';
 import type { Db } from './db';
 import {
 	announcements, callings, hymns, meetingHymns, meetingPrayers, meetingTalks, meetings, members,
-	HYMN_SLOTS, type CallingKind, type Hymn, type HymnSlot, type Meeting, type MeetingKind, type Member, type Status
+	HYMN_SLOTS, isFastLike, type CallingKind, type Hymn, type HymnSlot, type Meeting, type MeetingKind, type Member, type Status
 } from './db/schema';
 import { getHymnByNumber } from './hymns';
 
 export const KIND_LABELS: Record<MeetingKind, string> = {
 	normal: 'Normal',
 	fastsonntag: 'Fastsonntag',
+	dka: 'DKA',
+	fhv: 'FHV',
+	aek: 'ÄK',
+	jd: 'JD',
+	jm: 'JM',
 	ostern: 'Ostersonntag',
 	weihnachten: 'Weihnachtssonntag',
 	generalkonferenz: 'Generalkonferenz',
@@ -26,7 +31,7 @@ export const SLOT_LABELS: Record<HymnSlot, string> = {
 export const STATUS_LABELS: Record<Status, string> = { offen: 'Offen', angefragt: 'Angefragt', zugesagt: 'Zugesagt' };
 
 export function hasProgram(kind: MeetingKind): boolean {
-	return kind === 'normal' || kind === 'fastsonntag' || kind === 'ostern' || kind === 'weihnachten' || kind === 'gemeindekonferenz';
+	return kind === 'normal' || isFastLike(kind) || kind === 'ostern' || kind === 'weihnachten' || kind === 'gemeindekonferenz';
 }
 export const countsForStats = hasProgram;
 
@@ -181,7 +186,7 @@ export function saveMusic(
 	}
 ): { unknownNumbers: number[] } {
 	const meeting = db.select().from(meetings).where(eq(meetings.id, meetingId)).get();
-	const isFastsonntag = meeting?.kind === 'fastsonntag';
+	const isFastsonntag = !!meeting && isFastLike(meeting.kind);
 	const unknownNumbers: number[] = [];
 	db.transaction((tx) => {
 		tx.delete(meetingHymns).where(eq(meetingHymns.meetingId, meetingId)).run();

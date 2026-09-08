@@ -31,6 +31,7 @@ describe('meetings', () => {
 		expect(hasProgram('fastsonntag')).toBe(true);
 		expect(hasProgram('gemeindekonferenz')).toBe(true);
 		expect(hasProgram('ostern')).toBe(true);
+		expect(hasProgram('jd')).toBe(true);
 		expect(hasProgram('weihnachten')).toBe(true);
 		expect(hasProgram('generalkonferenz')).toBe(false);
 		expect(hasProgram('keine')).toBe(false);

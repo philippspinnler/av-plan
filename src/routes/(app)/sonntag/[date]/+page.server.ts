@@ -2,7 +2,7 @@ import { error, fail } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 import { formatDateDe, isSunday, todayIso } from '$lib/dates';
 import { leadingInt } from '$lib/hymn-input';
-import { HYMN_SLOTS, MEETING_KINDS, STATUSES, type HymnSlot, type MeetingKind, type Status } from '$lib/server/db/schema';
+import { HYMN_SLOTS, MEETING_KINDS, STATUSES, isFastLike, type HymnSlot, type MeetingKind, type Status } from '$lib/server/db/schema';
 import { optInt, optStr, str, strList } from '$lib/server/forms';
 import { hymnLabel, listHymns } from '$lib/server/hymns';
 import { createMember, displayName, listMembers } from '$lib/server/members';
@@ -57,7 +57,8 @@ export const load: PageServerLoad = ({ locals, params }) => {
 	const showFourth = full.talks.some((t) => t.position === 4);
 	const emptyTalk = (position: number) => ({ position, member: null, topic: null, durationMinutes: null, status: 'offen' as Status, note: null });
 	const kind = full.meeting.kind;
-	const hymnSlots = HYMN_SLOTS.filter((slot) => slot !== 'zwischen' || kind !== 'fastsonntag');
+	const fastLike = isFastLike(kind);
+	const hymnSlots = HYMN_SLOTS.filter((slot) => slot !== 'zwischen' || !fastLike);
 
 	const bishopricIds = getBishopricIds(locals.db);
 	const bishopric = all.filter((m) => bishopricIds.includes(m.id));
@@ -86,6 +87,7 @@ export const load: PageServerLoad = ({ locals, params }) => {
 				: {})
 		},
 		hasProgram: hasProgram(full.meeting.kind),
+		fastLike,
 		kinds: MEETING_KINDS.map((k) => ({ value: k, label: KIND_LABELS[k] })),
 		statuses: STATUSES.map((s) => ({ value: s, label: { offen: 'Offen', angefragt: 'Angefragt', zugesagt: 'Zugesagt' }[s] })),
 		presidingName: showProgram && full.presiding ? displayName(full.presiding) : null,

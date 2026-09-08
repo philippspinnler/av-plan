@@ -1,11 +1,11 @@
 import { desc, eq, inArray } from 'drizzle-orm';
 import { addDays, weeksBetween } from '../dates';
 import type { Db } from './db';
-import { meetingHymns, meetingPrayers, meetingTalks, meetings, type HymnSlot, type MeetingKind } from './db/schema';
+import { FAST_LIKE_KINDS, isFastLike, meetingHymns, meetingPrayers, meetingTalks, meetings, type HymnSlot, type MeetingKind } from './db/schema';
 import type { MeetingFull } from './meetings';
 
-const COUNTED: MeetingKind[] = ['normal', 'fastsonntag', 'ostern', 'weihnachten', 'gemeindekonferenz'];
-const RATED: MeetingKind[] = ['normal', 'fastsonntag', 'ostern', 'weihnachten'];
+const COUNTED: MeetingKind[] = ['normal', ...FAST_LIKE_KINDS, 'ostern', 'weihnachten', 'gemeindekonferenz'];
+const RATED: MeetingKind[] = ['normal', ...FAST_LIKE_KINDS, 'ostern', 'weihnachten'];
 
 export function isRated(kind: MeetingKind): boolean {
 	return RATED.includes(kind);
@@ -101,7 +101,7 @@ export function readiness(m: MeetingFull): { program: string[]; music: string[] 
 	const prayer = (pos: number) => m.prayers.find((p) => p.position === pos);
 	if (prayer(1)?.status !== 'zugesagt' || !prayer(1)?.member) program.push('Anfangsgebet');
 	if (prayer(2)?.status !== 'zugesagt' || !prayer(2)?.member) program.push('Schlussgebet');
-	if (kind !== 'fastsonntag') {
+	if (!isFastLike(kind)) {
 		const confirmed = m.talks.filter((t) => t.member && t.status === 'zugesagt').length;
 		if (confirmed < 2) program.push(`Ansprachen (${confirmed} von 2 zugesagt)`);
 	}

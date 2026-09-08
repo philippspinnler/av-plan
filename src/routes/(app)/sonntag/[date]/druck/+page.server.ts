@@ -5,6 +5,7 @@ import { programOrder } from '$lib/schedule';
 import { hymnLabel } from '$lib/server/hymns';
 import { displayName } from '$lib/server/members';
 import { KIND_LABELS, hasProgram, loadMeetingFullByDate } from '$lib/server/meetings';
+import { isFastLike } from '$lib/server/db/schema';
 import { requireRole } from '$lib/server/permissions';
 import { getAllSettings } from '$lib/server/settings';
 import { PRINT_TEXTS } from '$lib/print/texts';
@@ -30,7 +31,7 @@ export const load: PageServerLoad = ({ locals, params }) => {
 		date: params.date,
 		dateLabel: formatDateDe(params.date),
 		kindLabel: KIND_LABELS[m.kind],
-		isFast: m.kind === 'fastsonntag',
+		isFast: isFastLike(m.kind),
 		hasProgram: hasProgram(m.kind),
 		wardName: settings.ward_name,
 		presiding: full.presiding ? displayName(full.presiding) : '',
