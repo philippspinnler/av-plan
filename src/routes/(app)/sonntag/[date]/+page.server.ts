@@ -29,7 +29,7 @@ function meetingIdFor(locals: App.Locals, date: string): number {
 	return m.id;
 }
 
-export const load: PageServerLoad = ({ locals, params, url }) => {
+export const load: PageServerLoad = ({ locals, params }) => {
 	const date = params.date;
 	checkDate(date);
 	const role = locals.user!.role;
@@ -53,8 +53,7 @@ export const load: PageServerLoad = ({ locals, params, url }) => {
 	const all = listMembers(locals.db);
 	const stats = can(role, 'members.stats');
 	const activity = stats ? memberActivity(locals.db, today) : new Map();
-	const showFourth = url.searchParams.get('vier') === '1' || full.talks.some((t) => t.position === 4);
-	const positions = showFourth ? [1, 2, 3, 4] : [1, 2, 3];
+	const showFourth = full.talks.some((t) => t.position === 4);
 	const emptyTalk = (position: number) => ({ position, member: null, topic: null, durationMinutes: null, status: 'offen' as Status, note: null });
 	const kind = full.meeting.kind;
 	const hymnSlots = HYMN_SLOTS.filter((slot) => slot !== 'zwischen' || kind !== 'fastsonntag');
@@ -100,7 +99,7 @@ export const load: PageServerLoad = ({ locals, params, url }) => {
 				})
 			: [],
 		talks: showProgram
-			? positions.map((position) => {
+			? [1, 2, 3, 4].map((position) => {
 					const t = full.talks.find((x) => x.position === position) ?? emptyTalk(position);
 					return {
 						position,
@@ -133,12 +132,13 @@ export const actions: Actions = {
 		if (!getMeetingByDate(locals.db, params.date)) createMeeting(locals.db, params.date);
 		return { saved: 'create' };
 	},
-	general: async ({ request, locals, params }) => {
+	program: async ({ request, locals, params }) => {
 		requireRole(locals.user, 'meeting.program');
 		const id = meetingIdFor(locals, params.date);
 		const fd = await request.formData();
 		const kind = str(fd, 'kind');
 		if (!isKind(kind)) return fail(400, { error: 'Ungültiger Typ.' });
+
 		saveGeneral(locals.db, id, {
 			kind,
 			theme: optStr(fd, 'theme'),
@@ -146,23 +146,11 @@ export const actions: Actions = {
 			presidingMemberId: optInt(fd, 'presiding'),
 			absences: optStr(fd, 'absences')
 		});
-		return { saved: 'general' };
-	},
-	prayers: async ({ request, locals, params }) => {
-		requireRole(locals.user, 'meeting.program');
-		const id = meetingIdFor(locals, params.date);
-		const fd = await request.formData();
 		savePrayers(
 			locals.db,
 			id,
 			[1, 2].map((position) => ({ position, memberId: optInt(fd, `prayer${position}_member`), status: statusOf(str(fd, `prayer${position}_status`)) }))
 		);
-		return { saved: 'prayers' };
-	},
-	talks: async ({ request, locals, params }) => {
-		requireRole(locals.user, 'meeting.program');
-		const id = meetingIdFor(locals, params.date);
-		const fd = await request.formData();
 		const talks: TalkInput[] = [];
 		for (const position of [1, 2, 3, 4]) {
 			if (!fd.has(`talk${position}_status`)) continue;
@@ -178,26 +166,15 @@ export const actions: Actions = {
 			talks.push(t);
 		}
 		saveTalks(locals.db, id, talks);
-		return { saved: 'talks' };
-	},
-	announcements: async ({ request, locals, params }) => {
-		requireRole(locals.user, 'meeting.program');
-		const id = meetingIdFor(locals, params.date);
-		const fd = await request.formData();
 		saveAnnouncements(locals.db, id, strList(fd, 'announcement'));
-		return { saved: 'announcements' };
-	},
-	callings: async ({ request, locals, params }) => {
-		requireRole(locals.user, 'meeting.program');
-		const id = meetingIdFor(locals, params.date);
-		const fd = await request.formData();
 		const pairs = (kind: 'entlassung' | 'berufung', prefix: string) => {
 			const names = fd.getAll(`${prefix}_name`).map((v) => String(v).trim());
 			const callings = fd.getAll(`${prefix}_calling`).map((v) => String(v).trim());
 			return names.map((personName, i) => ({ kind, personName, calling: callings[i] ?? '' })).filter((c) => c.personName || c.calling);
 		};
 		saveCallings(locals.db, id, [...pairs('entlassung', 'release'), ...pairs('berufung', 'sustain')]);
-		return { saved: 'callings' };
+
+		return { saved: 'program' };
 	},
 	music: async ({ request, locals, params }) => {
 		requireRole(locals.user, 'meeting.music');
