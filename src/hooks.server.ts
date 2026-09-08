@@ -2,6 +2,7 @@ import { redirect, type Handle, type HandleServerError } from '@sveltejs/kit';
 import { getDb } from '$lib/server/db';
 import { userCount, validateSession } from '$lib/server/auth';
 import { SESSION_COOKIE, clearSessionCookie, setSessionCookie } from '$lib/server/cookies';
+import { ROLE_VIEW_COOKIE, effectiveRole } from '$lib/server/role-view';
 
 const PUBLIC = new Set(['/login', '/setup', '/health']);
 
@@ -9,12 +10,14 @@ export const handle: Handle = async ({ event, resolve }) => {
 	const db = getDb();
 	event.locals.db = db;
 	event.locals.user = null;
+	event.locals.accountRole = null;
 
 	const sid = event.cookies.get(SESSION_COOKIE);
 	if (sid) {
 		const session = validateSession(db, sid);
 		if (session) {
-			event.locals.user = session.user;
+			event.locals.accountRole = session.user.role;
+			event.locals.user = { ...session.user, role: effectiveRole(session.user.role, event.cookies.get(ROLE_VIEW_COOKIE)) };
 			setSessionCookie(event.cookies, sid, session.expiresAt);
 		} else {
 			clearSessionCookie(event.cookies);

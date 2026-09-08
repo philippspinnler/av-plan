@@ -68,4 +68,9 @@ textarea { min-height: 5rem; }
 .kind-tag { font-size: 0.85rem; color: var(--muted); }
 .auth-box { max-width: 420px; margin: 4rem auto; }
 .copy-box { background: var(--bg); border: 1px dashed var(--line); border-radius: 8px; padding: 0.8rem; white-space: pre-wrap; font-size: 0.95rem; }
+.role-switch { display: flex; align-items: center; gap: 0.4rem; }
+.role-switch label { font-size: 0.9rem; color: var(--muted); }
+.role-switch select { min-height: 36px; padding: 0.2rem 0.5rem; width: auto; }
+.inline-form { display: inline; }
+.view-banner { background: #fef0c7; color: #7a4b00; padding: 0.5rem 1rem; text-align: center; display: flex; align-items: center; justify-content: center; gap: 0.75rem; flex-wrap: wrap; }
 @media print { .no-print { display: none !important; } }
