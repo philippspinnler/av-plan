@@ -34,10 +34,12 @@
 			{:else}
 				<div class="field"><label for="af">Bemerkung (optional, erscheint in Klammern)</label><input id="af" name="affiliation" type="text" value={m.affiliation ?? ''} placeholder="z.B. Missionar" /></div>
 			{/if}
-			<div class="grid-2">
-				<div class="field"><label for="nt">Notiz Ansprache</label><input id="nt" name="noteTalk" type="text" value={m.noteTalk ?? ''} /></div>
-				<div class="field"><label for="np">Notiz Gebet</label><input id="np" name="notePrayer" type="text" value={m.notePrayer ?? ''} /></div>
-			</div>
+			{#if kind === 'gemeinde'}
+				<div class="grid-2">
+					<div class="field"><label for="nt">Notiz Ansprache</label><input id="nt" name="noteTalk" type="text" value={m.noteTalk ?? ''} /></div>
+					<div class="field"><label for="np">Notiz Gebet</label><input id="np" name="notePrayer" type="text" value={m.notePrayer ?? ''} /></div>
+				</div>
+			{/if}
 			<div class="field">
 				<label for="active">Status</label>
 				<select id="active" name="active">
@@ -49,14 +51,14 @@
 		</form>
 	{:else}
 		<p><strong>Art:</strong> {m.kind === 'pfahl' ? `Pfahlbeamter${m.calling ? ` (${m.calling})` : ''}` : `Gemeindemitglied${m.affiliation ? ` (${m.affiliation})` : ''}`} · <strong>Status:</strong> {m.active ? 'aktiv' : 'inaktiv'}</p>
-		{#if data.stats}
+		{#if data.stats && m.kind === 'gemeinde'}
 			{#if m.noteTalk}<p><strong>Notiz Ansprache:</strong> {m.noteTalk}</p>{/if}
 			{#if m.notePrayer}<p><strong>Notiz Gebet:</strong> {m.notePrayer}</p>{/if}
 		{/if}
 	{/if}
 </div>
 
-{#if data.stats}
+{#if data.stats && m.kind === 'gemeinde'}
 	<div class="section">
 		<h2>Einsätze</h2>
 		{#if data.history.length === 0}

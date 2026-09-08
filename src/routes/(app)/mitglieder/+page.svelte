@@ -5,13 +5,13 @@
 	let newKind = $state<'gemeinde' | 'pfahl'>('gemeinde');
 </script>
 
-{#snippet memberTable(rows: typeof data.ward)}
+{#snippet memberTable(rows: typeof data.ward, withStats: boolean)}
 	<div class="table-wrap">
 		<table class="table">
 			<thead>
 				<tr>
 					<th>Name</th>
-					{#if data.stats}<th>Letzte Ansprache</th><th>Letztes Gebet</th><th>Notizen</th>{/if}
+					{#if withStats}<th>Letzte Ansprache</th><th>Letztes Gebet</th><th>Notizen</th>{/if}
 					{#if data.showAll}<th>Status</th>{/if}
 				</tr>
 			</thead>
@@ -19,7 +19,7 @@
 				{#each rows as m}
 					<tr class="clickable" onclick={() => goto(`/mitglieder/${m.id}`)}>
 						<td><a href="/mitglieder/{m.id}">{m.name}</a></td>
-						{#if data.stats}
+						{#if withStats}
 							<td>{m.lastTalk}</td>
 							<td>{m.lastPrayer}</td>
 							<td class="hint">{[m.noteTalk, m.notePrayer].filter(Boolean).join(' · ')}</td>
@@ -72,11 +72,11 @@
 
 <div class="section">
 	<h2>Gemeindemitglieder</h2>
-	{#if data.ward.length === 0}<p class="muted">Keine Einträge.</p>{:else}{@render memberTable(data.ward)}{/if}
+	{#if data.ward.length === 0}<p class="muted">Keine Einträge.</p>{:else}{@render memberTable(data.ward, data.stats)}{/if}
 </div>
 
 <div class="section">
 	<h2>Pfahlbeamte</h2>
 	<p class="hint">Erscheinen nur bei den Ansprachen zur Auswahl.</p>
-	{#if data.stake.length === 0}<p class="muted">Keine Einträge.</p>{:else}{@render memberTable(data.stake)}{/if}
+	{#if data.stake.length === 0}<p class="muted">Keine Einträge.</p>{:else}{@render memberTable(data.stake, false)}{/if}
 </div>
