@@ -78,4 +78,8 @@ textarea { min-height: 5rem; }
 .savebar-status { color: var(--muted); font-size: 0.9rem; }
 .savebar-status.err { color: var(--danger); font-weight: 600; }
 .field-static { margin: 0 0 0.9rem; }
+.flow-step { border-left: 4px solid var(--primary); }
+.flow-step h2 { display: flex; gap: 0.5rem; align-items: baseline; }
+.greeting-list { list-style: none; padding: 0; margin: 0 0 0.75rem; color: var(--muted); }
+.greeting-list li::before { content: '□ '; }
 @media print { .no-print { display: none !important; } }

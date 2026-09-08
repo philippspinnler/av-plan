@@ -9,10 +9,12 @@
 	let releases = $state<{ personName: string; calling: string }[]>([]);
 	let sustainings = $state<{ personName: string; calling: string }[]>([]);
 	let showQuickAdd = $state(false);
-	let showFourth = $state(false);
+	let showFourth = $state(data.missing ? false : data.showFourth);
 	let seededAnnouncements = $state<string | null>(null);
 	let seededCallings = $state<string | null>(null);
 	let seededFourth = $state<string | null>(null);
+	let results = $state<Record<string, { ok: boolean; error?: string }>>({});
+	let pending = $state(0);
 
 	$effect(() => {
 		if (data.missing) return;
@@ -53,10 +55,19 @@
 
 	function saveAll() {
 		if (data.missing) return;
+		results = {};
 		if (data.showProgram) (document.getElementById('programForm') as HTMLFormElement | null)?.requestSubmit();
 		if (data.canMusic) (document.getElementById('musicForm') as HTMLFormElement | null)?.requestSubmit();
 		else if (data.canConductor) (document.getElementById('conductorForm') as HTMLFormElement | null)?.requestSubmit();
 	}
+
+	const saveStatus = $derived.by(() => {
+		const entries = Object.values(results);
+		const errors = entries.filter((r) => !r.ok).map((r) => r.error ?? 'Fehler');
+		if (errors.length) return { kind: 'error' as const, text: errors.join(' · ') };
+		if (entries.length && entries.every((r) => r.ok)) return { kind: 'ok' as const, text: 'Gespeichert' };
+		return { kind: 'hint' as const, text: 'Änderungen werden erst mit Speichern übernommen' };
+	});
 </script>
 
 {#snippet hymnRow(h: { slot: string; label: string; value: string; freeText: string | null } | undefined)}
@@ -159,14 +170,53 @@
 			</div>
 		</div>
 
-		{#if data.hasProgram}
-			<form id="programForm" method="POST" action="?/program" use:enhance></form>
-			<form id="musicForm" method="POST" action="?/music" use:enhance></form>
-			{#if data.canConductor && !data.canMusic}
-				<form id="conductorForm" method="POST" action="?/conductor" use:enhance></form>
-			{/if}
-			<datalist id="hymnlist">{#each data.hymnList as h}<option value={h}></option>{/each}</datalist>
+		{#if data.showProgram}
+			<form
+				id="programForm"
+				method="POST"
+				action="?/program"
+				use:enhance={() => {
+					pending++;
+					return async ({ result, update }) => {
+						pending--;
+						results.program = result.type === 'success' ? { ok: true } : { ok: false, error: result.type === 'failure' ? String(result.data?.error ?? 'Fehler') : 'Fehler' };
+						await update();
+					};
+				}}
+			></form>
+		{/if}
+		{#if data.canMusic}
+			<form
+				id="musicForm"
+				method="POST"
+				action="?/music"
+				use:enhance={() => {
+					pending++;
+					return async ({ result, update }) => {
+						pending--;
+						results.music = result.type === 'success' ? { ok: true } : { ok: false, error: result.type === 'failure' ? String(result.data?.error ?? 'Fehler') : 'Fehler' };
+						await update();
+					};
+				}}
+			></form>
+		{:else if data.canConductor}
+			<form
+				id="conductorForm"
+				method="POST"
+				action="?/conductor"
+				use:enhance={() => {
+					pending++;
+					return async ({ result, update }) => {
+						pending--;
+						results.conductor = result.type === 'success' ? { ok: true } : { ok: false, error: result.type === 'failure' ? String(result.data?.error ?? 'Fehler') : 'Fehler' };
+						await update();
+					};
+				}}
+			></form>
+		{/if}
+		<datalist id="hymnlist">{#each data.hymnList as h}<option value={h}></option>{/each}</datalist>
 
+		{#if data.hasProgram}
 			{#if data.showProgram}
 				<!-- 2. Begrüssung und Bekanntmachungen -->
 				<div class="section flow-step">
@@ -345,15 +395,7 @@
 	</div>
 
 	<div class="savebar no-print">
-		<span class="savebar-status" class:err={!!form?.error}>
-			{#if form?.error}
-				{form.error}
-			{:else if form?.saved === 'program' || form?.saved === 'music' || form?.saved === 'conductor'}
-				Gespeichert
-			{:else}
-				Änderungen werden erst mit Speichern übernommen
-			{/if}
-		</span>
-		<button class="btn btn-primary" type="button" onclick={saveAll}>Speichern</button>
+		<span class="savebar-status" class:err={saveStatus.kind === 'error'}>{saveStatus.text}</span>
+		<button class="btn btn-primary" type="button" disabled={pending > 0} onclick={saveAll}>Speichern</button>
 	</div>
 {/if}
