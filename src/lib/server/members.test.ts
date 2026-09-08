@@ -21,6 +21,10 @@ describe('members', () => {
 		const d = findMemberByName(db, 'HR-Daniel Dürst');
 		expect(d && displayName(d)).toBe('Daniel Dürst (Hoherat)');
 		expect(displayName({ firstName: 'Anna', lastName: 'Rey', affiliation: null })).toBe('Anna Rey');
+		expect(displayName({ firstName: 'Simon', lastName: 'Dürst', affiliation: null, calling: '1. Ratgeber Pfahlpräsidentschaft' })).toBe('Simon Dürst (1. Ratgeber Pfahlpräsidentschaft)');
+		const stake = createMember(db, { firstName: 'Stefan', lastName: 'Landolt', kind: 'pfahl', calling: 'Hoherat' });
+		expect(listMembers(db, { kind: 'pfahl' }).map((m) => m.id)).toEqual([stake.id]);
+		expect(listMembers(db, { kind: 'gemeinde' })).toHaveLength(5);
 	});
 	it('findet per Name in beiden Schreibweisen, ignoriert Präfix', () => {
 		expect(findMemberByName(db, 'anna rey')?.firstName).toBe('Anna');

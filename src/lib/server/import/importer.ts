@@ -4,7 +4,7 @@ import { splitFullName, splitListName } from '../../names';
 import type { Db } from '../db';
 import { HYMN_SLOTS, type HymnSlot, type Member } from '../db/schema';
 import { createHymn, getHymnByNumber, updateHymn } from '../hymns';
-import { createMember, listMembers, matchByFirstName, matchMember, updateMember } from '../members';
+import { createMember, listMembers, matchByFirstName, matchMember, stakeFromAffiliation, updateMember } from '../members';
 import { createMeeting, getMeetingByDate, loadMeetingFullByDate, saveGeneral, saveMusic, savePrayers, saveTalks, type TalkInput } from '../meetings';
 import { cellDateIso, cellNumber, cellSeconds, cellText, isIgnoredToken, parseSpezial, parseTalk } from './parse';
 
@@ -27,7 +27,15 @@ class MemberResolver {
 		if (hit) return hit;
 		const { firstName, lastName, affiliation } = splitFullName(raw);
 		if (!firstName) return null;
-		const created = createMember(this.db, { firstName, lastName, affiliation, active: affiliation !== null });
+		const stake = stakeFromAffiliation(affiliation);
+		const created = createMember(this.db, {
+			firstName,
+			lastName,
+			affiliation: stake.kind === 'pfahl' ? null : affiliation,
+			kind: stake.kind,
+			calling: stake.calling,
+			active: affiliation !== null
+		});
 		this.all.push(created);
 		this.report.unresolved.push(raw.trim());
 		return created;
@@ -51,9 +59,16 @@ function importMembers(db: Db, ws: ExcelJS.Worksheet | undefined, report: Import
 		const notePrayer = txt(row, 5) || null;
 		const existing = matchMember(all, `${firstName} ${lastName}`);
 		if (existing) {
-			updateMember(db, existing.id, { active, noteTalk, notePrayer, affiliation: affiliation ?? existing.affiliation });
+			const stake = stakeFromAffiliation(affiliation);
+			updateMember(db, existing.id, {
+				active,
+				noteTalk,
+				notePrayer,
+				...(stake.kind === 'pfahl' ? { kind: 'pfahl', calling: stake.calling, affiliation: null } : { affiliation: affiliation ?? existing.affiliation })
+			});
 		} else {
-			all.push(createMember(db, { firstName, lastName, affiliation, active, noteTalk, notePrayer }));
+			const stake = stakeFromAffiliation(affiliation);
+			all.push(createMember(db, { firstName, lastName, affiliation: stake.kind === 'pfahl' ? null : affiliation, kind: stake.kind, calling: stake.calling, active, noteTalk, notePrayer }));
 			report.members++;
 		}
 	});

@@ -68,7 +68,10 @@ describe('importWorkbooks', () => {
 		const edith = findMemberByName(db, 'Edith Achermann')!;
 		expect(edith.active).toBe(false);
 		expect(edith.notePrayer).toBe('will lieber nicht beten');
-		expect(findMemberByName(db, 'Daniel Dürst')?.affiliation).toBe('Hoherat');
+		const daniel = findMemberByName(db, 'Daniel Dürst')!;
+		expect(daniel.kind).toBe('pfahl');
+		expect(daniel.calling).toBe('Hoherat');
+		expect(daniel.affiliation).toBeNull();
 	});
 	it('legt unbekannte Sprecher an und meldet sie', () => {
 		const elder = findMemberByName(db, 'Elder Neuer')!;

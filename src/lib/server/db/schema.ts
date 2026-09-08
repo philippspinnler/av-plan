@@ -15,6 +15,8 @@ export type Status = (typeof STATUSES)[number];
 export const HYMN_SLOTS = ['anfang', 'abendmahl', 'zwischen', 'schluss'] as const;
 export type HymnSlot = (typeof HYMN_SLOTS)[number];
 export const CALLING_KINDS = ['entlassung', 'berufung'] as const;
+export const MEMBER_KINDS = ['gemeinde', 'pfahl'] as const;
+export type MemberKind = (typeof MEMBER_KINDS)[number];
 export type CallingKind = (typeof CALLING_KINDS)[number];
 
 const now = sql`(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))`;
@@ -64,6 +66,8 @@ export const members = sqliteTable('members', {
 	firstName: text('first_name').notNull(),
 	lastName: text('last_name').notNull(),
 	affiliation: text('affiliation'),
+	kind: text('kind', { enum: MEMBER_KINDS }).notNull().default('gemeinde'),
+	calling: text('calling'),
 	active: integer('active', { mode: 'boolean' }).notNull().default(true),
 	noteTalk: text('note_talk'),
 	notePrayer: text('note_prayer'),

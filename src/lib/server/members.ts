@@ -1,20 +1,41 @@
-import { asc, eq } from 'drizzle-orm';
+import { and, asc, eq } from 'drizzle-orm';
 import { normalizeName, stripPrefix } from '../names';
 import type { Db } from './db';
-import { members, type Member } from './db/schema';
+import { members, type Member, type MemberKind } from './db/schema';
+
+/** Vorschlagsliste für Berufungen von Pfahlbeamten; Freitext bleibt erlaubt. */
+export const STAKE_CALLINGS = [
+	'Pfahlpräsident',
+	'1. Ratgeber Pfahlpräsidentschaft',
+	'2. Ratgeber Pfahlpräsidentschaft',
+	'Hoherat',
+	'Missionspräsident'
+] as const;
+
+/** Übersetzt eine importierte Zugehörigkeit (z.B. aus Präfixen wie HR-) in Art und Berufung. */
+export function stakeFromAffiliation(affiliation: string | null): { kind: MemberKind; calling: string | null } {
+	const stake = ['Hoherat', 'Pfahlpräsidentschaft', 'Tempelpräsidentschaft', 'Missionspräsidentschaft'];
+	if (affiliation && stake.includes(affiliation)) return { kind: 'pfahl', calling: affiliation };
+	return { kind: 'gemeinde', calling: null };
+}
 
 export interface MemberInput {
 	firstName: string;
 	lastName: string;
 	affiliation?: string | null;
+	kind?: MemberKind;
+	calling?: string | null;
 	active?: boolean;
 	noteTalk?: string | null;
 	notePrayer?: string | null;
 }
 
-export function listMembers(db: Db, opts: { activeOnly?: boolean } = {}): Member[] {
+export function listMembers(db: Db, opts: { activeOnly?: boolean; kind?: MemberKind } = {}): Member[] {
+	const conds = [];
+	if (opts.activeOnly) conds.push(eq(members.active, true));
+	if (opts.kind) conds.push(eq(members.kind, opts.kind));
 	const base = db.select().from(members);
-	const q = opts.activeOnly ? base.where(eq(members.active, true)) : base;
+	const q = conds.length ? base.where(and(...conds)) : base;
 	return q.orderBy(asc(members.lastName), asc(members.firstName)).all();
 }
 
@@ -29,6 +50,8 @@ export function createMember(db: Db, input: MemberInput): Member {
 			firstName: input.firstName.trim(),
 			lastName: input.lastName.trim(),
 			affiliation: input.affiliation?.trim() || null,
+			kind: input.kind ?? 'gemeinde',
+			calling: input.calling?.trim() || null,
 			active: input.active ?? true,
 			noteTalk: input.noteTalk?.trim() || null,
 			notePrayer: input.notePrayer?.trim() || null
@@ -44,9 +67,10 @@ export function updateMember(db: Db, id: number, patch: Partial<MemberInput>): v
 		.run();
 }
 
-export function displayName(m: Pick<Member, 'firstName' | 'lastName' | 'affiliation'>): string {
+export function displayName(m: Pick<Member, 'firstName' | 'lastName' | 'affiliation'> & { calling?: string | null }): string {
 	const name = `${m.firstName} ${m.lastName}`.trim();
-	return m.affiliation ? `${name} (${m.affiliation})` : name;
+	const suffix = m.calling || m.affiliation;
+	return suffix ? `${name} (${suffix})` : name;
 }
 
 export function matchMember(all: Member[], raw: string): Member | null {
