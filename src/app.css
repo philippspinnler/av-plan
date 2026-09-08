@@ -95,3 +95,6 @@ textarea { min-height: 5rem; }
 .overview .c-kind { width: 10rem; }
 .overview .c-status { width: 22%; }
 .overview td { overflow-wrap: anywhere; }
+.status-row { display: flex; flex-wrap: wrap; gap: 0.5rem 2rem; margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid var(--line); }
+.status-row > div { display: flex; align-items: center; gap: 0.5rem; }
+.status-label { font-weight: 600; }
