@@ -3,7 +3,8 @@ import type { Db } from './db';
 import { settings } from './db/schema';
 
 export const SETTING_DEFAULTS = {
-	ward_name: 'Gemeinde'
+	ward_name: 'Gemeinde',
+	bishopric_member_ids: '[]'
 } as const;
 
 export type SettingKey = keyof typeof SETTING_DEFAULTS;

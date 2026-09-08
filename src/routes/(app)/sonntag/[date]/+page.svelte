@@ -166,7 +166,19 @@
 					{/if}
 				</div>
 				{#if data.showProgram}
-					<div class="field"><label for="absences">Abwesenheiten Bischofschaft</label><input id="absences" name="absences" type="text" form="programForm" value={data.meeting.absences ?? ''} /></div>
+					<div class="field">
+						<span class="label">Abwesend (Bischofschaft)</span>
+						{#if data.absenceOptions.length}
+							<div class="check-list">
+								{#each data.absenceOptions as o}
+									<label class="check"><input type="checkbox" name="absent" value={o.id} form="programForm" checked={data.meeting.absenceIds?.includes(o.id)} /> {o.label}</label>
+								{/each}
+							</div>
+						{:else}
+							<p class="hint">Bischofschaft noch nicht festgelegt. Ein Admin kann sie unter Einstellungen erfassen.</p>
+						{/if}
+						{#if data.meeting.absencesLegacy}<p class="hint">Bisheriger Eintrag: {data.meeting.absencesLegacy}</p>{/if}
+					</div>
 				{/if}
 			</div>
 		</div>

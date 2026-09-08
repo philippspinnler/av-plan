@@ -11,6 +11,7 @@ import {
 	saveAnnouncements, saveCallings, saveConductor, saveGeneral, saveMusic, savePrayers, saveTalks, type TalkInput
 } from '$lib/server/meetings';
 import { can, requireRole } from '$lib/server/permissions';
+import { formatAbsences, getBishopricIds, parseAbsences } from '$lib/server/bishopric';
 import { memberOptions } from '$lib/server/picker';
 import { memberActivity } from '$lib/server/stats';
 
@@ -58,6 +59,11 @@ export const load: PageServerLoad = ({ locals, params }) => {
 	const kind = full.meeting.kind;
 	const hymnSlots = HYMN_SLOTS.filter((slot) => slot !== 'zwischen' || kind !== 'fastsonntag');
 
+	const bishopricIds = getBishopricIds(locals.db);
+	const bishopric = all.filter((m) => bishopricIds.includes(m.id));
+	const presidingPool = bishopric.length ? all.filter((m) => bishopricIds.includes(m.id) || m.id === full.meeting.presidingMemberId) : all;
+	const absences = parseAbsences(full.meeting.absences);
+
 	return {
 		...base,
 		missing: false as const,
@@ -71,7 +77,8 @@ export const load: PageServerLoad = ({ locals, params }) => {
 			conductorMemberId: full.meeting.conductorMemberId,
 			...(showProgram
 				? {
-						absences: full.meeting.absences,
+						absenceIds: absences.ids,
+						absencesLegacy: absences.legacy,
 						presidingMemberId: full.meeting.presidingMemberId
 					}
 				: {})
@@ -82,7 +89,8 @@ export const load: PageServerLoad = ({ locals, params }) => {
 		presidingName: showProgram && full.presiding ? displayName(full.presiding) : null,
 		organistName: full.organist ? displayName(full.organist) : null,
 		conductorName: full.conductor ? displayName(full.conductor) : null,
-		presidingOptions: showProgram ? memberOptions(all, activity, 'plain', today, full.meeting.presidingMemberId) : [],
+		presidingOptions: showProgram ? memberOptions(presidingPool, activity, 'plain', today, full.meeting.presidingMemberId) : [],
+		absenceOptions: showProgram ? bishopric.map((m) => ({ id: m.id, label: displayName(m) })) : [],
 		organistOptions: memberOptions(all, activity, 'plain', today, full.meeting.organistMemberId),
 		conductorOptions: memberOptions(all, activity, 'plain', today, full.meeting.conductorMemberId),
 		prayers: showProgram
@@ -144,7 +152,7 @@ export const actions: Actions = {
 			theme: optStr(fd, 'theme'),
 			specialNote: optStr(fd, 'specialNote'),
 			presidingMemberId: optInt(fd, 'presiding'),
-			absences: optStr(fd, 'absences')
+			absences: formatAbsences(fd.getAll('absent').map((v) => Number(v)))
 		});
 		savePrayers(
 			locals.db,
