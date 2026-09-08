@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { createDb, type Db } from './db';
+import { ensureStakeCalling } from './stake-callings';
 import { createMember, displayName, findMemberByName, listMembers, matchByFirstName, matchMember, updateMember } from './members';
 
 let db: Db;
@@ -22,7 +23,10 @@ describe('members', () => {
 		expect(d && displayName(d)).toBe('Daniel Dürst (Hoherat)');
 		expect(displayName({ firstName: 'Anna', lastName: 'Rey', affiliation: null })).toBe('Anna Rey');
 		expect(displayName({ firstName: 'Simon', lastName: 'Dürst', affiliation: null, calling: '1. Ratgeber Pfahlpräsidentschaft' })).toBe('Simon Dürst (1. Ratgeber Pfahlpräsidentschaft)');
-		const stake = createMember(db, { firstName: 'Stefan', lastName: 'Landolt', kind: 'pfahl', calling: 'Hoherat' });
+		const hr = ensureStakeCalling(db, 'Hoherat');
+		const stake = createMember(db, { firstName: 'Stefan', lastName: 'Landolt', kind: 'pfahl', stakeCallingId: hr.id });
+		expect(stake.calling).toBe('Hoherat');
+		expect(displayName(stake)).toBe('Stefan Landolt (Hoherat)');
 		expect(listMembers(db, { kind: 'pfahl' }).map((m) => m.id)).toEqual([stake.id]);
 		expect(listMembers(db, { kind: 'gemeinde' })).toHaveLength(5);
 	});

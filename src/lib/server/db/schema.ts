@@ -61,13 +61,19 @@ export const loginAttempts = sqliteTable('login_attempts', {
 	success: integer('success', { mode: 'boolean' }).notNull()
 });
 
+export const stakeCallings = sqliteTable('stake_callings', {
+	id: integer('id').primaryKey({ autoIncrement: true }),
+	name: text('name').notNull().unique(),
+	position: integer('position').notNull().default(0)
+});
+
 export const members = sqliteTable('members', {
 	id: integer('id').primaryKey({ autoIncrement: true }),
 	firstName: text('first_name').notNull(),
 	lastName: text('last_name').notNull(),
 	affiliation: text('affiliation'),
 	kind: text('kind', { enum: MEMBER_KINDS }).notNull().default('gemeinde'),
-	calling: text('calling'),
+	stakeCallingId: integer('stake_calling_id').references(() => stakeCallings.id),
 	active: integer('active', { mode: 'boolean' }).notNull().default(true),
 	noteTalk: text('note_talk'),
 	notePrayer: text('note_prayer'),
@@ -159,7 +165,10 @@ export const settings = sqliteTable('settings', {
 });
 
 export type User = typeof users.$inferSelect;
-export type Member = typeof members.$inferSelect;
+export type MemberRow = typeof members.$inferSelect;
+/** Mitglied mit aufgelöstem Namen der Pfahl-Berufung. */
+export type Member = MemberRow & { calling: string | null };
+export type StakeCalling = typeof stakeCallings.$inferSelect;
 export type Hymn = typeof hymns.$inferSelect;
 export type Meeting = typeof meetings.$inferSelect;
 export type Invite = typeof invites.$inferSelect;

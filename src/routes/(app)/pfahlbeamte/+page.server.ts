@@ -1,7 +1,8 @@
 import { fail, redirect } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
-import { optStr, str } from '$lib/server/forms';
-import { STAKE_CALLINGS, createMember, listMembers } from '$lib/server/members';
+import { optInt, str } from '$lib/server/forms';
+import { createMember, listMembers } from '$lib/server/members';
+import { listStakeCallings } from '$lib/server/stake-callings';
 import { can, requireRole } from '$lib/server/permissions';
 
 export const load: PageServerLoad = ({ locals, url }) => {
@@ -12,7 +13,7 @@ export const load: PageServerLoad = ({ locals, url }) => {
 		calling: m.calling ?? '',
 		active: m.active
 	}));
-	return { officers, showAll, canCreate: can(locals.user!.role, 'members.create'), stakeCallings: STAKE_CALLINGS };
+	return { officers, showAll, canCreate: can(locals.user!.role, 'members.create'), callings: listStakeCallings(locals.db).map((c) => ({ id: c.id, name: c.name })) };
 };
 
 export const actions: Actions = {
@@ -22,7 +23,7 @@ export const actions: Actions = {
 		const firstName = str(fd, 'firstName');
 		const lastName = str(fd, 'lastName');
 		if (!firstName) return fail(400, { error: 'Bitte mindestens einen Vornamen angeben.' });
-		const m = createMember(locals.db, { firstName, lastName, kind: 'pfahl', calling: optStr(fd, 'calling') });
+		const m = createMember(locals.db, { firstName, lastName, kind: 'pfahl', stakeCallingId: optInt(fd, 'stakeCallingId') });
 		redirect(303, `/mitglieder/${m.id}`);
 	}
 };

@@ -5,6 +5,7 @@ import type { Db } from '../db';
 import { HYMN_SLOTS, type HymnSlot, type Member } from '../db/schema';
 import { createHymn, getHymnByNumber, updateHymn } from '../hymns';
 import { createMember, listMembers, matchByFirstName, matchMember, stakeFromAffiliation, updateMember } from '../members';
+import { ensureStakeCalling } from '../stake-callings';
 import { createMeeting, getMeetingByDate, loadMeetingFullByDate, saveGeneral, saveMusic, savePrayers, saveTalks, type TalkInput } from '../meetings';
 import { cellDateIso, cellNumber, cellSeconds, cellText, isIgnoredToken, parseSpezial, parseTalk } from './parse';
 
@@ -33,7 +34,7 @@ class MemberResolver {
 			lastName,
 			affiliation: stake.kind === 'pfahl' ? null : affiliation,
 			kind: stake.kind,
-			calling: stake.calling,
+			stakeCallingId: stake.callingName ? ensureStakeCalling(this.db, stake.callingName).id : null,
 			active: affiliation !== null
 		});
 		this.all.push(created);
@@ -64,11 +65,24 @@ function importMembers(db: Db, ws: ExcelJS.Worksheet | undefined, report: Import
 				active,
 				noteTalk,
 				notePrayer,
-				...(stake.kind === 'pfahl' ? { kind: 'pfahl', calling: stake.calling, affiliation: null } : { affiliation: affiliation ?? existing.affiliation })
+				...(stake.kind === 'pfahl'
+					? { kind: 'pfahl' as const, stakeCallingId: stake.callingName ? ensureStakeCalling(db, stake.callingName).id : null, affiliation: null }
+					: { affiliation: affiliation ?? existing.affiliation })
 			});
 		} else {
 			const stake = stakeFromAffiliation(affiliation);
-			all.push(createMember(db, { firstName, lastName, affiliation: stake.kind === 'pfahl' ? null : affiliation, kind: stake.kind, calling: stake.calling, active, noteTalk, notePrayer }));
+			all.push(
+				createMember(db, {
+					firstName,
+					lastName,
+					affiliation: stake.kind === 'pfahl' ? null : affiliation,
+					kind: stake.kind,
+					stakeCallingId: stake.callingName ? ensureStakeCalling(db, stake.callingName).id : null,
+					active,
+					noteTalk,
+					notePrayer
+				})
+			);
 			report.members++;
 		}
 	});

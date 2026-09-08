@@ -358,8 +358,10 @@
 								</div>
 								<div class="field">
 									<label for="qa-calling">Berufung (Pfahlbeamte)</label>
-									<input id="qa-calling" name="calling" type="text" list="stakeCallings" placeholder="z.B. Hoherat" autocomplete="off" />
-									<datalist id="stakeCallings">{#each data.stakeCallings as c}<option value={c}></option>{/each}</datalist>
+									<select id="qa-calling" name="stakeCallingId">
+										<option value="">– keine –</option>
+										{#each data.stakeCallings as c}<option value={c.id}>{c.name}</option>{/each}
+									</select>
 								</div>
 								<div class="actions"><button class="btn btn-primary" type="submit">Anlegen</button></div>
 							</form>

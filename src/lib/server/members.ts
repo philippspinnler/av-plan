@@ -1,22 +1,22 @@
-import { and, asc, eq } from 'drizzle-orm';
+import { and, asc, eq, getTableColumns, type SQL } from 'drizzle-orm';
 import { normalizeName, stripPrefix } from '../names';
 import type { Db } from './db';
-import { members, type Member, type MemberKind } from './db/schema';
+import { members, stakeCallings, type Member, type MemberKind } from './db/schema';
 
-/** Vorschlagsliste für Berufungen von Pfahlbeamten; Freitext bleibt erlaubt. */
-export const STAKE_CALLINGS = [
-	'Pfahlpräsident',
-	'1. Ratgeber Pfahlpräsidentschaft',
-	'2. Ratgeber Pfahlpräsidentschaft',
-	'Hoherat',
-	'Missionspräsident'
-] as const;
-
-/** Übersetzt eine importierte Zugehörigkeit (z.B. aus Präfixen wie HR-) in Art und Berufung. */
-export function stakeFromAffiliation(affiliation: string | null): { kind: MemberKind; calling: string | null } {
+/** Übersetzt eine importierte Zugehörigkeit (z.B. aus Präfixen wie HR-) in Art und Berufungsname. */
+export function stakeFromAffiliation(affiliation: string | null): { kind: MemberKind; callingName: string | null } {
 	const stake = ['Hoherat', 'Pfahlpräsidentschaft', 'Tempelpräsidentschaft', 'Missionspräsidentschaft'];
-	if (affiliation && stake.includes(affiliation)) return { kind: 'pfahl', calling: affiliation };
-	return { kind: 'gemeinde', calling: null };
+	if (affiliation && stake.includes(affiliation)) return { kind: 'pfahl', callingName: affiliation };
+	return { kind: 'gemeinde', callingName: null };
+}
+
+/** Basisabfrage: Mitglied plus Name der Pfahl-Berufung. */
+export function memberQuery(db: Db, where?: SQL) {
+	const q = db
+		.select({ ...getTableColumns(members), calling: stakeCallings.name })
+		.from(members)
+		.leftJoin(stakeCallings, eq(stakeCallings.id, members.stakeCallingId));
+	return where ? q.where(where) : q;
 }
 
 export interface MemberInput {
@@ -24,7 +24,7 @@ export interface MemberInput {
 	lastName: string;
 	affiliation?: string | null;
 	kind?: MemberKind;
-	calling?: string | null;
+	stakeCallingId?: number | null;
 	active?: boolean;
 	noteTalk?: string | null;
 	notePrayer?: string | null;
@@ -34,30 +34,31 @@ export function listMembers(db: Db, opts: { activeOnly?: boolean; kind?: MemberK
 	const conds = [];
 	if (opts.activeOnly) conds.push(eq(members.active, true));
 	if (opts.kind) conds.push(eq(members.kind, opts.kind));
-	const base = db.select().from(members);
-	const q = conds.length ? base.where(and(...conds)) : base;
-	return q.orderBy(asc(members.lastName), asc(members.firstName)).all();
+	return memberQuery(db, conds.length ? and(...conds) : undefined)
+		.orderBy(asc(members.lastName), asc(members.firstName))
+		.all();
 }
 
 export function getMember(db: Db, id: number): Member | undefined {
-	return db.select().from(members).where(eq(members.id, id)).get();
+	return memberQuery(db, eq(members.id, id)).get();
 }
 
 export function createMember(db: Db, input: MemberInput): Member {
-	return db
+	const row = db
 		.insert(members)
 		.values({
 			firstName: input.firstName.trim(),
 			lastName: input.lastName.trim(),
 			affiliation: input.affiliation?.trim() || null,
 			kind: input.kind ?? 'gemeinde',
-			calling: input.calling?.trim() || null,
+			stakeCallingId: input.kind === 'pfahl' ? (input.stakeCallingId ?? null) : null,
 			active: input.active ?? true,
 			noteTalk: input.noteTalk?.trim() || null,
 			notePrayer: input.notePrayer?.trim() || null
 		})
 		.returning()
 		.get();
+	return getMember(db, row.id)!;
 }
 
 export function updateMember(db: Db, id: number, patch: Partial<MemberInput>): void {

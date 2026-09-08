@@ -15,6 +15,13 @@
       "when": 1788885733410,
       "tag": "0001_member_kind",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1788886707031,
+      "tag": "0002_stake_callings",
+      "breakpoints": true
     }
   ]
 }

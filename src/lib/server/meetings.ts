@@ -6,6 +6,7 @@ import {
 	HYMN_SLOTS, isFastLike, type CallingKind, type Hymn, type HymnSlot, type Meeting, type MeetingKind, type Member, type Status
 } from './db/schema';
 import { getHymnByNumber } from './hymns';
+import { memberQuery } from './members';
 
 export const KIND_LABELS: Record<MeetingKind, string> = {
 	normal: 'Normal',
@@ -83,7 +84,7 @@ function membersById(db: Db, ids: (number | null | undefined)[]): Map<number, Me
 	const wanted = [...new Set(ids.filter((x): x is number => typeof x === 'number'))];
 	const map = new Map<number, Member>();
 	if (wanted.length === 0) return map;
-	for (const m of db.select().from(members).where(inArray(members.id, wanted)).all()) map.set(m.id, m);
+	for (const m of memberQuery(db, inArray(members.id, wanted)).all()) map.set(m.id, m);
 	return map;
 }
 

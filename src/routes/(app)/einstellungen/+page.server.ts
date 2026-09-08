@@ -8,6 +8,7 @@ import { requireRole } from '$lib/server/permissions';
 import { memberOptions } from '$lib/server/picker';
 import { getAllSettings, setSetting } from '$lib/server/settings';
 import { ensureSundays } from '$lib/server/meetings';
+import { createStakeCalling, deleteStakeCalling, listStakeCallings, moveStakeCalling, renameStakeCalling } from '$lib/server/stake-callings';
 
 export const load: PageServerLoad = ({ locals }) => {
 	requireRole(locals.user, 'settings.edit');
@@ -18,7 +19,7 @@ export const load: PageServerLoad = ({ locals }) => {
 		.filter((m): m is NonNullable<typeof m> => !!m)
 		.map((m) => ({ id: m.id, name: displayName(m) }));
 	const candidates = memberOptions(all.filter((m) => m.kind === 'gemeinde' && !ids.includes(m.id)), new Map(), 'plain', todayIso());
-	return { settings: getAllSettings(locals.db), bishopric, candidates };
+	return { settings: getAllSettings(locals.db), bishopric, candidates, callings: listStakeCallings(locals.db).map((c) => ({ id: c.id, name: c.name })) };
 };
 
 export const actions: Actions = {
@@ -36,6 +37,38 @@ export const actions: Actions = {
 		const id = int(fd, 'member');
 		if (!id || getMember(locals.db, id)?.kind !== 'gemeinde') return fail(400, { error: 'Bitte ein Gemeindemitglied auswählen.' });
 		setBishopricIds(locals.db, [...getBishopricIds(locals.db), id]);
+		return { saved: true };
+	},
+	addCalling: async ({ request, locals }) => {
+		requireRole(locals.user, 'settings.edit');
+		const fd = await request.formData();
+		try {
+			createStakeCalling(locals.db, str(fd, 'name'));
+		} catch (e) {
+			return fail(400, { error: (e as Error).message });
+		}
+		return { saved: true };
+	},
+	renameCalling: async ({ request, locals }) => {
+		requireRole(locals.user, 'settings.edit');
+		const fd = await request.formData();
+		try {
+			renameStakeCalling(locals.db, int(fd, 'id'), str(fd, 'name'));
+		} catch (e) {
+			return fail(400, { error: (e as Error).message });
+		}
+		return { saved: true };
+	},
+	deleteCalling: async ({ request, locals }) => {
+		requireRole(locals.user, 'settings.edit');
+		const fd = await request.formData();
+		if (!deleteStakeCalling(locals.db, int(fd, 'id'))) return fail(400, { error: 'Diese Berufung wird noch bei Pfahlbeamten verwendet.' });
+		return { saved: true };
+	},
+	moveCalling: async ({ request, locals }) => {
+		requireRole(locals.user, 'settings.edit');
+		const fd = await request.formData();
+		moveStakeCalling(locals.db, int(fd, 'id'), str(fd, 'dir') === 'up' ? -1 : 1);
 		return { saved: true };
 	},
 	ensureSundays: ({ locals }) => {

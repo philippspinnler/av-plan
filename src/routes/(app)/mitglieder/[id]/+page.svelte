@@ -21,8 +21,10 @@
 			{#if kind === 'pfahl'}
 				<div class="field">
 					<label for="calling">Berufung</label>
-					<input id="calling" name="calling" type="text" list="stakeCallings" value={m.calling ?? ''} placeholder="z.B. Hoherat" autocomplete="off" />
-					<datalist id="stakeCallings">{#each data.stakeCallings as c}<option value={c}></option>{/each}</datalist>
+					<select id="calling" name="stakeCallingId">
+						<option value="">– keine –</option>
+						{#each data.callings as c}<option value={c.id} selected={c.id === m.stakeCallingId}>{c.name}</option>{/each}
+					</select>
 				</div>
 			{:else}
 				<div class="field"><label for="af">Bemerkung (optional, erscheint in Klammern)</label><input id="af" name="affiliation" type="text" value={m.affiliation ?? ''} placeholder="z.B. Missionar" /></div>

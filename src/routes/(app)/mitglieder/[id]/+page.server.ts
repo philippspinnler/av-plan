@@ -1,8 +1,9 @@
 import { error, fail } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 import { formatDateDe } from '$lib/dates';
-import { optStr, str } from '$lib/server/forms';
-import { STAKE_CALLINGS, displayName, getMember, updateMember } from '$lib/server/members';
+import { optInt, optStr, str } from '$lib/server/forms';
+import { displayName, getMember, updateMember } from '$lib/server/members';
+import { listStakeCallings } from '$lib/server/stake-callings';
 import { can, requireRole } from '$lib/server/permissions';
 import { memberHistory } from '$lib/server/stats';
 
@@ -14,7 +15,7 @@ export const load: PageServerLoad = ({ locals, params }) => {
 	return {
 		member: { ...member, noteTalk: stats ? member.noteTalk : null, notePrayer: stats ? member.notePrayer : null },
 		title: displayName(member),
-		stakeCallings: STAKE_CALLINGS,
+		callings: listStakeCallings(locals.db).map((c) => ({ id: c.id, name: c.name })),
 		canEdit: can(role, 'members.edit'),
 		stats,
 		history: stats
@@ -39,7 +40,7 @@ export const actions: Actions = {
 			firstName,
 			lastName: str(fd, 'lastName'),
 			kind,
-			calling: kind === 'pfahl' ? optStr(fd, 'calling') : null,
+			stakeCallingId: kind === 'pfahl' ? optInt(fd, 'stakeCallingId') : null,
 			affiliation: kind === 'gemeinde' ? optStr(fd, 'affiliation') : null,
 			active: str(fd, 'active') === '1',
 			noteTalk: optStr(fd, 'noteTalk'),

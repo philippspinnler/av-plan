@@ -22,8 +22,10 @@
 			<div class="field"><label for="ln">Nachname</label><input id="ln" name="lastName" type="text" /></div>
 			<div class="field">
 				<label for="calling">Berufung</label>
-				<input id="calling" name="calling" type="text" list="stakeCallings" placeholder="z.B. Hoherat" autocomplete="off" />
-				<datalist id="stakeCallings">{#each data.stakeCallings as c}<option value={c}></option>{/each}</datalist>
+				<select id="calling" name="stakeCallingId">
+					<option value="">– keine –</option>
+					{#each data.callings as c}<option value={c.id}>{c.name}</option>{/each}
+				</select>
 			</div>
 			<div class="actions"><button class="btn btn-primary" type="submit">Anlegen</button></div>
 		</form>

@@ -4,7 +4,7 @@ import { memberOptions } from './picker';
 import type { MemberActivity } from './stats';
 
 const m = (id: number, firstName: string, lastName: string, extra: Partial<Member> = {}): Member => ({
-	id, firstName, lastName, affiliation: null, kind: 'gemeinde', calling: null, active: true, noteTalk: null, notePrayer: null, createdAt: '', updatedAt: '', ...extra
+	id, firstName, lastName, affiliation: null, kind: 'gemeinde', stakeCallingId: null, calling: null, active: true, noteTalk: null, notePrayer: null, createdAt: '', updatedAt: '', ...extra
 });
 const members = [m(1, 'Anna', 'Rey'), m(2, 'Beat', 'Fischer', { noteTalk: 'gerne kurz' }), m(3, 'Carla', 'Hofer', { active: false }), m(4, 'Dora', 'Arnold', { affiliation: 'Hoherat' })];
 const act = new Map<number, MemberActivity>([

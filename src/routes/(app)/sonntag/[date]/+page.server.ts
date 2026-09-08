@@ -5,7 +5,8 @@ import { leadingInt } from '$lib/hymn-input';
 import { HYMN_SLOTS, MEETING_KINDS, STATUSES, isFastLike, type HymnSlot, type MeetingKind, type Status } from '$lib/server/db/schema';
 import { optInt, optStr, str, strList } from '$lib/server/forms';
 import { hymnLabel, listHymns } from '$lib/server/hymns';
-import { STAKE_CALLINGS, createMember, displayName, listMembers } from '$lib/server/members';
+import { createMember, displayName, listMembers } from '$lib/server/members';
+import { listStakeCallings } from '$lib/server/stake-callings';
 import {
 	KIND_LABELS, SLOT_LABELS, createMeeting, getMeetingByDate, hasProgram, loadMeetingFullByDate,
 	saveAnnouncements, saveCallings, saveConductor, saveGeneral, saveMusic, savePrayers, saveTalks, type TalkInput
@@ -98,7 +99,7 @@ export const load: PageServerLoad = ({ locals, params }) => {
 		absenceOptions: showProgram ? bishopric.map((m) => ({ id: m.id, label: displayName(m) })) : [],
 		organistOptions: memberOptions(ward, activity, 'plain', today, full.meeting.organistMemberId),
 		conductorOptions: memberOptions(ward, activity, 'plain', today, full.meeting.conductorMemberId),
-		stakeCallings: STAKE_CALLINGS,
+		stakeCallings: listStakeCallings(locals.db).map((c) => ({ id: c.id, name: c.name })),
 		prayers: showProgram
 			? [1, 2].map((position) => {
 					const p = full.prayers.find((x) => x.position === position) ?? { position, member: null, status: 'offen' as Status };
@@ -228,7 +229,7 @@ export const actions: Actions = {
 		const firstName = str(fd, 'firstName');
 		if (!firstName) return fail(400, { error: 'Bitte mindestens einen Vornamen angeben.' });
 		const kind = str(fd, 'kind') === 'pfahl' ? 'pfahl' : 'gemeinde';
-		const m = createMember(locals.db, { firstName, lastName: str(fd, 'lastName'), kind, calling: kind === 'pfahl' ? optStr(fd, 'calling') : null });
+		const m = createMember(locals.db, { firstName, lastName: str(fd, 'lastName'), kind, stakeCallingId: kind === 'pfahl' ? optInt(fd, 'stakeCallingId') : null });
 		return { saved: 'quickAdd', added: displayName(m) };
 	}
 };

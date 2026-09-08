@@ -45,6 +45,38 @@
 </div>
 
 <div class="section">
+	<h2>Berufungen der Pfahlbeamten</h2>
+	<p class="hint">Diese Liste steht bei Pfahlbeamten zur Auswahl. Der Name erscheint in Klammern hinter der Person.</p>
+	<ul class="row-list">
+		{#each data.callings as c, i}
+			<li>
+				<form method="POST" action="?/renameCalling" use:enhance class="actions" style="flex: 1; margin: 0">
+					<input type="hidden" name="id" value={c.id} />
+					<input type="text" name="name" value={c.name} required style="flex: 1" />
+					<button class="btn btn-small" type="submit">Umbenennen</button>
+				</form>
+				<form method="POST" action="?/moveCalling" use:enhance>
+					<input type="hidden" name="id" value={c.id} />
+					<button class="btn btn-small" type="submit" name="dir" value="up" disabled={i === 0} aria-label="nach oben">↑</button>
+					<button class="btn btn-small" type="submit" name="dir" value="down" disabled={i === data.callings.length - 1} aria-label="nach unten">↓</button>
+				</form>
+				<form method="POST" action="?/deleteCalling" use:enhance>
+					<input type="hidden" name="id" value={c.id} />
+					<button class="btn btn-small btn-danger" type="submit">Löschen</button>
+				</form>
+			</li>
+		{/each}
+	</ul>
+	<form method="POST" action="?/addCalling" use:enhance class="actions">
+		<div class="field" style="flex: 1; margin: 0; min-width: 16rem">
+			<label for="newCalling">Neue Berufung</label>
+			<input id="newCalling" name="name" type="text" placeholder="z.B. Tempelpräsident" required />
+		</div>
+		<button class="btn btn-primary" type="submit">Hinzufügen</button>
+	</form>
+</div>
+
+<div class="section">
 	<h2>Allgemein</h2>
 	<form method="POST" action="?/general" use:enhance>
 		<div class="field"><label for="ward">Gemeindename</label><input id="ward" name="ward_name" type="text" value={data.settings.ward_name} required /></div>
