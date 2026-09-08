@@ -2,6 +2,18 @@
 	import { enhance } from '$app/forms';
 	import { goto } from '$app/navigation';
 	let { data, form } = $props();
+	const MONTHS = ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'];
+	const monthLabel = (date: string) => `${MONTHS[Number(date.slice(5, 7)) - 1]} ${date.slice(0, 4)}`;
+	const dayLabel = (date: string) => `${Number(date.slice(8, 10))}.`;
+	const groups = $derived(
+		data.meetings.reduce<{ label: string; items: typeof data.meetings }[]>((acc, m) => {
+			const label = monthLabel(m.date);
+			const last = acc[acc.length - 1];
+			if (last && last.label === label) last.items.push(m);
+			else acc.push({ label, items: [m] });
+			return acc;
+		}, [])
+	);
 </script>
 
 <div class="section-title">
@@ -48,13 +60,15 @@
 	{#if data.meetings.length === 0}
 		<p class="muted">Keine Sonntage in diesem Zeitraum. {#if data.canCreate}Lege sie mit der Schaltfläche oben an.{/if}</p>
 	{:else}
+		{#each groups as g}
+		<h3 class="month-title">{g.label}</h3>
 		<div class="table-wrap">
 			<table class="table">
-				<thead><tr><th>Datum</th><th>Typ</th><th>Thema</th>{#if data.showProgram}<th>Programm</th>{/if}<th>Musik</th></tr></thead>
+				<thead><tr><th class="col-day">Datum</th><th>Typ</th><th>Thema</th>{#if data.showProgram}<th>Programm</th>{/if}<th>Musik</th></tr></thead>
 				<tbody>
-					{#each data.meetings as m}
+					{#each g.items as m}
 						<tr class="clickable" class:muted={m.date < data.today} onclick={() => goto(`/sonntag/${m.date}`)}>
-							<td><a href="/sonntag/{m.date}">{m.dateLabel}</a></td>
+							<td class="col-day"><a href="/sonntag/{m.date}">{dayLabel(m.date)}</a></td>
 							<td>{m.kind === 'normal' ? '' : m.kindLabel}</td>
 							<td>{m.theme ?? ''}</td>
 							{#if data.showProgram}
@@ -74,5 +88,6 @@
 				</tbody>
 			</table>
 		</div>
+		{/each}
 	{/if}
 </div>
