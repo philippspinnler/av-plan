@@ -1,7 +1,7 @@
 import { error } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 import { formatDateDe, isSunday } from '$lib/dates';
-import { computeTimes, hymnMinutes, programOrder } from '$lib/schedule';
+import { programOrder } from '$lib/schedule';
 import { hymnLabel } from '$lib/server/hymns';
 import { displayName } from '$lib/server/members';
 import { KIND_LABELS, hasProgram, loadMeetingFullByDate } from '$lib/server/meetings';
@@ -17,12 +17,7 @@ export const load: PageServerLoad = ({ locals, params }) => {
 	const settings = getAllSettings(locals.db);
 	const m = full.meeting;
 	const talks = full.talks.filter((t) => t.member || t.topic);
-	const timed = computeTimes(
-		m.talksStartTime ?? settings.talks_start_time_default,
-		programOrder(talks.map((t) => t.position)),
-		new Map(talks.map((t) => [t.position, t.durationMinutes])),
-		hymnMinutes(full.hymns.zwischen.hymn?.durationSeconds ?? null)
-	);
+	const order = programOrder(talks.map((t) => t.position));
 	const hymn = (slot: 'anfang' | 'abendmahl' | 'zwischen' | 'schluss') => {
 		const h = full.hymns[slot];
 		return h.hymn ? hymnLabel(h.hymn) : (h.freeText ?? '');
@@ -38,7 +33,6 @@ export const load: PageServerLoad = ({ locals, params }) => {
 		isFast: m.kind === 'fastsonntag',
 		hasProgram: hasProgram(m.kind),
 		wardName: settings.ward_name,
-		meetingStart: settings.meeting_start_time,
 		presiding: full.presiding ? displayName(full.presiding) : '',
 		theme: m.theme ?? '',
 		specialNote: m.specialNote ?? '',
@@ -47,12 +41,15 @@ export const load: PageServerLoad = ({ locals, params }) => {
 		sustainings: full.callings.filter((c) => c.kind === 'berufung'),
 		hymns: { anfang: hymn('anfang'), abendmahl: hymn('abendmahl'), zwischen: hymn('zwischen'), schluss: hymn('schluss') },
 		prayers: { opening: prayer(1), closing: prayer(2) },
-		program: timed.map((x) => {
-			const time = x.start && x.end ? `${x.start} – ${x.end}` : '';
-			if (x.item.type === 'zwischenlied') return { label: 'Zwischenlied', detail: hymn('zwischen'), time };
-			const position = x.item.position;
+		program: order.map((item) => {
+			if (item.type === 'zwischenlied') return { label: 'Zwischenlied', detail: hymn('zwischen'), time: '' };
+			const position = item.position;
 			const t = talks.find((tt) => tt.position === position)!;
-			return { label: `Ansprache ${t.position}`, detail: [t.member ? displayName(t.member) : '', t.topic ?? ''].filter(Boolean).join(' – '), time };
+			return {
+				label: `Ansprache ${t.position}`,
+				detail: [t.member ? displayName(t.member) : '', t.topic ?? ''].filter(Boolean).join(' – '),
+				time: t.durationMinutes ? `${t.durationMinutes} Min.` : ''
+			};
 		}),
 		organist: full.organist ? displayName(full.organist) : '',
 		conductor: full.conductor ? displayName(full.conductor) : '',

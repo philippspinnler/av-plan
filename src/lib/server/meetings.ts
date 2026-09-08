@@ -146,11 +146,11 @@ export function savePrayers(db: Db, meetingId: number, prayers: PrayerInput[]): 
 	});
 }
 
-export function saveTalks(db: Db, meetingId: number, talks: TalkInput[], talksStartTime: string | null): void {
+export function saveTalks(db: Db, meetingId: number, talks: TalkInput[]): void {
 	db.transaction((tx) => {
 		tx.delete(meetingTalks).where(eq(meetingTalks.meetingId, meetingId)).run();
 		for (const t of talks) tx.insert(meetingTalks).values({ meetingId, ...t }).run();
-		tx.update(meetings).set({ talksStartTime, updatedAt: nowIso() }).where(eq(meetings.id, meetingId)).run();
+		tx.update(meetings).set({ updatedAt: nowIso() }).where(eq(meetings.id, meetingId)).run();
 	});
 }
 

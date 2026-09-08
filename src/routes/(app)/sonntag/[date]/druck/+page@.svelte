@@ -14,7 +14,6 @@
 	<header class="head">
 		<div><span class="lbl">Datum:</span> <strong>{data.dateLabel}</strong></div>
 		<div><span class="lbl">Leitung:</span> <strong>{data.presiding || '________'}</strong></div>
-		<div><span class="lbl">Beginn:</span> {data.meetingStart}</div>
 	</header>
 	{#if data.theme || data.specialNote}
 		<p class="theme">{#if data.theme}<strong>Thema:</strong> {data.theme}{/if}{#if data.specialNote} <em>({data.specialNote})</em>{/if}</p>

@@ -12,11 +12,9 @@ import {
 } from '$lib/server/meetings';
 import { can, requireRole } from '$lib/server/permissions';
 import { memberOptions } from '$lib/server/picker';
-import { getSetting } from '$lib/server/settings';
 import { memberActivity } from '$lib/server/stats';
 
 const DATE = /^\d{4}-\d{2}-\d{2}$/;
-const TIME = /^\d{2}:\d{2}$/;
 const isKind = (k: string): k is MeetingKind => (MEETING_KINDS as readonly string[]).includes(k);
 const statusOf = (s: string): Status => ((STATUSES as readonly string[]).includes(s) ? (s as Status) : 'offen');
 
@@ -75,7 +73,6 @@ export const load: PageServerLoad = ({ locals, params, url }) => {
 			...(showProgram
 				? {
 						absences: full.meeting.absences,
-						talksStartTime: full.meeting.talksStartTime ?? getSetting(locals.db, 'talks_start_time_default'),
 						presidingMemberId: full.meeting.presidingMemberId
 					}
 				: {})
@@ -166,8 +163,6 @@ export const actions: Actions = {
 		requireRole(locals.user, 'meeting.program');
 		const id = meetingIdFor(locals, params.date);
 		const fd = await request.formData();
-		const start = str(fd, 'talksStartTime');
-		if (start && !TIME.test(start)) return fail(400, { error: 'Startzeit bitte als HH:MM angeben.' });
 		const talks: TalkInput[] = [];
 		for (const position of [1, 2, 3, 4]) {
 			if (!fd.has(`talk${position}_status`)) continue;
@@ -182,7 +177,7 @@ export const actions: Actions = {
 			if (t.memberId === null && t.topic === null && t.durationMinutes === null && t.note === null) continue;
 			talks.push(t);
 		}
-		saveTalks(locals.db, id, talks, start || null);
+		saveTalks(locals.db, id, talks);
 		return { saved: 'talks' };
 	},
 	announcements: async ({ request, locals, params }) => {

@@ -114,7 +114,6 @@
 				<div class="section-title"><h2>{data.meeting.kind === 'fastsonntag' ? 'Ansprachen (Fastsonntag: Zeugnisse)' : 'Ansprachen'}</h2>{#if saved('talks')}<span class="badge badge-zugesagt">Gespeichert</span>{/if}</div>
 				{#if data.showProgram}
 					<form method="POST" action="?/talks" use:enhance>
-						<div class="field" style="max-width: 12rem"><label for="talksStartTime">Beginn der Ansprachen</label><input id="talksStartTime" name="talksStartTime" type="time" value={data.meeting.talksStartTime} /></div>
 						{#each data.talks as t}
 							<div class="card">
 								<strong>Ansprache {t.position}</strong>

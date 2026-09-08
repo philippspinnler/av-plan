@@ -137,8 +137,7 @@ function importProgram(db: Db, ws: ExcelJS.Worksheet | undefined, resolver: Memb
 			if (!member) return;
 			talks.push({ position: i + 1, memberId: member.id, topic: t.topic, durationMinutes: t.durationMinutes, status: t.status, note: t.note });
 		});
-		const existingMeeting = getMeetingByDate(db, date);
-		saveTalks(db, id, talks, existingMeeting?.talksStartTime ?? null);
+		saveTalks(db, id, talks);
 		const slots = emptySlots();
 		slots.anfang = hymnSlot(db, val(row, 9), val(row, 10), 'anfang', report, date);
 		slots.abendmahl = hymnSlot(db, val(row, 11), val(row, 12), 'abendmahl', report, date);

@@ -48,7 +48,7 @@ describe('meetings', () => {
 		saveTalks(db, m.id, [
 			{ position: 1, memberId: anna.id, topic: 'Liebe', durationMinutes: 5, status: 'angefragt', note: null },
 			{ position: 3, memberId: null, topic: null, durationMinutes: 15, status: 'offen', note: 'kurzfristig' }
-		], '10:20');
+		]);
 		saveAnnouncements(db, m.id, ['Pfahl-Plauschtag', 'Neue 2. Stunde']);
 		saveCallings(db, m.id, [{ kind: 'berufung', personName: 'Nadja Moser', calling: 'FHV-Präsidentin' }]);
 		const music = saveMusic(db, m.id, {
@@ -70,7 +70,6 @@ describe('meetings', () => {
 		expect(full.prayers.map((p) => [p.position, p.member?.firstName ?? null, p.status])).toEqual([[1, 'Anna', 'zugesagt'], [2, null, 'offen']]);
 		expect(full.talks.map((t) => t.position)).toEqual([1, 3]);
 		expect(full.talks[1].note).toBe('kurzfristig');
-		expect(full.meeting.talksStartTime).toBe('10:20');
 		expect(full.announcements).toEqual(['Pfahl-Plauschtag', 'Neue 2. Stunde']);
 		expect(full.callings[0].calling).toBe('FHV-Präsidentin');
 		expect(full.hymns.anfang.hymn?.id).toBe(h1.id);

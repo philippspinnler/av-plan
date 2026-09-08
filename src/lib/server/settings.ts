@@ -3,8 +3,6 @@ import type { Db } from './db';
 import { settings } from './db/schema';
 
 export const SETTING_DEFAULTS = {
-	talks_start_time_default: '10:20',
-	meeting_start_time: '09:30',
 	ward_name: 'Gemeinde'
 } as const;
 

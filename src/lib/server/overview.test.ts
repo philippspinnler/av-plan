@@ -13,7 +13,7 @@ describe('overview', () => {
 		const db = createDb(':memory:');
 		const anna = createMember(db, { firstName: 'Anna', lastName: 'Rey' });
 		const m = createMeeting(db, '2026-09-13');
-		saveTalks(db, m.id, [{ position: 1, memberId: anna.id, topic: 'Liebe', durationMinutes: 5, status: 'zugesagt', note: null }], null);
+		saveTalks(db, m.id, [{ position: 1, memberId: anna.id, topic: 'Liebe', durationMinutes: 5, status: 'zugesagt', note: null }]);
 		const s = summarize(loadMeetingFullByDate(db, '2026-09-13')!, { showProgram: true });
 		expect(s.dateLabel).toBe('So, 13.09.2026');
 		expect(s.kindLabel).toBe('Normal');
@@ -25,7 +25,7 @@ describe('overview', () => {
 		const db = createDb(':memory:');
 		const anna = createMember(db, { firstName: 'Anna', lastName: 'Rey' });
 		const m = createMeeting(db, '2026-09-13');
-		saveTalks(db, m.id, [{ position: 1, memberId: anna.id, topic: 'Liebe', durationMinutes: 5, status: 'zugesagt', note: null }], null);
+		saveTalks(db, m.id, [{ position: 1, memberId: anna.id, topic: 'Liebe', durationMinutes: 5, status: 'zugesagt', note: null }]);
 		const s = summarize(loadMeetingFullByDate(db, '2026-09-13')!, { showProgram: false });
 		expect(s.presiding).toBeNull();
 		expect(s.speakers).toEqual([]);
