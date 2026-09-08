@@ -53,15 +53,15 @@
 			<span class="kind-tag">{data.kinds.find((k) => k.value === data.meeting.kind)?.label}</span>
 			<h1>{data.dateLabel}</h1>
 		</div>
-		<a class="btn" href="/sonntag/{data.date}/druck">Drucken</a>
+		{#if data.canPrint}<a class="btn" href="/sonntag/{data.date}/druck">Drucken</a>{/if}
 	</div>
 	{#if form?.error}<div class="error">{form.error}</div>{/if}
 	{#if form?.added}<div class="success">{form.added} wurde angelegt und kann jetzt ausgewählt werden.</div>{/if}
 
 	<!-- Allgemein -->
-	<div class="section" class:readonly={!data.canProgram}>
+	<div class="section" class:readonly={!data.showProgram}>
 		<div class="section-title"><h2>Allgemein</h2>{#if saved('general')}<span class="badge badge-zugesagt">Gespeichert</span>{/if}</div>
-		{#if data.canProgram}
+		{#if data.showProgram}
 			<form method="POST" action="?/general" use:enhance>
 				<div class="grid-2">
 					<div class="field">
@@ -78,151 +78,154 @@
 				<button class="btn btn-primary" type="submit">Speichern</button>
 			</form>
 		{:else}
+			<p><strong>Typ:</strong> {data.kinds.find((k) => k.value === data.meeting.kind)?.label}</p>
 			<p><strong>Thema:</strong> {data.meeting.theme ?? '–'}</p>
-			<p><strong>Leitung:</strong> {data.presidingName ?? '–'}{#if data.meeting.specialNote} · <strong>Besonderes:</strong> {data.meeting.specialNote}{/if}</p>
+			{#if data.meeting.specialNote}<p><strong>Besonderes:</strong> {data.meeting.specialNote}</p>{/if}
 		{/if}
 	</div>
 
 	{#if data.hasProgram}
-		<!-- Gebete -->
-		<div class="section" class:readonly={!data.canProgram}>
-			<div class="section-title"><h2>Gebete</h2>{#if saved('prayers')}<span class="badge badge-zugesagt">Gespeichert</span>{/if}</div>
-			{#if data.canProgram}
-				<form method="POST" action="?/prayers" use:enhance>
-					<div class="grid-2">
-						{#each data.prayers as p}
-							<div>
-								<div class="field"><label for="prayer{p.position}">{p.label}</label><MemberSelect id="prayer{p.position}" name="prayer{p.position}_member" options={p.options} value={p.memberId} /></div>
-								<div class="field">
-									<label for="prayer{p.position}_status">Status</label>
-									<select id="prayer{p.position}_status" name="prayer{p.position}_status">{#each data.statuses as s}<option value={s.value} selected={s.value === p.status}>{s.label}</option>{/each}</select>
+		{#if data.showProgram}
+			<!-- Gebete -->
+			<div class="section" class:readonly={!data.showProgram}>
+				<div class="section-title"><h2>Gebete</h2>{#if saved('prayers')}<span class="badge badge-zugesagt">Gespeichert</span>{/if}</div>
+				{#if data.showProgram}
+					<form method="POST" action="?/prayers" use:enhance>
+						<div class="grid-2">
+							{#each data.prayers as p}
+								<div>
+									<div class="field"><label for="prayer{p.position}">{p.label}</label><MemberSelect id="prayer{p.position}" name="prayer{p.position}_member" options={p.options} value={p.memberId} /></div>
+									<div class="field">
+										<label for="prayer{p.position}_status">Status</label>
+										<select id="prayer{p.position}_status" name="prayer{p.position}_status">{#each data.statuses as s}<option value={s.value} selected={s.value === p.status}>{s.label}</option>{/each}</select>
+									</div>
 								</div>
-							</div>
-						{/each}
-					</div>
-					<button class="btn btn-primary" type="submit">Speichern</button>
-				</form>
-			{:else}
-				{#each data.prayers as p}<p><strong>{p.label}:</strong> {p.memberName ?? '–'} <StatusBadge status={p.status} /></p>{/each}
-			{/if}
-		</div>
-
-		<!-- Ansprachen -->
-		<div class="section" class:readonly={!data.canProgram}>
-			<div class="section-title"><h2>{data.meeting.kind === 'fastsonntag' ? 'Ansprachen (Fastsonntag: Zeugnisse)' : 'Ansprachen'}</h2>{#if saved('talks')}<span class="badge badge-zugesagt">Gespeichert</span>{/if}</div>
-			{#if data.canProgram}
-				<form method="POST" action="?/talks" use:enhance>
-					<div class="field" style="max-width: 12rem"><label for="talksStartTime">Beginn der Ansprachen</label><input id="talksStartTime" name="talksStartTime" type="time" value={data.meeting.talksStartTime} /></div>
-					{#each data.talks as t}
-						<div class="card">
-							<strong>Ansprache {t.position}</strong>
-							<div class="grid-2">
-								<div class="field"><label for="talk{t.position}_member">Sprecher</label><MemberSelect id="talk{t.position}_member" name="talk{t.position}_member" options={t.options} value={t.memberId} /></div>
-								<div class="field"><label for="talk{t.position}_topic">Thema</label><input id="talk{t.position}_topic" name="talk{t.position}_topic" type="text" value={t.topic ?? ''} /></div>
-							</div>
-							<div class="grid-3">
-								<div class="field"><label for="talk{t.position}_duration">Dauer (Minuten)</label><input id="talk{t.position}_duration" name="talk{t.position}_duration" type="number" min="1" max="60" value={t.durationMinutes ?? ''} /></div>
-								<div class="field">
-									<label for="talk{t.position}_status">Status</label>
-									<select id="talk{t.position}_status" name="talk{t.position}_status">{#each data.statuses as s}<option value={s.value} selected={s.value === t.status}>{s.label}</option>{/each}</select>
-								</div>
-								<div class="field"><label for="talk{t.position}_note">Notiz</label><input id="talk{t.position}_note" name="talk{t.position}_note" type="text" value={t.note ?? ''} /></div>
-							</div>
+							{/each}
 						</div>
-					{/each}
-					<div class="actions">
 						<button class="btn btn-primary" type="submit">Speichern</button>
-						{#if !data.showFourth}<a class="btn" href="/sonntag/{data.date}?vier=1">4. Ansprache hinzufügen</a>{/if}
-						{#if data.canAddMember}<button class="btn" type="button" onclick={() => (showQuickAdd = !showQuickAdd)}>Neue Person anlegen</button>{/if}
-					</div>
-				</form>
-				{#if showQuickAdd}
-					<form method="POST" action="?/quickAdd" use:enhance class="card grid-3">
-						<div class="field"><label for="qa-fn">Vorname</label><input id="qa-fn" name="firstName" type="text" required /></div>
-						<div class="field"><label for="qa-ln">Nachname</label><input id="qa-ln" name="lastName" type="text" /></div>
-						<div class="field"><label for="qa-af">Zugehörigkeit</label><input id="qa-af" name="affiliation" type="text" placeholder="leer für Gemeindemitglied" /></div>
-						<div class="actions"><button class="btn btn-primary" type="submit">Anlegen</button></div>
 					</form>
+				{:else}
+					{#each data.prayers as p}<p><strong>{p.label}:</strong> {p.memberName ?? '–'} <StatusBadge status={p.status} /></p>{/each}
 				{/if}
-			{:else}
-				{#each data.talks as t}
-					{#if t.memberName || t.topic}<p><strong>Ansprache {t.position}:</strong> {t.memberName ?? '–'}{#if t.topic} · {t.topic}{/if} <StatusBadge status={t.status} /></p>{/if}
-				{/each}
-			{/if}
-		</div>
+			</div>
 
-		<!-- Bekanntmachungen -->
-		<div class="section" class:readonly={!data.canProgram}>
-			<div class="section-title"><h2>Bekanntmachungen</h2>{#if saved('announcements')}<span class="badge badge-zugesagt">Gespeichert</span>{/if}</div>
-			{#if data.canProgram}
-				<form method="POST" action="?/announcements" use:enhance>
-					<ul class="row-list">
-						{#each announcements as a, i}
-							<li>
-								<input type="text" name="announcement" bind:value={announcements[i]} placeholder="Text der Bekanntmachung" />
-								<button class="btn btn-small" type="button" onclick={() => move(announcements, i, -1)} aria-label="nach oben">↑</button>
-								<button class="btn btn-small" type="button" onclick={() => move(announcements, i, 1)} aria-label="nach unten">↓</button>
-								<button class="btn btn-small btn-danger" type="button" onclick={() => announcements.splice(i, 1)} aria-label="entfernen">✕</button>
-							</li>
+			<!-- Ansprachen -->
+			<div class="section" class:readonly={!data.showProgram}>
+				<div class="section-title"><h2>{data.meeting.kind === 'fastsonntag' ? 'Ansprachen (Fastsonntag: Zeugnisse)' : 'Ansprachen'}</h2>{#if saved('talks')}<span class="badge badge-zugesagt">Gespeichert</span>{/if}</div>
+				{#if data.showProgram}
+					<form method="POST" action="?/talks" use:enhance>
+						<div class="field" style="max-width: 12rem"><label for="talksStartTime">Beginn der Ansprachen</label><input id="talksStartTime" name="talksStartTime" type="time" value={data.meeting.talksStartTime} /></div>
+						{#each data.talks as t}
+							<div class="card">
+								<strong>Ansprache {t.position}</strong>
+								<div class="grid-2">
+									<div class="field"><label for="talk{t.position}_member">Sprecher</label><MemberSelect id="talk{t.position}_member" name="talk{t.position}_member" options={t.options} value={t.memberId} /></div>
+									<div class="field"><label for="talk{t.position}_topic">Thema</label><input id="talk{t.position}_topic" name="talk{t.position}_topic" type="text" value={t.topic ?? ''} /></div>
+								</div>
+								<div class="grid-3">
+									<div class="field"><label for="talk{t.position}_duration">Dauer (Minuten)</label><input id="talk{t.position}_duration" name="talk{t.position}_duration" type="number" min="1" max="60" value={t.durationMinutes ?? ''} /></div>
+									<div class="field">
+										<label for="talk{t.position}_status">Status</label>
+										<select id="talk{t.position}_status" name="talk{t.position}_status">{#each data.statuses as s}<option value={s.value} selected={s.value === t.status}>{s.label}</option>{/each}</select>
+									</div>
+									<div class="field"><label for="talk{t.position}_note">Notiz</label><input id="talk{t.position}_note" name="talk{t.position}_note" type="text" value={t.note ?? ''} /></div>
+								</div>
+							</div>
 						{/each}
-					</ul>
-					<div class="actions">
-						<button class="btn" type="button" onclick={() => announcements.push('')}>Zeile hinzufügen</button>
-						<button class="btn btn-primary" type="submit">Speichern</button>
-					</div>
-				</form>
-			{:else if data.announcements.length}
-				<ul>{#each data.announcements as a}<li>{a}</li>{/each}</ul>
-			{:else}
-				<p class="muted">Keine Bekanntmachungen.</p>
-			{/if}
-		</div>
+						<div class="actions">
+							<button class="btn btn-primary" type="submit">Speichern</button>
+							{#if !data.showFourth}<a class="btn" href="/sonntag/{data.date}?vier=1">4. Ansprache hinzufügen</a>{/if}
+							{#if data.canAddMember}<button class="btn" type="button" onclick={() => (showQuickAdd = !showQuickAdd)}>Neue Person anlegen</button>{/if}
+						</div>
+					</form>
+					{#if showQuickAdd}
+						<form method="POST" action="?/quickAdd" use:enhance class="card grid-3">
+							<div class="field"><label for="qa-fn">Vorname</label><input id="qa-fn" name="firstName" type="text" required /></div>
+							<div class="field"><label for="qa-ln">Nachname</label><input id="qa-ln" name="lastName" type="text" /></div>
+							<div class="field"><label for="qa-af">Zugehörigkeit</label><input id="qa-af" name="affiliation" type="text" placeholder="leer für Gemeindemitglied" /></div>
+							<div class="actions"><button class="btn btn-primary" type="submit">Anlegen</button></div>
+						</form>
+					{/if}
+				{:else}
+					{#each data.talks as t}
+						{#if t.memberName || t.topic}<p><strong>Ansprache {t.position}:</strong> {t.memberName ?? '–'}{#if t.topic} · {t.topic}{/if} <StatusBadge status={t.status} /></p>{/if}
+					{/each}
+				{/if}
+			</div>
 
-		<!-- Entlassungen und Berufungen -->
-		<div class="section" class:readonly={!data.canProgram}>
-			<div class="section-title"><h2>Entlassungen und Berufungen</h2>{#if saved('callings')}<span class="badge badge-zugesagt">Gespeichert</span>{/if}</div>
-			{#if data.canProgram}
-				<form method="POST" action="?/callings" use:enhance>
-					<div class="grid-2">
-						<div>
-							<h3>Entlassungen</h3>
-							<ul class="row-list">
-								{#each releases as r, i}
-									<li>
-										<input type="text" name="release_name" bind:value={releases[i].personName} placeholder="Name" />
-										<input type="text" name="release_calling" bind:value={releases[i].calling} placeholder="Amt" />
-										<button class="btn btn-small btn-danger" type="button" onclick={() => releases.splice(i, 1)} aria-label="entfernen">✕</button>
-									</li>
-								{/each}
-							</ul>
-							<button class="btn btn-small" type="button" onclick={() => releases.push({ personName: '', calling: '' })}>Entlassung hinzufügen</button>
+			<!-- Bekanntmachungen -->
+			<div class="section" class:readonly={!data.showProgram}>
+				<div class="section-title"><h2>Bekanntmachungen</h2>{#if saved('announcements')}<span class="badge badge-zugesagt">Gespeichert</span>{/if}</div>
+				{#if data.showProgram}
+					<form method="POST" action="?/announcements" use:enhance>
+						<ul class="row-list">
+							{#each announcements as a, i}
+								<li>
+									<input type="text" name="announcement" bind:value={announcements[i]} placeholder="Text der Bekanntmachung" />
+									<button class="btn btn-small" type="button" onclick={() => move(announcements, i, -1)} aria-label="nach oben">↑</button>
+									<button class="btn btn-small" type="button" onclick={() => move(announcements, i, 1)} aria-label="nach unten">↓</button>
+									<button class="btn btn-small btn-danger" type="button" onclick={() => announcements.splice(i, 1)} aria-label="entfernen">✕</button>
+								</li>
+							{/each}
+						</ul>
+						<div class="actions">
+							<button class="btn" type="button" onclick={() => announcements.push('')}>Zeile hinzufügen</button>
+							<button class="btn btn-primary" type="submit">Speichern</button>
 						</div>
-						<div>
-							<h3>Berufungen</h3>
-							<ul class="row-list">
-								{#each sustainings as s, i}
-									<li>
-										<input type="text" name="sustain_name" bind:value={sustainings[i].personName} placeholder="Name" />
-										<input type="text" name="sustain_calling" bind:value={sustainings[i].calling} placeholder="Amt" />
-										<button class="btn btn-small btn-danger" type="button" onclick={() => sustainings.splice(i, 1)} aria-label="entfernen">✕</button>
-									</li>
-								{/each}
-							</ul>
-							<button class="btn btn-small" type="button" onclick={() => sustainings.push({ personName: '', calling: '' })}>Berufung hinzufügen</button>
+					</form>
+				{:else if data.announcements.length}
+					<ul>{#each data.announcements as a}<li>{a}</li>{/each}</ul>
+				{:else}
+					<p class="muted">Keine Bekanntmachungen.</p>
+				{/if}
+			</div>
+
+			<!-- Entlassungen und Berufungen -->
+			<div class="section" class:readonly={!data.showProgram}>
+				<div class="section-title"><h2>Entlassungen und Berufungen</h2>{#if saved('callings')}<span class="badge badge-zugesagt">Gespeichert</span>{/if}</div>
+				{#if data.showProgram}
+					<form method="POST" action="?/callings" use:enhance>
+						<div class="grid-2">
+							<div>
+								<h3>Entlassungen</h3>
+								<ul class="row-list">
+									{#each releases as r, i}
+										<li>
+											<input type="text" name="release_name" bind:value={releases[i].personName} placeholder="Name" />
+											<input type="text" name="release_calling" bind:value={releases[i].calling} placeholder="Amt" />
+											<button class="btn btn-small btn-danger" type="button" onclick={() => releases.splice(i, 1)} aria-label="entfernen">✕</button>
+										</li>
+									{/each}
+								</ul>
+								<button class="btn btn-small" type="button" onclick={() => releases.push({ personName: '', calling: '' })}>Entlassung hinzufügen</button>
+							</div>
+							<div>
+								<h3>Berufungen</h3>
+								<ul class="row-list">
+									{#each sustainings as s, i}
+										<li>
+											<input type="text" name="sustain_name" bind:value={sustainings[i].personName} placeholder="Name" />
+											<input type="text" name="sustain_calling" bind:value={sustainings[i].calling} placeholder="Amt" />
+											<button class="btn btn-small btn-danger" type="button" onclick={() => sustainings.splice(i, 1)} aria-label="entfernen">✕</button>
+										</li>
+									{/each}
+								</ul>
+								<button class="btn btn-small" type="button" onclick={() => sustainings.push({ personName: '', calling: '' })}>Berufung hinzufügen</button>
+							</div>
 						</div>
-					</div>
-					<div class="actions"><button class="btn btn-primary" type="submit">Speichern</button></div>
-				</form>
-			{:else}
-				{#if data.releases.length}<p><strong>Entlassungen:</strong> {data.releases.map((r) => `${r.personName} (${r.calling})`).join(', ')}</p>{/if}
-				{#if data.sustainings.length}<p><strong>Berufungen:</strong> {data.sustainings.map((r) => `${r.personName} (${r.calling})`).join(', ')}</p>{/if}
-				{#if !data.releases.length && !data.sustainings.length}<p class="muted">Keine.</p>{/if}
-			{/if}
-		</div>
+						<div class="actions"><button class="btn btn-primary" type="submit">Speichern</button></div>
+					</form>
+				{:else}
+					{#if data.releases.length}<p><strong>Entlassungen:</strong> {data.releases.map((r) => `${r.personName} (${r.calling})`).join(', ')}</p>{/if}
+					{#if data.sustainings.length}<p><strong>Berufungen:</strong> {data.sustainings.map((r) => `${r.personName} (${r.calling})`).join(', ')}</p>{/if}
+					{#if !data.releases.length && !data.sustainings.length}<p class="muted">Keine.</p>{/if}
+				{/if}
+			</div>
+		{/if}
 
 		<!-- Musik -->
-		<div class="section" class:readonly={!data.canMusic}>
-			<div class="section-title"><h2>Musik</h2>{#if saved('music')}<span class="badge badge-zugesagt">Gespeichert</span>{/if}</div>
+		<div class="section" class:readonly={!data.canMusic && !data.canConductor}>
+			<div class="section-title"><h2>Musik</h2>{#if saved('music') || saved('conductor')}<span class="badge badge-zugesagt">Gespeichert</span>{/if}</div>
 			{#if data.canMusic}
 				<form method="POST" action="?/music" use:enhance>
 					<datalist id="hymnlist">{#each data.hymnList as h}<option value={h}></option>{/each}</datalist>
@@ -242,6 +245,14 @@
 						<div class="field"><label for="conductor">Dirigieren</label><MemberSelect id="conductor" name="conductor" options={data.conductorOptions} value={data.meeting.conductorMemberId} /></div>
 					</div>
 					<div class="field"><label for="musicNote">Notiz Musik</label><input id="musicNote" name="musicNote" type="text" value={data.meeting.musicNote ?? ''} /></div>
+					<button class="btn btn-primary" type="submit">Speichern</button>
+				</form>
+			{:else if data.canConductor}
+				{#each data.hymns as h}<p><strong>{h.label}:</strong> {h.value || h.freeText || '–'}</p>{/each}
+				<p><strong>Orgel:</strong> {data.organistName ?? '–'}</p>
+				{#if data.meeting.musicNote}<p class="hint">{data.meeting.musicNote}</p>{/if}
+				<form method="POST" action="?/conductor" use:enhance>
+					<div class="field"><label for="conductor">Dirigieren</label><MemberSelect id="conductor" name="conductor" options={data.conductorOptions} value={data.meeting.conductorMemberId} /></div>
 					<button class="btn btn-primary" type="submit">Speichern</button>
 				</form>
 			{:else}

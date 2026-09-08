@@ -5,10 +5,12 @@ import { computeTimes, hymnMinutes, programOrder } from '$lib/schedule';
 import { hymnLabel } from '$lib/server/hymns';
 import { displayName } from '$lib/server/members';
 import { KIND_LABELS, hasProgram, loadMeetingFullByDate } from '$lib/server/meetings';
+import { requireRole } from '$lib/server/permissions';
 import { getAllSettings } from '$lib/server/settings';
 import { PRINT_TEXTS } from '$lib/print/texts';
 
 export const load: PageServerLoad = ({ locals, params }) => {
+	requireRole(locals.user, 'program.view');
 	if (!/^\d{4}-\d{2}-\d{2}$/.test(params.date) || !isSunday(params.date)) error(404, 'Kein gültiges Sonntagsdatum');
 	const full = loadMeetingFullByDate(locals.db, params.date);
 	if (!full) error(404, 'Sonntag nicht gefunden');

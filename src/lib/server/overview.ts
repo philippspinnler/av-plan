@@ -18,7 +18,7 @@ export interface MeetingSummary {
 	missingMusic: string[];
 }
 
-export function summarize(m: MeetingFull): MeetingSummary {
+export function summarize(m: MeetingFull, opts: { showProgram: boolean }): MeetingSummary {
 	const r = readiness(m);
 	return {
 		date: m.meeting.date,
@@ -26,13 +26,13 @@ export function summarize(m: MeetingFull): MeetingSummary {
 		kind: m.meeting.kind,
 		kindLabel: KIND_LABELS[m.meeting.kind],
 		theme: m.meeting.theme,
-		presiding: m.presiding ? displayName(m.presiding) : null,
-		speakers: m.talks.filter((t) => t.member).map((t) => displayName(t.member!)),
+		presiding: opts.showProgram && m.presiding ? displayName(m.presiding) : null,
+		speakers: opts.showProgram ? m.talks.filter((t) => t.member).map((t) => displayName(t.member!)) : [],
 		hymns: (['anfang', 'abendmahl', 'zwischen', 'schluss'] as const)
 			.map((s) => m.hymns[s])
 			.filter((h) => h.hymn || h.freeText)
 			.map((h) => (h.hymn ? hymnLabel(h.hymn) : h.freeText!)),
-		missingProgram: r.program,
+		missingProgram: opts.showProgram ? r.program : [],
 		missingMusic: r.music
 	};
 }

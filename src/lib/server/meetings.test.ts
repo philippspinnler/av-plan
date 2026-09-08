@@ -4,7 +4,7 @@ import { createHymn } from './hymns';
 import { createMember } from './members';
 import {
 	createMeeting, ensureSundays, getMeetingByDate, hasProgram, listMeetings, loadMeetingFullByDate,
-	saveAnnouncements, saveCallings, saveGeneral, saveMusic, savePrayers, saveTalks
+	saveAnnouncements, saveCallings, saveConductor, saveGeneral, saveMusic, savePrayers, saveTalks
 } from './meetings';
 
 let db: Db;
@@ -74,12 +74,42 @@ describe('meetings', () => {
 		expect(full.announcements).toEqual(['Pfahl-Plauschtag', 'Neue 2. Stunde']);
 		expect(full.callings[0].calling).toBe('FHV-Präsidentin');
 		expect(full.hymns.anfang.hymn?.id).toBe(h1.id);
-		expect(full.hymns.zwischen).toEqual({ hymn: null, freeText: 'PV singt' });
+		// Fastsonntag: kein Zwischenlied, auch wenn eines übergeben wurde
+		expect(full.hymns.zwischen).toEqual({ hymn: null, freeText: null });
 		expect(full.hymns.schluss).toEqual({ hymn: null, freeText: null });
 		expect(full.organist?.firstName).toBe('Anna');
 		expect(full.meeting.musicNote).toBe('Vreni fehlt');
 
 		saveAnnouncements(db, m.id, []);
 		expect(loadMeetingFullByDate(db, '2026-09-13')!.announcements).toEqual([]);
+	});
+
+	it('saveConductor setzt und löscht nur das Dirigieren-Feld', () => {
+		const m = createMeeting(db, '2026-09-13');
+		const anna = createMember(db, { firstName: 'Anna', lastName: 'Rey' });
+		saveConductor(db, m.id, anna.id);
+		expect(loadMeetingFullByDate(db, '2026-09-13')!.conductor?.firstName).toBe('Anna');
+		saveConductor(db, m.id, null);
+		expect(loadMeetingFullByDate(db, '2026-09-13')!.conductor).toBeNull();
+	});
+
+	it('saveMusic verwirft das Zwischenlied bei Fastsonntag', () => {
+		const m = createMeeting(db, '2026-09-13');
+		saveGeneral(db, m.id, { kind: 'fastsonntag', theme: null, specialNote: null, presidingMemberId: null, absences: null });
+		createHymn(db, { number: 202, title: 'Ich bin ein Kind von Gott' });
+		const result = saveMusic(db, m.id, {
+			hymns: {
+				anfang: { hymnNumber: 202, freeText: null },
+				abendmahl: { hymnNumber: null, freeText: null },
+				zwischen: { hymnNumber: 9999, freeText: 'PV singt' },
+				schluss: { hymnNumber: null, freeText: null }
+			},
+			organistMemberId: null,
+			conductorMemberId: null,
+			musicNote: null
+		});
+		expect(result.unknownNumbers).toEqual([]);
+		const full = loadMeetingFullByDate(db, '2026-09-13')!;
+		expect(full.hymns.zwischen).toEqual({ hymn: null, freeText: null });
 	});
 });

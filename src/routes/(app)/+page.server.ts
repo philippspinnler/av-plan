@@ -6,10 +6,12 @@ import { can, requireRole } from '$lib/server/permissions';
 
 export const load: PageServerLoad = ({ locals, url }) => {
 	const today = todayIso();
+	const role = locals.user!.role;
+	const showProgram = can(role, 'program.view');
 	const yearParam = url.searchParams.get('jahr');
 	const year = yearParam && /^\d{4}$/.test(yearParam) ? Number(yearParam) : null;
 	const range = overviewRange(today, year);
-	const meetings = listMeetings(locals.db, range.from, range.to).map(summarize);
+	const meetings = listMeetings(locals.db, range.from, range.to).map((m) => summarize(m, { showProgram }));
 	const next = meetings.find((m) => m.date >= today) ?? null;
 	const years: number[] = [];
 	for (let y = Number(today.slice(0, 4)) - 1; y <= Number(today.slice(0, 4)) + 1; y++) years.push(y);
@@ -19,8 +21,9 @@ export const load: PageServerLoad = ({ locals, url }) => {
 		years,
 		next,
 		meetings,
-		role: locals.user!.role,
-		canCreate: can(locals.user!.role, 'meetings.create')
+		role,
+		showProgram,
+		canCreate: can(role, 'meetings.create')
 	};
 };
 

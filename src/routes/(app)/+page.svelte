@@ -23,12 +23,14 @@
 			</div>
 			<div class="actions">
 				<a class="btn btn-primary" href="/sonntag/{data.next.date}">Bearbeiten</a>
-				<a class="btn" href="/sonntag/{data.next.date}/druck">Drucken</a>
+				{#if data.showProgram}<a class="btn" href="/sonntag/{data.next.date}/druck">Drucken</a>{/if}
 			</div>
 		</div>
 		{#if data.next.theme}<p><strong>Thema:</strong> {data.next.theme}</p>{/if}
-		<p><strong>Leitung:</strong> {data.next.presiding ?? '–'}</p>
-		<p><strong>Sprecher:</strong> {data.next.speakers.length ? data.next.speakers.join(', ') : '–'}</p>
+		{#if data.showProgram}
+			<p><strong>Leitung:</strong> {data.next.presiding ?? '–'}</p>
+			<p><strong>Sprecher:</strong> {data.next.speakers.length ? data.next.speakers.join(', ') : '–'}</p>
+		{/if}
 		<p><strong>Lieder:</strong> {data.next.hymns.length ? data.next.hymns.join(' · ') : '–'}</p>
 		{#if data.next.missingProgram.length}<p class="hint">Programm offen: {data.next.missingProgram.join(', ')}</p>{/if}
 		{#if data.next.missingMusic.length}<p class="hint">Musik offen: {data.next.missingMusic.join(', ')}</p>{/if}
@@ -48,18 +50,20 @@
 	{:else}
 		<div class="table-wrap">
 			<table class="table">
-				<thead><tr><th>Datum</th><th>Typ</th><th>Thema</th><th>Programm</th><th>Musik</th></tr></thead>
+				<thead><tr><th>Datum</th><th>Typ</th><th>Thema</th>{#if data.showProgram}<th>Programm</th>{/if}<th>Musik</th></tr></thead>
 				<tbody>
 					{#each data.meetings as m}
 						<tr class="clickable" class:muted={m.date < data.today} onclick={() => goto(`/sonntag/${m.date}`)}>
 							<td><a href="/sonntag/{m.date}">{m.dateLabel}</a></td>
 							<td>{m.kind === 'normal' ? '' : m.kindLabel}</td>
 							<td>{m.theme ?? ''}</td>
-							<td>
-								{#if m.kind === 'normal' || m.kind === 'fastsonntag'}
-									{#if m.missingProgram.length}<span class="badge badge-offen" title={m.missingProgram.join(', ')}>{m.missingProgram.length} offen</span>{:else}<span class="badge badge-zugesagt">bereit</span>{/if}
-								{/if}
-							</td>
+							{#if data.showProgram}
+								<td>
+									{#if m.kind === 'normal' || m.kind === 'fastsonntag'}
+										{#if m.missingProgram.length}<span class="badge badge-offen" title={m.missingProgram.join(', ')}>{m.missingProgram.length} offen</span>{:else}<span class="badge badge-zugesagt">bereit</span>{/if}
+									{/if}
+								</td>
+							{/if}
 							<td>
 								{#if m.kind === 'normal' || m.kind === 'fastsonntag'}
 									{#if m.missingMusic.length}<span class="badge badge-offen" title={m.missingMusic.join(', ')}>{m.missingMusic.length} offen</span>{:else}<span class="badge badge-zugesagt">bereit</span>{/if}

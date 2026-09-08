@@ -113,7 +113,8 @@ describe('importWorkbooks', () => {
 		expect(f.meeting.specialNote).toBeNull();
 		expect(f.talks.map((t) => [t.member?.lastName, t.status])).toEqual([['Rey', 'angefragt'], ['Neu', 'offen']]);
 		expect(f.hymns.anfang.hymn?.number).toBe(1019);
-		expect(f.hymns.zwischen).toEqual({ hymn: null, freeText: 'PV singt' });
+		// Fastsonntag: kein Zwischenlied, auch wenn die Quelle eines nennt ("PV singt")
+		expect(f.hymns.zwischen).toEqual({ hymn: null, freeText: null });
 		expect(f.organist?.firstName).toBe('Vreni');
 		expect(loadMeetingFullByDate(db, '2026-10-04')!.meeting.kind).toBe('generalkonferenz');
 	});

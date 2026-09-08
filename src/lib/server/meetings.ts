@@ -178,10 +178,13 @@ export function saveMusic(
 		musicNote: string | null;
 	}
 ): { unknownNumbers: number[] } {
+	const meeting = db.select().from(meetings).where(eq(meetings.id, meetingId)).get();
+	const isFastsonntag = meeting?.kind === 'fastsonntag';
 	const unknownNumbers: number[] = [];
 	db.transaction((tx) => {
 		tx.delete(meetingHymns).where(eq(meetingHymns.meetingId, meetingId)).run();
 		for (const slot of HYMN_SLOTS) {
+			if (slot === 'zwischen' && isFastsonntag) continue;
 			const { hymnNumber, freeText } = input.hymns[slot];
 			let hymnId: number | null = null;
 			if (hymnNumber !== null) {
@@ -199,4 +202,8 @@ export function saveMusic(
 			.run();
 	});
 	return { unknownNumbers };
+}
+
+export function saveConductor(db: Db, meetingId: number, conductorMemberId: number | null): void {
+	db.update(meetings).set({ conductorMemberId, updatedAt: nowIso() }).where(eq(meetings.id, meetingId)).run();
 }
