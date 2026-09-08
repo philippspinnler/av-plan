@@ -7,6 +7,15 @@
 <h1>Einstellungen</h1>
 {#if form?.error}<div class="error">{form.error}</div>{/if}
 {#if form?.saved}<div class="success">Gespeichert.</div>{/if}
+{#if form?.created !== undefined}<div class="success">{form.created} neue Sonntage angelegt.</div>{/if}
+
+<div class="section">
+	<h2>Sonntage</h2>
+	<p class="hint">Legt alle noch fehlenden Sonntage der nächsten 12 Monate an. Bestehende Sonntage bleiben unverändert.</p>
+	<form method="POST" action="?/ensureSundays" use:enhance>
+		<button class="btn btn-primary" type="submit">Sonntage für 12 Monate anlegen</button>
+	</form>
+</div>
 
 <div class="section">
 	<h2>Bischofschaft</h2>

@@ -1,7 +1,6 @@
 <script lang="ts">
-	import { enhance } from '$app/forms';
 	import { goto } from '$app/navigation';
-	let { data, form } = $props();
+	let { data } = $props();
 	const MONTHS = ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'];
 	const monthLabel = (date: string) => `${MONTHS[Number(date.slice(5, 7)) - 1]} ${date.slice(0, 4)}`;
 	const dayLabel = (date: string) => `${Number(date.slice(8, 10))}.`;
@@ -16,15 +15,7 @@
 	);
 </script>
 
-<div class="section-title">
-	<h1>Sonntage</h1>
-	<div class="actions">
-		{#if data.canCreate}
-			<form method="POST" action="?/ensure" use:enhance><button class="btn" type="submit">Sonntage für 12 Monate anlegen</button></form>
-		{/if}
-	</div>
-</div>
-{#if form?.created !== undefined}<div class="success">{form.created} neue Sonntage angelegt.</div>{/if}
+<h1>Sonntage</h1>
 
 {#if data.next && !data.year}
 	<div class="card big-card">
@@ -68,7 +59,7 @@
 		</div>
 	</div>
 	{#if data.meetings.length === 0}
-		<p class="muted">Keine Sonntage in diesem Zeitraum. {#if data.canCreate}Lege sie mit der Schaltfläche oben an.{/if}</p>
+		<p class="muted">Keine Sonntage in diesem Zeitraum. Ein Admin kann sie unter Einstellungen anlegen.</p>
 	{:else}
 		{#each groups as g}
 		<h3 class="month-title">{g.label}</h3>

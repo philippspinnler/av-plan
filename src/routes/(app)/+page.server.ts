@@ -1,8 +1,8 @@
-import type { Actions, PageServerLoad } from './$types';
+import type { PageServerLoad } from './$types';
 import { todayIso } from '$lib/dates';
-import { ensureSundays, listMeetings } from '$lib/server/meetings';
+import { listMeetings } from '$lib/server/meetings';
 import { overviewRange, summarize } from '$lib/server/overview';
-import { can, requireRole } from '$lib/server/permissions';
+import { can } from '$lib/server/permissions';
 
 export const load: PageServerLoad = ({ locals, url }) => {
 	const today = todayIso();
@@ -22,15 +22,7 @@ export const load: PageServerLoad = ({ locals, url }) => {
 		next,
 		meetings,
 		role,
-		showProgram,
-		canCreate: can(role, 'meetings.create')
+		showProgram
 	};
 };
 
-export const actions: Actions = {
-	ensure: ({ locals }) => {
-		requireRole(locals.user, 'meetings.create');
-		const created = ensureSundays(locals.db, todayIso(), 12);
-		return { created };
-	}
-};

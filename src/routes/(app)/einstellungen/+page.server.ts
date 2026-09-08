@@ -7,6 +7,7 @@ import { displayName, getMember, listMembers } from '$lib/server/members';
 import { requireRole } from '$lib/server/permissions';
 import { memberOptions } from '$lib/server/picker';
 import { getAllSettings, setSetting } from '$lib/server/settings';
+import { ensureSundays } from '$lib/server/meetings';
 
 export const load: PageServerLoad = ({ locals }) => {
 	requireRole(locals.user, 'settings.edit');
@@ -36,6 +37,11 @@ export const actions: Actions = {
 		if (!id || !getMember(locals.db, id)) return fail(400, { error: 'Bitte eine Person auswählen.' });
 		setBishopricIds(locals.db, [...getBishopricIds(locals.db), id]);
 		return { saved: true };
+	},
+	ensureSundays: ({ locals }) => {
+		requireRole(locals.user, 'settings.edit');
+		const created = ensureSundays(locals.db, todayIso(), 12);
+		return { created };
 	},
 	removeBishop: async ({ request, locals }) => {
 		requireRole(locals.user, 'settings.edit');
