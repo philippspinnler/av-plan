@@ -17,7 +17,7 @@ export const load: PageServerLoad = ({ locals }) => {
 		.map((id) => all.find((m) => m.id === id))
 		.filter((m): m is NonNullable<typeof m> => !!m)
 		.map((m) => ({ id: m.id, name: displayName(m) }));
-	const candidates = memberOptions(all.filter((m) => !ids.includes(m.id)), new Map(), 'plain', todayIso());
+	const candidates = memberOptions(all.filter((m) => m.kind === 'gemeinde' && !ids.includes(m.id)), new Map(), 'plain', todayIso());
 	return { settings: getAllSettings(locals.db), bishopric, candidates };
 };
 
@@ -34,7 +34,7 @@ export const actions: Actions = {
 		requireRole(locals.user, 'settings.edit');
 		const fd = await request.formData();
 		const id = int(fd, 'member');
-		if (!id || !getMember(locals.db, id)) return fail(400, { error: 'Bitte eine Person auswählen.' });
+		if (!id || getMember(locals.db, id)?.kind !== 'gemeinde') return fail(400, { error: 'Bitte ein Gemeindemitglied auswählen.' });
 		setBishopricIds(locals.db, [...getBishopricIds(locals.db), id]);
 		return { saved: true };
 	},

@@ -37,7 +37,7 @@
 	{/if}
 	<form method="POST" action="?/addBishop" use:enhance class="actions">
 		<div class="field" style="flex: 1; margin: 0; min-width: 16rem">
-			<label for="member">Person hinzufügen</label>
+			<label for="member">Mitglied hinzufügen</label>
 			<MemberSelect id="member" name="member" options={data.candidates} />
 		</div>
 		<button class="btn btn-primary" type="submit">Hinzufügen</button>

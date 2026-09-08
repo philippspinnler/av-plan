@@ -5,7 +5,7 @@ import { leadingInt } from '$lib/hymn-input';
 import { HYMN_SLOTS, MEETING_KINDS, STATUSES, isFastLike, type HymnSlot, type MeetingKind, type Status } from '$lib/server/db/schema';
 import { optInt, optStr, str, strList } from '$lib/server/forms';
 import { hymnLabel, listHymns } from '$lib/server/hymns';
-import { createMember, displayName, listMembers } from '$lib/server/members';
+import { STAKE_CALLINGS, createMember, displayName, listMembers } from '$lib/server/members';
 import {
 	KIND_LABELS, SLOT_LABELS, createMeeting, getMeetingByDate, hasProgram, loadMeetingFullByDate,
 	saveAnnouncements, saveCallings, saveConductor, saveGeneral, saveMusic, savePrayers, saveTalks, type TalkInput
@@ -60,9 +60,10 @@ export const load: PageServerLoad = ({ locals, params }) => {
 	const fastLike = isFastLike(kind);
 	const hymnSlots = HYMN_SLOTS.filter((slot) => slot !== 'zwischen' || !fastLike);
 
+	const ward = all.filter((m) => m.kind === 'gemeinde');
 	const bishopricIds = getBishopricIds(locals.db);
-	const bishopric = all.filter((m) => bishopricIds.includes(m.id));
-	const presidingPool = bishopric.length ? all.filter((m) => bishopricIds.includes(m.id) || m.id === full.meeting.presidingMemberId) : all;
+	const bishopric = ward.filter((m) => bishopricIds.includes(m.id));
+	const presidingPool = bishopric.length ? ward.filter((m) => bishopricIds.includes(m.id) || m.id === full.meeting.presidingMemberId) : ward;
 	const absences = parseAbsences(full.meeting.absences);
 	const idByName = new Map(all.map((m) => [displayName(m), m.id]));
 	const withMemberId = (c: { personName: string; calling: string }) => ({ personName: c.personName, calling: c.calling, memberId: idByName.get(c.personName) ?? null });
@@ -95,8 +96,9 @@ export const load: PageServerLoad = ({ locals, params }) => {
 		conductorName: full.conductor ? displayName(full.conductor) : null,
 		presidingOptions: showProgram ? memberOptions(presidingPool, activity, 'plain', today, full.meeting.presidingMemberId) : [],
 		absenceOptions: showProgram ? bishopric.map((m) => ({ id: m.id, label: displayName(m) })) : [],
-		organistOptions: memberOptions(all, activity, 'plain', today, full.meeting.organistMemberId),
-		conductorOptions: memberOptions(all, activity, 'plain', today, full.meeting.conductorMemberId),
+		organistOptions: memberOptions(ward, activity, 'plain', today, full.meeting.organistMemberId),
+		conductorOptions: memberOptions(ward, activity, 'plain', today, full.meeting.conductorMemberId),
+		stakeCallings: STAKE_CALLINGS,
 		prayers: showProgram
 			? [1, 2].map((position) => {
 					const p = full.prayers.find((x) => x.position === position) ?? { position, member: null, status: 'offen' as Status };
@@ -106,7 +108,7 @@ export const load: PageServerLoad = ({ locals, params }) => {
 						memberId: p.member?.id ?? null,
 						memberName: p.member ? displayName(p.member) : null,
 						status: p.status,
-						options: memberOptions(all, activity, stats ? 'prayer' : 'plain', today, p.member?.id ?? null)
+						options: memberOptions(ward, activity, stats ? 'prayer' : 'plain', today, p.member?.id ?? null)
 					};
 				})
 			: [],
@@ -134,7 +136,7 @@ export const load: PageServerLoad = ({ locals, params }) => {
 		announcements: showProgram ? full.announcements : [],
 		releases: showProgram ? full.callings.filter((c) => c.kind === 'entlassung').map(withMemberId) : [],
 		sustainings: showProgram ? full.callings.filter((c) => c.kind === 'berufung').map(withMemberId) : [],
-		callingOptions: showProgram ? memberOptions(all, activity, 'plain', today) : []
+		callingOptions: showProgram ? memberOptions(ward, activity, 'plain', today) : []
 	};
 };
 
@@ -225,7 +227,8 @@ export const actions: Actions = {
 		const fd = await request.formData();
 		const firstName = str(fd, 'firstName');
 		if (!firstName) return fail(400, { error: 'Bitte mindestens einen Vornamen angeben.' });
-		const m = createMember(locals.db, { firstName, lastName: str(fd, 'lastName'), affiliation: optStr(fd, 'affiliation') });
+		const kind = str(fd, 'kind') === 'pfahl' ? 'pfahl' : 'gemeinde';
+		const m = createMember(locals.db, { firstName, lastName: str(fd, 'lastName'), kind, calling: kind === 'pfahl' ? optStr(fd, 'calling') : null });
 		return { saved: 'quickAdd', added: displayName(m) };
 	}
 };

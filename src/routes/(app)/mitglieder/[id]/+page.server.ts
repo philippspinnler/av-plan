@@ -2,18 +2,19 @@ import { error, fail } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 import { formatDateDe } from '$lib/dates';
 import { optStr, str } from '$lib/server/forms';
-import { displayName, getMember, updateMember } from '$lib/server/members';
+import { STAKE_CALLINGS, displayName, getMember, updateMember } from '$lib/server/members';
 import { can, requireRole } from '$lib/server/permissions';
 import { memberHistory } from '$lib/server/stats';
 
 export const load: PageServerLoad = ({ locals, params }) => {
 	const member = getMember(locals.db, Number(params.id));
-	if (!member) error(404, 'Person nicht gefunden');
+	if (!member) error(404, 'Mitglied nicht gefunden');
 	const role = locals.user!.role;
 	const stats = can(role, 'members.stats');
 	return {
 		member: { ...member, noteTalk: stats ? member.noteTalk : null, notePrayer: stats ? member.notePrayer : null },
 		title: displayName(member),
+		stakeCallings: STAKE_CALLINGS,
 		canEdit: can(role, 'members.edit'),
 		stats,
 		history: stats
@@ -33,10 +34,13 @@ export const actions: Actions = {
 		const fd = await request.formData();
 		const firstName = str(fd, 'firstName');
 		if (!firstName) return fail(400, { error: 'Der Vorname darf nicht leer sein.' });
+		const kind = str(fd, 'kind') === 'pfahl' ? 'pfahl' : 'gemeinde';
 		updateMember(locals.db, Number(params.id), {
 			firstName,
 			lastName: str(fd, 'lastName'),
-			affiliation: optStr(fd, 'affiliation'),
+			kind,
+			calling: kind === 'pfahl' ? optStr(fd, 'calling') : null,
+			affiliation: kind === 'gemeinde' ? optStr(fd, 'affiliation') : null,
 			active: str(fd, 'active') === '1',
 			noteTalk: optStr(fd, 'noteTalk'),
 			notePrayer: optStr(fd, 'notePrayer')

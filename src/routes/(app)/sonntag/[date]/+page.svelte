@@ -110,7 +110,7 @@
 
 {#snippet personSelect(name: string, row: CallingRow)}
 	<select {name} form="programForm" bind:value={row.person}>
-		<option value="">– Person wählen –</option>
+		<option value="">– Mitglied wählen –</option>
 		{#if row.person.startsWith('name:')}<option value={row.person}>{row.personName} (Freitext)</option>{/if}
 		{#each data.missing ? [] : data.callingOptions as o}<option value={String(o.id)}>{o.label}</option>{/each}
 	</select>
@@ -346,13 +346,21 @@
 					{@render talkCard(findTalk(2), data.statuses)}
 					{#if data.canAddMember}
 						<div class="actions">
-							<button class="btn" type="button" onclick={() => (showQuickAdd = !showQuickAdd)}>Neue Person anlegen</button>
+							<button class="btn" type="button" onclick={() => (showQuickAdd = !showQuickAdd)}>Neues Mitglied anlegen</button>
 						</div>
 						{#if showQuickAdd}
 							<form method="POST" action="?/quickAdd" use:enhance class="card grid-3">
 								<div class="field"><label for="qa-fn">Vorname</label><input id="qa-fn" name="firstName" type="text" required /></div>
 								<div class="field"><label for="qa-ln">Nachname</label><input id="qa-ln" name="lastName" type="text" /></div>
-								<div class="field"><label for="qa-af">Zugehörigkeit</label><input id="qa-af" name="affiliation" type="text" placeholder="leer für Gemeindemitglied" /></div>
+								<div class="field">
+									<label for="qa-kind">Art</label>
+									<select id="qa-kind" name="kind"><option value="gemeinde">Gemeindemitglied</option><option value="pfahl">Pfahlbeamter</option></select>
+								</div>
+								<div class="field">
+									<label for="qa-calling">Berufung (Pfahlbeamte)</label>
+									<input id="qa-calling" name="calling" type="text" list="stakeCallings" placeholder="z.B. Hoherat" autocomplete="off" />
+									<datalist id="stakeCallings">{#each data.stakeCallings as c}<option value={c}></option>{/each}</datalist>
+								</div>
 								<div class="actions"><button class="btn btn-primary" type="submit">Anlegen</button></div>
 							</form>
 						{/if}

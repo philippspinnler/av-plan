@@ -2,7 +2,7 @@ import { fail, redirect } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 import { todayIso } from '$lib/dates';
 import { optStr, str } from '$lib/server/forms';
-import { createMember, displayName, listMembers } from '$lib/server/members';
+import { STAKE_CALLINGS, createMember, displayName, listMembers } from '$lib/server/members';
 import { can, requireRole } from '$lib/server/permissions';
 import { memberActivity, weeksAgoLabel, type MemberActivity } from '$lib/server/stats';
 
@@ -16,6 +16,7 @@ export const load: PageServerLoad = ({ locals, url }) => {
 		const a = activity.get(m.id);
 		return {
 			id: m.id,
+			kind: m.kind,
 			name: displayName(m),
 			active: m.active,
 			lastTalk: stats ? weeksAgoLabel(a?.lastTalk ?? null, today) : '',
@@ -24,7 +25,14 @@ export const load: PageServerLoad = ({ locals, url }) => {
 			notePrayer: stats ? m.notePrayer : null
 		};
 	});
-	return { members, showAll, stats, canCreate: can(role, 'members.create') };
+	return {
+		ward: members.filter((m) => m.kind === 'gemeinde'),
+		stake: members.filter((m) => m.kind === 'pfahl'),
+		showAll,
+		stats,
+		canCreate: can(role, 'members.create'),
+		stakeCallings: STAKE_CALLINGS
+	};
 };
 
 export const actions: Actions = {
@@ -34,7 +42,14 @@ export const actions: Actions = {
 		const firstName = str(fd, 'firstName');
 		const lastName = str(fd, 'lastName');
 		if (!firstName) return fail(400, { error: 'Bitte mindestens einen Vornamen angeben.' });
-		const m = createMember(locals.db, { firstName, lastName, affiliation: optStr(fd, 'affiliation') });
+		const kind = str(fd, 'kind') === 'pfahl' ? 'pfahl' : 'gemeinde';
+		const m = createMember(locals.db, {
+			firstName,
+			lastName,
+			kind,
+			calling: kind === 'pfahl' ? optStr(fd, 'calling') : null,
+			affiliation: kind === 'gemeinde' ? optStr(fd, 'affiliation') : null
+		});
 		redirect(303, `/mitglieder/${m.id}`);
 	}
 };
