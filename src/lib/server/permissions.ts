@@ -2,8 +2,10 @@ import { error } from '@sveltejs/kit';
 import type { Role } from './db/schema';
 
 export type Action =
+	| 'program.view'
 	| 'meeting.program'
 	| 'meeting.music'
+	| 'meeting.conductor'
 	| 'meetings.create'
 	| 'hymns.edit'
 	| 'members.create'
@@ -13,11 +15,13 @@ export type Action =
 	| 'settings.edit';
 
 const MATRIX: Record<Action, Role[]> = {
+	'program.view': ['admin', 'bischofschaft'],
 	'meeting.program': ['admin', 'bischofschaft'],
-	'meeting.music': ['admin', 'musik'],
+	'meeting.music': ['admin', 'bischofschaft', 'musik'],
+	'meeting.conductor': ['admin', 'bischofschaft', 'musik', 'dirigent'],
 	'meetings.create': ['admin', 'bischofschaft'],
-	'hymns.edit': ['admin', 'musik'],
-	'members.create': ['admin', 'bischofschaft'],
+	'hymns.edit': ['admin', 'bischofschaft', 'musik'],
+	'members.create': ['admin'],
 	'members.edit': ['admin'],
 	'members.stats': ['admin', 'bischofschaft'],
 	'users.manage': ['admin'],
@@ -34,5 +38,5 @@ export function requireRole(user: { role: Role } | null | undefined, action: Act
 }
 
 export function roleLabel(role: Role): string {
-	return { admin: 'Admin', bischofschaft: 'Bischofschaft', musik: 'Musik' }[role];
+	return { admin: 'Admin', bischofschaft: 'Bischofschaft', musik: 'Musik', dirigent: 'Dirigent/in' }[role];
 }

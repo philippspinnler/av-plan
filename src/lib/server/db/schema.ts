@@ -1,7 +1,7 @@
 import { sql } from 'drizzle-orm';
 import { integer, sqliteTable, text, uniqueIndex } from 'drizzle-orm/sqlite-core';
 
-export const ROLES = ['admin', 'bischofschaft', 'musik'] as const;
+export const ROLES = ['admin', 'bischofschaft', 'musik', 'dirigent'] as const;
 export type Role = (typeof ROLES)[number];
 export const MEETING_KINDS = ['normal', 'fastsonntag', 'generalkonferenz', 'pfahlkonferenz', 'gemeindekonferenz', 'keine'] as const;
 export type MeetingKind = (typeof MEETING_KINDS)[number];

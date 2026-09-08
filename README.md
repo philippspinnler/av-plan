@@ -6,9 +6,12 @@ Webapp zur Planung der Abendmahlsversammlung (Programm, Sprecher, Gebete, Lieder
 
 | Rolle | darf |
 |---|---|
-| Admin | alles, inkl. Benutzer einladen, Personen pflegen, Einstellungen |
-| Bischofschaft | Sonntage planen (Leitung, Gebete, Ansprachen, Bekanntmachungen, Berufungen), Personen anlegen; sieht Musik |
-| Musik | Lieder pro Sonntag, Orgel, Dirigieren, Liederbuch; sieht das Programm |
+| Admin | alles, inkl. Benutzer einladen, Personen anlegen/ändern, Einstellungen |
+| Bischofschaft | Sonntage planen (Leitung, Gebete, Ansprachen, Bekanntmachungen, Berufungen) und alles der Musik (Lieder, Orgel, Dirigieren, Liederbuch) |
+| Musik | Lieder pro Sonntag, Orgel, Dirigieren, Liederbuch; sieht kein Programm |
+| Dirigent/in | setzt nur, wer dirigiert; sieht kein Programm |
+
+Personen anlegen oder ändern darf nur der Admin.
 
 ## Betrieb mit Docker
 

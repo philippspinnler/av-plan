@@ -5,7 +5,8 @@
 	const roles = [
 		{ value: 'admin', label: 'Admin' },
 		{ value: 'bischofschaft', label: 'Bischofschaft' },
-		{ value: 'musik', label: 'Musik' }
+		{ value: 'musik', label: 'Musik' },
+		{ value: 'dirigent', label: 'Dirigent/in' }
 	];
 	let copied = $state(false);
 	const invited = $derived(form?.invited);
