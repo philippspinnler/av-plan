@@ -60,13 +60,13 @@
 							{#if data.showProgram}
 								<td>
 									{#if m.kind === 'normal' || m.kind === 'fastsonntag'}
-										{#if m.missingProgram.length}<span class="badge badge-offen" title={m.missingProgram.join(', ')}>{m.missingProgram.length} offen</span>{:else}<span class="badge badge-zugesagt">bereit</span>{/if}
+										{#if m.missingProgram.length}<span class="badge badge-offen">{m.missingProgram.join(', ')}</span>{:else}<span class="badge badge-zugesagt">bereit</span>{/if}
 									{/if}
 								</td>
 							{/if}
 							<td>
 								{#if m.kind === 'normal' || m.kind === 'fastsonntag'}
-									{#if m.missingMusic.length}<span class="badge badge-offen" title={m.missingMusic.join(', ')}>{m.missingMusic.length} offen</span>{:else}<span class="badge badge-zugesagt">bereit</span>{/if}
+									{#if m.missingMusic.length}<span class="badge badge-offen">{m.missingMusic.join(', ')}</span>{:else}<span class="badge badge-zugesagt">bereit</span>{/if}
 								{/if}
 							</td>
 						</tr>
