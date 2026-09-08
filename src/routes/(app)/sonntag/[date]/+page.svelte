@@ -9,6 +9,21 @@
 	let releases = $state<{ personName: string; calling: string }[]>([]);
 	let sustainings = $state<{ personName: string; calling: string }[]>([]);
 	let showQuickAdd = $state(false);
+	const isFast = $derived(!data.missing && data.meeting.kind === 'fastsonntag');
+	const steps = $derived([
+		'kopf',
+		...(data.showProgram ? ['begruessung'] : []),
+		'anfangslied',
+		...(data.showProgram ? ['anfangsgebet', 'berufungen'] : []),
+		'abendmahl',
+		...(data.showProgram && !isFast ? ['ansprachen12'] : []),
+		...(!isFast ? ['zwischenlied'] : []),
+		...(data.showProgram && !isFast ? ['ansprache3'] : []),
+		'schlusslied',
+		...(data.showProgram ? ['schlussgebet'] : []),
+		'musik'
+	]);
+	const num = (key: string) => steps.indexOf(key) + 1;
 	// svelte-ignore state_referenced_locally -- initial value only; re-synced by the date-keyed effect below
 	let showFourth = $state(data.missing ? false : data.showFourth);
 	let seededAnnouncements = $state<string | null>(null);
@@ -133,7 +148,7 @@
 
 		<!-- 1. Kopf -->
 		<div class="section flow-step">
-			<h2>1. Kopf</h2>
+			<h2>{num('kopf')}. Kopf</h2>
 			<p class="field-static"><strong>Datum:</strong> {data.dateLabel}</p>
 			<div class="grid-2">
 				<div class="field">
@@ -233,7 +248,7 @@
 			{#if data.showProgram}
 				<!-- 2. Begrüssung und Bekanntmachungen -->
 				<div class="section flow-step">
-					<h2>2. Begrüssung und Bekanntmachungen</h2>
+					<h2>{num('begruessung')}. Begrüssung und Bekanntmachungen</h2>
 					<ul class="greeting-list">
 						{#each PRINT_TEXTS.greetingItems as g}<li class="muted">{g}</li>{/each}
 					</ul>
@@ -255,14 +270,14 @@
 
 			<!-- 3. Anfangslied -->
 			<div class="section flow-step">
-				<h2>3. Anfangslied</h2>
+				<h2>{num('anfangslied')}. Anfangslied</h2>
 				{@render hymnRow(findHymn('anfang'))}
 			</div>
 
 			{#if data.showProgram}
 				<!-- 4. Anfangsgebet -->
 				<div class="section flow-step">
-					<h2>4. Anfangsgebet</h2>
+					<h2>{num('anfangsgebet')}. Anfangsgebet</h2>
 					{#each data.prayers.filter((p) => p.position === 1) as p}
 						<div class="grid-2">
 							<div class="field"><label for="prayer{p.position}">{p.label}</label><MemberSelect id="prayer{p.position}" name="prayer{p.position}_member" form="programForm" options={p.options} value={p.memberId} /></div>
@@ -276,7 +291,7 @@
 
 				<!-- 5. Entlassungen und Berufungen -->
 				<div class="section flow-step">
-					<h2>5. Entlassungen und Berufungen</h2>
+					<h2>{num('berufungen')}. Entlassungen und Berufungen</h2>
 					<div class="grid-2">
 						<div>
 							<h3>Entlassungen</h3>
@@ -310,18 +325,15 @@
 
 			<!-- 6. Abendmahlslied und Abendmahl -->
 			<div class="section flow-step">
-				<h2>6. Abendmahlslied und Abendmahl</h2>
+				<h2>{num('abendmahl')}. Abendmahlslied und Abendmahl</h2>
 				{@render hymnRow(findHymn('abendmahl'))}
 				<p class="muted">{PRINT_TEXTS.sacramentThanks}</p>
 			</div>
 
-			{#if data.showProgram}
-				<!-- 7. Ansprache 1 und 2 -->
+			{#if data.showProgram && !isFast}
+				<!-- Ansprache 1 und 2 -->
 				<div class="section flow-step">
-					<h2>7. {data.meeting.kind === 'fastsonntag' ? 'Zeugnisse (Fastsonntag)' : 'Ansprache 1 und 2'}</h2>
-					{#if data.meeting.kind === 'fastsonntag'}
-						<p class="hint">Am Fastsonntag stehen die Geschwister für Zeugnisse auf; die Felder unten bleiben nutzbar, falls trotzdem Sprecher eingeteilt sind.</p>
-					{/if}
+					<h2>{num('ansprachen12')}. Ansprache 1 und 2</h2>
 					{@render talkCard(findTalk(1), data.statuses)}
 					{@render talkCard(findTalk(2), data.statuses)}
 					{#if data.canAddMember}
@@ -340,18 +352,18 @@
 				</div>
 			{/if}
 
-			{#if data.meeting.kind !== 'fastsonntag'}
-				<!-- 8. Zwischenlied -->
+			{#if !isFast}
+				<!-- Zwischenlied -->
 				<div class="section flow-step">
-					<h2>8. Zwischenlied</h2>
+					<h2>{num('zwischenlied')}. Zwischenlied</h2>
 					{@render hymnRow(findHymn('zwischen'))}
 				</div>
 			{/if}
 
-			{#if data.showProgram}
-				<!-- 9. Ansprache 3 (+4) -->
+			{#if data.showProgram && !isFast}
+				<!-- Ansprache 3 (+4) -->
 				<div class="section flow-step">
-					<h2>9. {showFourth ? 'Ansprache 3 und 4' : 'Ansprache 3'}</h2>
+					<h2>{num('ansprache3')}. {showFourth ? 'Ansprache 3 und 4' : 'Ansprache 3'}</h2>
 					{@render talkCard(findTalk(3), data.statuses)}
 					{#if showFourth}
 						{@render talkCard(findTalk(4), data.statuses)}
@@ -364,14 +376,14 @@
 
 			<!-- 10. Schlusslied -->
 			<div class="section flow-step">
-				<h2>10. Schlusslied</h2>
+				<h2>{num('schlusslied')}. Schlusslied</h2>
 				{@render hymnRow(findHymn('schluss'))}
 			</div>
 
 			{#if data.showProgram}
 				<!-- 11. Schlussgebet -->
 				<div class="section flow-step">
-					<h2>11. Schlussgebet</h2>
+					<h2>{num('schlussgebet')}. Schlussgebet</h2>
 					{#each data.prayers.filter((p) => p.position === 2) as p}
 						<div class="grid-2">
 							<div class="field"><label for="prayer{p.position}">{p.label}</label><MemberSelect id="prayer{p.position}" name="prayer{p.position}_member" form="programForm" options={p.options} value={p.memberId} /></div>
@@ -386,7 +398,7 @@
 
 			<!-- 12. Orgel / Klavier, Dirigieren, Notiz Musik -->
 			<div class="section flow-step">
-				<h2>12. Orgel / Klavier, Dirigieren, Notiz Musik</h2>
+				<h2>{num('musik')}. Orgel / Klavier, Dirigieren, Notiz Musik</h2>
 				{#if data.canMusic}
 					<div class="grid-2">
 						<div class="field"><label for="organist">Orgel / Klavier</label><MemberSelect id="organist" name="organist" form="musicForm" options={data.organistOptions} value={data.meeting.organistMemberId} /></div>
