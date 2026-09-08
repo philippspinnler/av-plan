@@ -90,3 +90,8 @@ textarea { min-height: 5rem; }
 .check-list { display: flex; flex-wrap: wrap; gap: 0.25rem 1.25rem; }
 .check { display: flex; align-items: center; gap: 0.45rem; min-height: 44px; font-weight: 400; }
 .check input { width: 1.35rem; height: 1.35rem; min-height: 0; margin: 0; }
+.overview { table-layout: fixed; }
+.overview .c-day { width: 4.5rem; }
+.overview .c-kind { width: 10rem; }
+.overview .c-status { width: 22%; }
+.overview td { overflow-wrap: anywhere; }

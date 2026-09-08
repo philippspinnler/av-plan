@@ -63,7 +63,14 @@
 		{#each groups as g}
 		<h3 class="month-title">{g.label}</h3>
 		<div class="table-wrap">
-			<table class="table">
+			<table class="table overview">
+				<colgroup>
+					<col class="c-day" />
+					<col class="c-kind" />
+					<col class="c-theme" />
+					{#if data.showProgram}<col class="c-status" />{/if}
+					<col class="c-status" />
+				</colgroup>
 				<thead><tr><th class="col-day">Datum</th><th>Typ</th><th>Thema</th>{#if data.showProgram}<th>Programm</th>{/if}<th>Musik</th></tr></thead>
 				<tbody>
 					{#each g.items as m}
