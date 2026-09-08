@@ -9,6 +9,7 @@
 	let releases = $state<{ personName: string; calling: string }[]>([]);
 	let sustainings = $state<{ personName: string; calling: string }[]>([]);
 	let showQuickAdd = $state(false);
+	// svelte-ignore state_referenced_locally -- initial value only; re-synced by the date-keyed effect below
 	let showFourth = $state(data.missing ? false : data.showFourth);
 	let seededAnnouncements = $state<string | null>(null);
 	let seededCallings = $state<string | null>(null);
