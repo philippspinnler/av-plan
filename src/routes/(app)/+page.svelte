@@ -14,6 +14,9 @@
 			return acc;
 		}, [])
 	);
+	const openCount = (items: typeof data.meetings) =>
+		items.filter((m) => m.rated && m.date >= data.today && (m.missingProgram.length > 0 || m.missingMusic.length > 0)).length;
+	const ratedUpcoming = (items: typeof data.meetings) => items.some((m) => m.rated && m.date >= data.today);
 </script>
 
 <div class="section-title">
@@ -61,7 +64,13 @@
 		<p class="muted">Keine Sonntage in diesem Zeitraum. {#if data.canCreate}Lege sie mit der Schaltfläche oben an.{/if}</p>
 	{:else}
 		{#each groups as g}
-		<h3 class="month-title">{g.label}</h3>
+		<h3 class="month-title">
+			{g.label}
+			{#if ratedUpcoming(g.items)}
+				{@const open = openCount(g.items)}
+				{#if open === 0}<span class="badge badge-zugesagt">bereit</span>{:else}<span class="badge badge-offen">{open === 1 ? '1 Sonntag offen' : `${open} Sonntage offen`}</span>{/if}
+			{/if}
+		</h3>
 		<div class="table-wrap">
 			<table class="table overview">
 				<colgroup>
