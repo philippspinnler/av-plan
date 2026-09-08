@@ -5,6 +5,16 @@ import { ROLE_VIEW_COOKIE } from '$lib/server/role-view';
 
 const isRole = (r: string): r is Role => (ROLES as readonly string[]).includes(r);
 
+function sameOriginPath(referer: string | null, origin: string): string {
+	if (!referer) return '/';
+	try {
+		const u = new URL(referer);
+		return u.origin === origin ? u.pathname + u.search : '/';
+	} catch {
+		return '/';
+	}
+}
+
 export const POST: RequestHandler = async ({ request, cookies, locals, url }) => {
 	if (locals.accountRole !== 'admin') error(403, 'Nur für Admins');
 	const fd = await request.formData();
@@ -14,7 +24,5 @@ export const POST: RequestHandler = async ({ request, cookies, locals, url }) =>
 	} else {
 		cookies.delete(ROLE_VIEW_COOKIE, { path: '/' });
 	}
-	const referer = request.headers.get('referer');
-	const target = referer && referer.startsWith(url.origin) ? referer : '/';
-	redirect(303, target);
+	redirect(303, sameOriginPath(request.headers.get('referer'), url.origin));
 };
