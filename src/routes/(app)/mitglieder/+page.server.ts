@@ -2,7 +2,7 @@ import { fail, redirect } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 import { todayIso } from '$lib/dates';
 import { optStr, str } from '$lib/server/forms';
-import { STAKE_CALLINGS, createMember, displayName, listMembers } from '$lib/server/members';
+import { createMember, displayName, listMembers } from '$lib/server/members';
 import { can, requireRole } from '$lib/server/permissions';
 import { memberActivity, weeksAgoLabel, type MemberActivity } from '$lib/server/stats';
 
@@ -12,11 +12,10 @@ export const load: PageServerLoad = ({ locals, url }) => {
 	const today = todayIso();
 	const stats = can(role, 'members.stats');
 	const activity = stats ? memberActivity(locals.db, today) : new Map<number, MemberActivity>();
-	const members = listMembers(locals.db, { activeOnly: !showAll }).map((m) => {
+	const members = listMembers(locals.db, { activeOnly: !showAll, kind: 'gemeinde' }).map((m) => {
 		const a = activity.get(m.id);
 		return {
 			id: m.id,
-			kind: m.kind,
 			name: displayName(m),
 			active: m.active,
 			lastTalk: stats ? weeksAgoLabel(a?.lastTalk ?? null, today) : '',
@@ -25,14 +24,7 @@ export const load: PageServerLoad = ({ locals, url }) => {
 			notePrayer: stats ? m.notePrayer : null
 		};
 	});
-	return {
-		ward: members.filter((m) => m.kind === 'gemeinde'),
-		stake: members.filter((m) => m.kind === 'pfahl'),
-		showAll,
-		stats,
-		canCreate: can(role, 'members.create'),
-		stakeCallings: STAKE_CALLINGS
-	};
+	return { members, showAll, stats, canCreate: can(role, 'members.create') };
 };
 
 export const actions: Actions = {
@@ -42,14 +34,7 @@ export const actions: Actions = {
 		const firstName = str(fd, 'firstName');
 		const lastName = str(fd, 'lastName');
 		if (!firstName) return fail(400, { error: 'Bitte mindestens einen Vornamen angeben.' });
-		const kind = str(fd, 'kind') === 'pfahl' ? 'pfahl' : 'gemeinde';
-		const m = createMember(locals.db, {
-			firstName,
-			lastName,
-			kind,
-			calling: kind === 'pfahl' ? optStr(fd, 'calling') : null,
-			affiliation: kind === 'gemeinde' ? optStr(fd, 'affiliation') : null
-		});
+		const m = createMember(locals.db, { firstName, lastName, kind: 'gemeinde', affiliation: optStr(fd, 'affiliation') });
 		redirect(303, `/mitglieder/${m.id}`);
 	}
 };

@@ -15,6 +15,7 @@
 		<a href="/" class:active={isActive('/')}>Sonntage</a>
 		<a href="/lieder" class:active={isActive('/lieder')}>Lieder</a>
 		<a href="/mitglieder" class:active={isActive('/mitglieder')}>Mitglieder</a>
+		<a href="/pfahlbeamte" class:active={isActive('/pfahlbeamte')}>Pfahlbeamte</a>
 		{#if role === 'admin'}
 			<a href="/admin/benutzer" class:active={isActive('/admin')}>Benutzer</a>
 			<a href="/einstellungen" class:active={isActive('/einstellungen')}>Einstellungen</a>

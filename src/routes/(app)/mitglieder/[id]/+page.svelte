@@ -2,11 +2,10 @@
 	import { enhance } from '$app/forms';
 	let { data, form } = $props();
 	const m = $derived(data.member);
-	// svelte-ignore state_referenced_locally -- initial value only
-	let kind = $state(data.member.kind);
+	const kind = $derived(m.kind);
 </script>
 
-<p><a href="/mitglieder">← Mitglieder</a></p>
+<p><a href={kind === 'pfahl' ? '/pfahlbeamte' : '/mitglieder'}>← {kind === 'pfahl' ? 'Pfahlbeamte' : 'Mitglieder'}</a></p>
 <h1>{data.title}</h1>
 {#if form?.error}<div class="error">{form.error}</div>{/if}
 {#if form?.saved}<div class="success">Gespeichert.</div>{/if}
@@ -14,16 +13,10 @@
 <div class="section">
 	{#if data.canEdit}
 		<form method="POST" action="?/update" use:enhance>
-			<div class="grid-3">
+			<div class="grid-2">
 				<div class="field"><label for="fn">Vorname</label><input id="fn" name="firstName" type="text" required value={m.firstName} /></div>
 				<div class="field"><label for="ln">Nachname</label><input id="ln" name="lastName" type="text" value={m.lastName} /></div>
-				<div class="field">
-					<label for="kind">Art</label>
-					<select id="kind" name="kind" bind:value={kind}>
-						<option value="gemeinde">Gemeindemitglied</option>
-						<option value="pfahl">Pfahlbeamter</option>
-					</select>
-				</div>
+				<input type="hidden" name="kind" value={kind} />
 			</div>
 			{#if kind === 'pfahl'}
 				<div class="field">
