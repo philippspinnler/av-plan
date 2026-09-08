@@ -46,7 +46,9 @@ describe('parseSpezial', () => {
 		expect(parseSpezial('Generalkonferenz/Fastsonntag')).toEqual({ kind: 'generalkonferenz', note: 'Fastsonntag' });
 		expect(parseSpezial('Pfahlkonferenz')).toEqual({ kind: 'pfahlkonferenz', note: null });
 		expect(parseSpezial('Gemeindekonferenz')).toEqual({ kind: 'gemeindekonferenz', note: null });
-		expect(parseSpezial('Weihnachten / nur AV')).toEqual({ kind: 'normal', note: 'Weihnachten / nur AV' });
+		expect(parseSpezial('Weihnachten / nur AV')).toEqual({ kind: 'weihnachten', note: 'nur AV' });
+		expect(parseSpezial('Ostern')).toEqual({ kind: 'ostern', note: null });
+		expect(parseSpezial('Weihnachtsversammlung')).toEqual({ kind: 'weihnachten', note: null });
 	});
 });
 

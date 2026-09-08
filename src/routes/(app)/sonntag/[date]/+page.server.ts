@@ -63,6 +63,8 @@ export const load: PageServerLoad = ({ locals, params }) => {
 	const bishopric = all.filter((m) => bishopricIds.includes(m.id));
 	const presidingPool = bishopric.length ? all.filter((m) => bishopricIds.includes(m.id) || m.id === full.meeting.presidingMemberId) : all;
 	const absences = parseAbsences(full.meeting.absences);
+	const idByName = new Map(all.map((m) => [displayName(m), m.id]));
+	const withMemberId = (c: { personName: string; calling: string }) => ({ personName: c.personName, calling: c.calling, memberId: idByName.get(c.personName) ?? null });
 
 	return {
 		...base,
@@ -128,8 +130,9 @@ export const load: PageServerLoad = ({ locals, params }) => {
 		}),
 		hymnList: listHymns(locals.db).map((h) => hymnLabel(h)),
 		announcements: showProgram ? full.announcements : [],
-		releases: showProgram ? full.callings.filter((c) => c.kind === 'entlassung') : [],
-		sustainings: showProgram ? full.callings.filter((c) => c.kind === 'berufung') : []
+		releases: showProgram ? full.callings.filter((c) => c.kind === 'entlassung').map(withMemberId) : [],
+		sustainings: showProgram ? full.callings.filter((c) => c.kind === 'berufung').map(withMemberId) : [],
+		callingOptions: showProgram ? memberOptions(all, activity, 'plain', today) : []
 	};
 };
 
@@ -175,10 +178,12 @@ export const actions: Actions = {
 		}
 		saveTalks(locals.db, id, talks);
 		saveAnnouncements(locals.db, id, strList(fd, 'announcement'));
+		const membersById = new Map(listMembers(locals.db).map((m) => [String(m.id), displayName(m)]));
+		const personFrom = (v: string) => (v.startsWith('name:') ? v.slice(5).trim() : (membersById.get(v) ?? ''));
 		const pairs = (kind: 'entlassung' | 'berufung', prefix: string) => {
-			const names = fd.getAll(`${prefix}_name`).map((v) => String(v).trim());
+			const persons = fd.getAll(`${prefix}_person`).map((v) => personFrom(String(v).trim()));
 			const callings = fd.getAll(`${prefix}_calling`).map((v) => String(v).trim());
-			return names.map((personName, i) => ({ kind, personName, calling: callings[i] ?? '' })).filter((c) => c.personName || c.calling);
+			return persons.map((personName, i) => ({ kind, personName, calling: callings[i] ?? '' })).filter((c) => c.personName || c.calling);
 		};
 		saveCallings(locals.db, id, [...pairs('entlassung', 'release'), ...pairs('berufung', 'sustain')]);
 

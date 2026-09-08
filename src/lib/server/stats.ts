@@ -4,7 +4,12 @@ import type { Db } from './db';
 import { meetingHymns, meetingPrayers, meetingTalks, meetings, type HymnSlot, type MeetingKind } from './db/schema';
 import type { MeetingFull } from './meetings';
 
-const COUNTED: MeetingKind[] = ['normal', 'fastsonntag', 'gemeindekonferenz'];
+const COUNTED: MeetingKind[] = ['normal', 'fastsonntag', 'ostern', 'weihnachten', 'gemeindekonferenz'];
+const RATED: MeetingKind[] = ['normal', 'fastsonntag', 'ostern', 'weihnachten'];
+
+export function isRated(kind: MeetingKind): boolean {
+	return RATED.includes(kind);
+}
 
 export interface MemberActivity { lastTalk: string | null; lastPrayer: string | null; nextTalk: string | null; nextPrayer: string | null }
 
@@ -89,14 +94,14 @@ export function hymnHistory(db: Db, hymnId: number): { date: string; slot: HymnS
 
 export function readiness(m: MeetingFull): { program: string[]; music: string[] } {
 	const kind = m.meeting.kind;
-	if (kind !== 'normal' && kind !== 'fastsonntag') return { program: [], music: [] };
+	if (!isRated(kind)) return { program: [], music: [] };
 	const program: string[] = [];
 	const music: string[] = [];
 	if (!m.presiding) program.push('Leitung');
 	const prayer = (pos: number) => m.prayers.find((p) => p.position === pos);
 	if (prayer(1)?.status !== 'zugesagt' || !prayer(1)?.member) program.push('Anfangsgebet');
 	if (prayer(2)?.status !== 'zugesagt' || !prayer(2)?.member) program.push('Schlussgebet');
-	if (kind === 'normal') {
+	if (kind !== 'fastsonntag') {
 		const confirmed = m.talks.filter((t) => t.member && t.status === 'zugesagt').length;
 		if (confirmed < 2) program.push(`Ansprachen (${confirmed} von 2 zugesagt)`);
 	}

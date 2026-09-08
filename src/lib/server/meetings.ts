@@ -10,6 +10,8 @@ import { getHymnByNumber } from './hymns';
 export const KIND_LABELS: Record<MeetingKind, string> = {
 	normal: 'Normal',
 	fastsonntag: 'Fastsonntag',
+	ostern: 'Ostersonntag',
+	weihnachten: 'Weihnachtssonntag',
 	generalkonferenz: 'Generalkonferenz',
 	pfahlkonferenz: 'Pfahlkonferenz',
 	gemeindekonferenz: 'Gemeindekonferenz',
@@ -24,7 +26,7 @@ export const SLOT_LABELS: Record<HymnSlot, string> = {
 export const STATUS_LABELS: Record<Status, string> = { offen: 'Offen', angefragt: 'Angefragt', zugesagt: 'Zugesagt' };
 
 export function hasProgram(kind: MeetingKind): boolean {
-	return kind === 'normal' || kind === 'fastsonntag' || kind === 'gemeindekonferenz';
+	return kind === 'normal' || kind === 'fastsonntag' || kind === 'ostern' || kind === 'weihnachten' || kind === 'gemeindekonferenz';
 }
 export const countsForStats = hasProgram;
 

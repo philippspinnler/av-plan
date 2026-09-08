@@ -3,7 +3,7 @@ import type { MeetingKind } from './db/schema';
 import { hymnLabel } from './hymns';
 import { displayName } from './members';
 import { KIND_LABELS, type MeetingFull } from './meetings';
-import { readiness } from './stats';
+import { isRated, readiness } from './stats';
 
 export interface MeetingSummary {
 	date: string;
@@ -16,6 +16,7 @@ export interface MeetingSummary {
 	hymns: string[];
 	missingProgram: string[];
 	missingMusic: string[];
+	rated: boolean;
 }
 
 export function summarize(m: MeetingFull, opts: { showProgram: boolean }): MeetingSummary {
@@ -33,7 +34,8 @@ export function summarize(m: MeetingFull, opts: { showProgram: boolean }): Meeti
 			.filter((h) => h.hymn || h.freeText)
 			.map((h) => (h.hymn ? hymnLabel(h.hymn) : h.freeText!)),
 		missingProgram: opts.showProgram ? r.program : [],
-		missingMusic: r.music
+		missingMusic: r.music,
+		rated: isRated(m.meeting.kind)
 	};
 }
 

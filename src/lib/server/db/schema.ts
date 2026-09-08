@@ -3,7 +3,7 @@ import { integer, sqliteTable, text, uniqueIndex } from 'drizzle-orm/sqlite-core
 
 export const ROLES = ['admin', 'bischofschaft', 'musik', 'dirigent'] as const;
 export type Role = (typeof ROLES)[number];
-export const MEETING_KINDS = ['normal', 'fastsonntag', 'generalkonferenz', 'pfahlkonferenz', 'gemeindekonferenz', 'keine'] as const;
+export const MEETING_KINDS = ['normal', 'fastsonntag', 'ostern', 'weihnachten', 'gemeindekonferenz', 'generalkonferenz', 'pfahlkonferenz', 'keine'] as const;
 export type MeetingKind = (typeof MEETING_KINDS)[number];
 export const STATUSES = ['offen', 'angefragt', 'zugesagt'] as const;
 export type Status = (typeof STATUSES)[number];

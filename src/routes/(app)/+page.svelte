@@ -80,13 +80,13 @@
 							<td>{m.theme ?? ''}</td>
 							{#if data.showProgram}
 								<td>
-									{#if m.kind === 'normal' || m.kind === 'fastsonntag'}
+									{#if m.rated}
 										{#if m.missingProgram.length}<span class="badge badge-offen">{m.missingProgram.join(', ')}</span>{:else}<span class="badge badge-zugesagt">bereit</span>{/if}
 									{/if}
 								</td>
 							{/if}
 							<td>
-								{#if m.kind === 'normal' || m.kind === 'fastsonntag'}
+								{#if m.rated}
 									{#if m.missingMusic.length}<span class="badge badge-offen">{m.missingMusic.join(', ')}</span>{:else}<span class="badge badge-zugesagt">bereit</span>{/if}
 								{/if}
 							</td>

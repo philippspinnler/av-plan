@@ -6,8 +6,14 @@
 	let { data, form } = $props();
 
 	let announcements = $state<string[]>([]);
-	let releases = $state<{ personName: string; calling: string }[]>([]);
-	let sustainings = $state<{ personName: string; calling: string }[]>([]);
+	type CallingRow = { person: string; personName: string; calling: string };
+	let releases = $state<CallingRow[]>([]);
+	let sustainings = $state<CallingRow[]>([]);
+	const toRow = (c: { personName: string; calling: string; memberId: number | null }): CallingRow => ({
+		person: c.memberId ? String(c.memberId) : c.personName ? `name:${c.personName}` : '',
+		personName: c.personName,
+		calling: c.calling
+	});
 	let showQuickAdd = $state(false);
 	const isFast = $derived(!data.missing && data.meeting.kind === 'fastsonntag');
 	const steps = $derived([
@@ -41,8 +47,8 @@
 		}
 		const c = JSON.stringify([data.date, data.releases, data.sustainings]);
 		if (c !== untrack(() => seededCallings)) {
-			releases = [...data.releases];
-			sustainings = [...data.sustainings];
+			releases = data.releases.map(toRow);
+			sustainings = data.sustainings.map(toRow);
 			seededCallings = c;
 		}
 	});
@@ -100,6 +106,14 @@
 			{/if}
 		</div>
 	{/if}
+{/snippet}
+
+{#snippet personSelect(name: string, row: CallingRow)}
+	<select {name} form="programForm" bind:value={row.person}>
+		<option value="">– Person wählen –</option>
+		{#if row.person.startsWith('name:')}<option value={row.person}>{row.personName} (Freitext)</option>{/if}
+		{#each data.missing ? [] : data.callingOptions as o}<option value={String(o.id)}>{o.label}</option>{/each}
+	</select>
 {/snippet}
 
 {#snippet talkCard(t: { position: number; memberId: number | null; topic: string | null; durationMinutes: number | null; status: string; note: string | null; options: { id: number; label: string; hint: string }[] } | undefined, statuses: { value: string; label: string }[])}
@@ -298,26 +312,26 @@
 							<ul class="row-list">
 								{#each releases as r, i}
 									<li>
-										<input type="text" name="release_name" form="programForm" bind:value={releases[i].personName} placeholder="Name" />
+										{@render personSelect('release_person', releases[i])}
 										<input type="text" name="release_calling" form="programForm" bind:value={releases[i].calling} placeholder="Amt" />
 										<button class="btn btn-small btn-danger" type="button" onclick={() => releases.splice(i, 1)} aria-label="entfernen">✕</button>
 									</li>
 								{/each}
 							</ul>
-							<button class="btn btn-small" type="button" onclick={() => releases.push({ personName: '', calling: '' })}>Entlassung hinzufügen</button>
+							<button class="btn btn-small" type="button" onclick={() => releases.push({ person: '', personName: '', calling: '' })}>Entlassung hinzufügen</button>
 						</div>
 						<div>
 							<h3>Berufungen</h3>
 							<ul class="row-list">
 								{#each sustainings as s, i}
 									<li>
-										<input type="text" name="sustain_name" form="programForm" bind:value={sustainings[i].personName} placeholder="Name" />
+										{@render personSelect('sustain_person', sustainings[i])}
 										<input type="text" name="sustain_calling" form="programForm" bind:value={sustainings[i].calling} placeholder="Amt" />
 										<button class="btn btn-small btn-danger" type="button" onclick={() => sustainings.splice(i, 1)} aria-label="entfernen">✕</button>
 									</li>
 								{/each}
 							</ul>
-							<button class="btn btn-small" type="button" onclick={() => sustainings.push({ personName: '', calling: '' })}>Berufung hinzufügen</button>
+							<button class="btn btn-small" type="button" onclick={() => sustainings.push({ person: '', personName: '', calling: '' })}>Berufung hinzufügen</button>
 						</div>
 					</div>
 				</div>
