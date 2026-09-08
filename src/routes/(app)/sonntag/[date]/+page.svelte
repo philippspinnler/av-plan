@@ -293,13 +293,7 @@
 				<div class="section flow-step">
 					<h2>{num('anfangsgebet')}. Anfangsgebet</h2>
 					{#each data.prayers.filter((p) => p.position === 1) as p}
-						<div class="grid-2">
-							<div class="field"><label for="prayer{p.position}">{p.label}</label><MemberSelect id="prayer{p.position}" name="prayer{p.position}_member" form="programForm" options={p.options} value={p.memberId} /></div>
-							<div class="field">
-								<label for="prayer{p.position}_status">Status</label>
-								<select id="prayer{p.position}_status" name="prayer{p.position}_status" form="programForm">{#each data.statuses as s}<option value={s.value} selected={s.value === p.status}>{s.label}</option>{/each}</select>
-							</div>
-						</div>
+						<div class="field"><label for="prayer{p.position}">{p.label}</label><MemberSelect id="prayer{p.position}" name="prayer{p.position}_member" form="programForm" options={p.options} value={p.memberId} /></div>
 					{/each}
 				</div>
 
@@ -399,13 +393,7 @@
 				<div class="section flow-step">
 					<h2>{num('schlussgebet')}. Schlussgebet</h2>
 					{#each data.prayers.filter((p) => p.position === 2) as p}
-						<div class="grid-2">
-							<div class="field"><label for="prayer{p.position}">{p.label}</label><MemberSelect id="prayer{p.position}" name="prayer{p.position}_member" form="programForm" options={p.options} value={p.memberId} /></div>
-							<div class="field">
-								<label for="prayer{p.position}_status">Status</label>
-								<select id="prayer{p.position}_status" name="prayer{p.position}_status" form="programForm">{#each data.statuses as s}<option value={s.value} selected={s.value === p.status}>{s.label}</option>{/each}</select>
-							</div>
-						</div>
+						<div class="field"><label for="prayer{p.position}">{p.label}</label><MemberSelect id="prayer{p.position}" name="prayer{p.position}_member" form="programForm" options={p.options} value={p.memberId} /></div>
 					{/each}
 				</div>
 			{/if}

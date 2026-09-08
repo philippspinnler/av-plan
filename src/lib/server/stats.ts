@@ -99,8 +99,8 @@ export function readiness(m: MeetingFull): { program: string[]; music: string[] 
 	const music: string[] = [];
 	if (!m.presiding) program.push('Leitung');
 	const prayer = (pos: number) => m.prayers.find((p) => p.position === pos);
-	if (prayer(1)?.status !== 'zugesagt' || !prayer(1)?.member) program.push('Anfangsgebet');
-	if (prayer(2)?.status !== 'zugesagt' || !prayer(2)?.member) program.push('Schlussgebet');
+	if (!prayer(1)?.member) program.push('Anfangsgebet');
+	if (!prayer(2)?.member) program.push('Schlussgebet');
 	if (!isFastLike(kind)) {
 		const confirmed = m.talks.filter((t) => t.member && t.status === 'zugesagt').length;
 		if (confirmed < 2) program.push(`Ansprachen (${confirmed} von 2 zugesagt)`);

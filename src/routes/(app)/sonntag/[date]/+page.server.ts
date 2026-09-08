@@ -162,7 +162,7 @@ export const actions: Actions = {
 		savePrayers(
 			locals.db,
 			id,
-			[1, 2].map((position) => ({ position, memberId: optInt(fd, `prayer${position}_member`), status: statusOf(str(fd, `prayer${position}_status`)) }))
+			[1, 2].map((position) => ({ position, memberId: optInt(fd, `prayer${position}_member`), status: 'zugesagt' as const }))
 		);
 		const talks: TalkInput[] = [];
 		for (const position of [1, 2, 3, 4]) {
