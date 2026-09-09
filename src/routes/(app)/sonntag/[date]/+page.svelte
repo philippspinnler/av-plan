@@ -3,6 +3,7 @@
 	import { enhance } from '$app/forms';
 	import { replaceState } from '$app/navigation';
 	import { page } from '$app/state';
+	import HymnSelect from '$lib/components/HymnSelect.svelte';
 	import Icon from '$lib/components/Icon.svelte';
 	import MemberSelect from '$lib/components/MemberSelect.svelte';
 	let { data, form } = $props();
@@ -125,7 +126,7 @@
 		<div class="field">
 			<label for="hymn_{h.slot}">{h.label}</label>
 			{#if data.canMusic}
-				<input id="hymn_{h.slot}" name="hymn_{h.slot}" type="text" list="hymnlist" form="musicForm" value={h.value} placeholder="Nummer oder Titel tippen" autocomplete="off" />
+				<HymnSelect id="hymn_{h.slot}" name="hymn_{h.slot}" form="musicForm" options={data.missing ? [] : data.hymnList} value={h.value} />
 				{#if h.slot === 'zwischen'}
 					<input type="text" name="zwischen_text" form="musicForm" value={h.freeText ?? ''} placeholder="oder Musikeinlage, z.B. PV singt" />
 				{/if}
@@ -266,7 +267,6 @@
 				}}
 			></form>
 		{/if}
-		<datalist id="hymnlist">{#each data.hymnList as h}<option value={h}></option>{/each}</datalist>
 
 		<!-- Allgemein -->
 		{#if !prayersOnly}
