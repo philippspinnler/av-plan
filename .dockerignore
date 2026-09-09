@@ -3,8 +3,8 @@ build
 .svelte-kit
 data
 import
-docs
-*.db
-*.db-*
 .git
+.github
+docs
+*.md
 .env

@@ -8,3 +8,4 @@ build/
 .svelte-kit/
 data/
 .superpowers/
+import/

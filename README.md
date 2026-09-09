@@ -1,52 +1,51 @@
-# Abendmahlsversammlung-Tool
+# AVplan
 
-Webapp zur Planung der Abendmahlsversammlung (Programm, Sprecher, Gebete, Lieder, Leitungszettel). Ersetzt die Google Sheets "AV Programm" und "Liederplanung AV".
+Planung der Abendmahlsversammlung: Programm, Sprecher, Gebete, Lieder und Leitungszettel. SvelteKit, SQLite, ein Container.
 
 ## Rollen
 
 | Rolle | darf |
 |---|---|
-| Admin | alles, inkl. Benutzer einladen, Personen anlegen/ändern, Einstellungen |
-| Bischofschaft | Sonntage planen (Leitung, Gebete, Ansprachen, Bekanntmachungen, Berufungen) und alles der Musik (Lieder, Orgel, Dirigieren, Liederbuch) |
-| Musik | Lieder pro Sonntag, Orgel, Dirigieren, Liederbuch; sieht kein Programm |
-| Dirigent/in | setzt nur, wer dirigiert; sieht kein Programm |
+| Admin | alles, inkl. Benutzer, Mitglieder, Einstellungen |
+| Bischofschaft | Sonntage planen, Seite "Fragen", Musik |
+| Gebete | Anfangs- und Schlussgebet eintragen, "Fragen" für Gebete |
+| Musik | Lieder, Orgel/Klavier, Dirigieren, Liederbuch |
+| Dirigent/in | nur Dirigieren |
 
-Personen anlegen oder ändern darf nur der Admin.
-
-## Betrieb mit Docker
+## Betrieb
 
 ```bash
-cp .env.example .env    # ORIGIN anpassen
-docker compose up -d --build
+cp .env.example .env     # ORIGIN = öffentliche Adresse, sonst schlagen Formulare fehl
+docker compose up -d     # zieht philippspinnler/av-plan:latest
 ```
 
-Beim ersten Aufruf leitet die App auf `/setup`, wo das Admin-Konto angelegt wird. Danach lädt der Admin unter "Benutzer" weitere Personen ein: Die App erzeugt einen Link plus fertigen Text zum Kopieren (kein Mailserver nötig). Einladungslinks gelten 7 Tage.
+Beim ersten Aufruf wird unter `/setup` das Admin-Konto angelegt. Weitere Personen lädt der Admin unter Einstellungen → Benutzer per Link ein.
 
-Die Datenbank liegt in `./data/app.db`. Backup: unter "Benutzer" oder "Einstellungen" die Datenbank herunterladen (konsistenter Snapshot). Die Datei `data/app.db` direkt kopieren nur, wenn der Container gestoppt ist, sonst können Änderungen aus der WAL-Datei fehlen.
+Die Datenbank liegt in `./data/app.db`. Backup über Einstellungen → Allgemein → "Datenbank herunterladen".
 
-## Import der bisherigen Sheets
+## Import aus den bisherigen Sheets
 
-Beide Google Sheets als `.xlsx` exportieren (Datei → Herunterladen → Microsoft Excel).
-
-Das Laufzeit-Image enthält kein `scripts/`, `src/` und kein `tsx`, daher läuft der Import lokal auf dem Host gegen dieselbe Datenbankdatei, bei gestopptem Container:
+Beide Google Sheets als `.xlsx` exportieren und bei gestopptem Container auf dem Host importieren:
 
 ```bash
 docker compose stop
-npm install    # einmalig
+npm install
 DATABASE_PATH=data/app.db npm run import -- import/av-programm.xlsx import/liederplanung.xlsx
 docker compose up -d
 ```
-
-Der Import ist wiederholbar. Am Ende listet er Personen, die nur in Programmzeilen vorkamen; diese sind inaktiv angelegt und können unter "Personen" aktiviert werden.
 
 ## Entwicklung
 
 ```bash
 npm install
 npm run dev          # http://localhost:5173
-npm test             # Vitest
-npm run check        # svelte-check
-npm run db:generate  # Migration nach Schema-Änderung erzeugen
+npm test
+npm run check
+npm run db:generate  # Migration nach Schema-Änderung
 ```
 
 Umgebungsvariablen: `DATABASE_PATH` (Standard `data/app.db`), `ORIGIN`, `PORT`.
+
+## Docker-Image
+
+Jeder Push auf `main` baut das Image und veröffentlicht es als `philippspinnler/av-plan:latest` auf Docker Hub (GitHub Actions, Secrets `DOCKERHUB_USERNAME` und `DOCKERHUB_TOKEN`).
