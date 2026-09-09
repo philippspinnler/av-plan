@@ -3,6 +3,7 @@
 	import { enhance } from '$app/forms';
 	import { replaceState } from '$app/navigation';
 	import { page } from '$app/state';
+	import Icon from '$lib/components/Icon.svelte';
 	import MemberSelect from '$lib/components/MemberSelect.svelte';
 	let { data, form } = $props();
 
@@ -171,8 +172,8 @@
 			</div>
 			{#if data.canPrint}
 				<div class="actions">
-					<a class="btn" href="/sonntag/{data.date}/druck?vollbild=1">Vollbild</a>
-					<a class="btn" href="/sonntag/{data.date}/druck">Drucken</a>
+					<a class="btn btn-icon" href="/sonntag/{data.date}/druck?vollbild=1" aria-label="Vollbild" title="Vollbild"><Icon name="expand" /><span>Vollbild</span></a>
+					<a class="btn btn-icon" href="/sonntag/{data.date}/druck" aria-label="Drucken" title="Drucken"><Icon name="print" /><span>Drucken</span></a>
 				</div>
 			{/if}
 		</div>

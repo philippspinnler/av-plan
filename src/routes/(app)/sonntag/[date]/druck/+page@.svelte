@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/state';
+	import Icon from '$lib/components/Icon.svelte';
 	let { data } = $props();
 	const T = $derived(data.texts);
 	/** Ohne Änderungen entfällt der zweite Abschnitt; das Abendmahlslied rückt in den ersten. */
@@ -17,8 +18,8 @@
 	<button class="btn btn-small close-fs no-print" type="button" onclick={() => (fullscreen = false)} aria-label="Vollbild beenden">✕</button>
 {:else}
 	<div class="toolbar no-print">
-		<button class="btn" type="button" onclick={() => (fullscreen = true)}>Vollbild</button>
-		<button class="btn btn-primary" type="button" onclick={() => window.print()}>Drucken</button>
+		<button class="btn btn-icon" type="button" aria-label="Vollbild" title="Vollbild" onclick={() => (fullscreen = true)}><Icon name="expand" /><span>Vollbild</span></button>
+		<button class="btn btn-primary btn-icon" type="button" aria-label="Drucken" title="Drucken" onclick={() => window.print()}><Icon name="print" /><span>Drucken</span></button>
 	</div>
 {/if}
 

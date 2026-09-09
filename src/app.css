@@ -57,6 +57,10 @@ textarea { min-height: 5rem; }
 .btn-secondary { background: var(--surface); }
 .btn-danger { color: var(--danger); border-color: var(--danger); }
 .btn-small { min-height: 36px; padding: 0.3rem 0.7rem; font-size: 0.9rem; }
+.btn-icon { padding: 0.5rem 0.7rem; justify-content: center; }
+.btn-icon .icon { flex-shrink: 0; width: 20px; height: 20px; }
+.btn-icon span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.nav-account { display: inline-flex; align-items: center; gap: 0.35rem; }
 .btn[aria-disabled='true'] { opacity: 0.4; cursor: default; }
 .sunday-nav .btn { min-width: 36px; justify-content: center; }
 .actions { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; margin-top: 0.5rem; }

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/state';
+	import Icon from '$lib/components/Icon.svelte';
 	let { data, children } = $props();
 	const isActive = (href: string) => (href === '/' ? page.url.pathname === '/' : page.url.pathname.startsWith(href));
 	const role = $derived(data.user?.role);
@@ -31,7 +32,7 @@
 				</select>
 			</form>
 		{/if}
-		<a href="/konto" class="nav-account" class:active={isActive('/konto')} title="Konto und Passwort">{data.user?.name}</a>
+		<a href="/konto" class="nav-account" class:active={isActive('/konto')} title="Konto und Passwort"><Icon name="user" size={16} /><span>{data.user?.name}</span></a>
 		<form method="POST" action="/logout"><button class="btn btn-small" type="submit">Abmelden</button></form>
 		</div>
 	</div>

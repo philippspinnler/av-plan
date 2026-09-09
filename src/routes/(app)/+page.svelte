@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import Icon from '$lib/components/Icon.svelte';
 	let { data } = $props();
 	const MONTHS = ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'];
 	const monthLabel = (date: string) => `${MONTHS[Number(date.slice(5, 7)) - 1]} ${date.slice(0, 4)}`;
@@ -51,10 +52,10 @@
 		<div class="section-title">
 			<span class="kind-tag">{data.next.kindLabel}</span>
 			<div class="actions">
-				<a class="btn btn-primary" href="/sonntag/{data.next.date}">Bearbeiten</a>
+				<a class="btn btn-primary btn-icon" href="/sonntag/{data.next.date}" aria-label="Bearbeiten" title="Bearbeiten"><Icon name="edit" /><span>Bearbeiten</span></a>
 				{#if data.showProgram && data.next.hasProgram}
-					<a class="btn" href="/sonntag/{data.next.date}/druck?vollbild=1">Vollbild</a>
-					<a class="btn" href="/sonntag/{data.next.date}/druck">Drucken</a>
+					<a class="btn btn-icon" href="/sonntag/{data.next.date}/druck?vollbild=1" aria-label="Vollbild" title="Vollbild"><Icon name="expand" /><span>Vollbild</span></a>
+					<a class="btn btn-icon" href="/sonntag/{data.next.date}/druck" aria-label="Drucken" title="Drucken"><Icon name="print" /><span>Drucken</span></a>
 				{/if}
 			</div>
 		</div>
