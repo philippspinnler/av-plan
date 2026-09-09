@@ -99,7 +99,7 @@ textarea { min-height: 5rem; }
 .row-list li input { flex: 1; }
 /* Entlassungen/Berufungen: Person auf einer Zeile, Amt darunter in voller Breite */
 .calling-row { flex-wrap: wrap; padding-bottom: 0.5rem; border-bottom: 1px solid var(--line); }
-.calling-row select { flex: 1 1 100%; }
+.calling-row select, .calling-row .combo { flex: 1 1 100%; }
 .calling-row input { flex: 1 1 auto; min-width: 0; }
 .hint { font-size: 0.9rem; color: var(--muted); }
 .big-card { border-left: 6px solid var(--ok); }

@@ -43,6 +43,7 @@
 		url.searchParams.set('tab', key);
 		replaceState(url, page.state);
 	}
+	const chairAutoLabel = $derived(data.missing ? '' : `automatisch${data.chairAutoName ? `: ${data.chairAutoName}` : ' (niemand bestimmt)'}`);
 	/** Gebete hängen am Programmformular; die Rolle "Gebete" hat ein eigenes, kleines Formular. */
 	const prayerForm = $derived(data.showProgram ? 'programForm' : 'prayersForm');
 	// svelte-ignore state_referenced_locally -- initial value only; re-synced by the date-keyed effect below
@@ -137,12 +138,19 @@
 	{/if}
 {/snippet}
 
-{#snippet personSelect(name: string, row: CallingRow)}
-	<select {name} form="programForm" bind:value={row.person}>
-		<option value="">– Mitglied wählen –</option>
-		{#if row.person.startsWith('name:')}<option value={row.person}>{row.personName} (Freitext)</option>{/if}
-		{#each data.missing ? [] : data.callingOptions as o}<option value={String(o.id)}>{o.label}</option>{/each}
-	</select>
+{#snippet personSelect(name: string, row: CallingRow, id: string)}
+	<!-- Altdaten ohne Mitgliedsbezug ("name:…") erscheinen als Eintrag mit Kennung 0 und werden unverändert zurückgeschickt. -->
+	{@const legacy = row.person.startsWith('name:')}
+	{@const options = [...(legacy ? [{ id: 0, label: `${row.personName} (Freitext)`, hint: '' }] : []), ...(data.missing ? [] : data.callingOptions)]}
+	<MemberSelect
+		{id}
+		{name}
+		form="programForm"
+		{options}
+		value={legacy ? 0 : row.person ? Number(row.person) : null}
+		placeholder="Mitglied wählen …"
+		serialize={(v) => (v === 0 ? row.person : v === null ? '' : String(v))}
+	/>
 {/snippet}
 
 {#snippet talkCard(t: { position: number; memberId: number | null; topic: string | null; durationMinutes: number | null; status: string; note: string | null; options: { id: number; label: string; hint: string }[] } | undefined, statuses: { value: string; label: string }[])}
@@ -337,10 +345,15 @@
 							<div class="field"><label for="guest">Gast (Pfahl)</label><MemberSelect id="guest" name="guest" form="programForm" options={data.guestOptions} value={data.meeting.guestMemberId} /></div>
 							<div class="field">
 								<label for="chair">Vorsitz</label>
-								<select id="chair" name="chair" form="programForm">
-									<option value="">automatisch{data.chairAutoName ? `: ${data.chairAutoName}` : ' (niemand bestimmt)'}</option>
-									{#each data.chairOptions as o}<option value={o.id} selected={o.id === data.meeting.chairMemberId}>{o.label}</option>{/each}
-								</select>
+								<MemberSelect
+									id="chair"
+									name="chair"
+									form="programForm"
+									options={data.chairOptions.map((o) => ({ ...o, hint: '' }))}
+									value={data.meeting.chairMemberId}
+									placeholder={chairAutoLabel}
+									emptyLabel={chairAutoLabel}
+								/>
 							</div>
 						</div>
 						<p class="hint">Automatisch: Gast mit Vorsitz, sonst Bischof, sonst 1. oder 2. Ratgeber, je nach Abwesenheit. Wird beim Speichern neu berechnet.</p>
@@ -372,7 +385,7 @@
 								<ul class="row-list">
 									{#each releases as r, i}
 										<li class="calling-row">
-											{@render personSelect('release_person', releases[i])}
+											{@render personSelect('release_person', releases[i], `release_person_${i}`)}
 											<input type="text" name="release_calling" form="programForm" bind:value={releases[i].calling} placeholder="Amt" />
 											<button class="btn btn-small btn-danger" type="button" onclick={() => releases.splice(i, 1)} aria-label="entfernen">✕</button>
 										</li>
@@ -385,7 +398,7 @@
 								<ul class="row-list">
 									{#each sustainings as s, i}
 										<li class="calling-row">
-											{@render personSelect('sustain_person', sustainings[i])}
+											{@render personSelect('sustain_person', sustainings[i], `sustain_person_${i}`)}
 											<input type="text" name="sustain_calling" form="programForm" bind:value={sustainings[i].calling} placeholder="Amt" />
 											<button class="btn btn-small btn-danger" type="button" onclick={() => sustainings.splice(i, 1)} aria-label="entfernen">✕</button>
 										</li>

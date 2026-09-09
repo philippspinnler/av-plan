@@ -10,8 +10,21 @@
 		options,
 		value = null,
 		form = undefined,
-		placeholder = 'Name tippen …'
-	}: { id: string; name: string; options: Option[]; value?: number | null; form?: string; placeholder?: string } = $props();
+		placeholder = 'Name tippen …',
+		emptyLabel = '– niemand –',
+		serialize = (id: number | null) => (id === null ? '' : String(id))
+	}: {
+		id: string;
+		name: string;
+		options: Option[];
+		value?: number | null;
+		form?: string;
+		placeholder?: string;
+		/** Text des Eintrags, der die Auswahl leert (z.B. "automatisch: …"). */
+		emptyLabel?: string;
+		/** Formularwert für die gewählte Kennung; erlaubt Sonderfälle wie Freitext-Namen. */
+		serialize?: (id: number | null) => string;
+	} = $props();
 
 	let selected = $state<number | null>(null);
 	let query = $state('');
@@ -75,7 +88,7 @@
 </script>
 
 <div class="combo" bind:this={root} onfocusout={onFocusOut}>
-	<input type="hidden" {name} {form} value={selected ?? ''} />
+	<input type="hidden" {name} {form} value={serialize(selected)} />
 	<input
 		{id}
 		type="text"
@@ -100,7 +113,7 @@
 		<!-- svelte-ignore a11y_click_events_have_key_events -->
 		<ul class="combo-list" id="{id}-list" role="listbox">
 			{#if current}
-				<li class="combo-item combo-none" role="option" aria-selected="false" tabindex="-1" onmousedown={(e) => e.preventDefault()} onclick={() => choose(null)}>– niemand –</li>
+				<li class="combo-item combo-none" role="option" aria-selected="false" tabindex="-1" onmousedown={(e) => e.preventDefault()} onclick={() => choose(null)}>{emptyLabel}</li>
 			{/if}
 			{#each matches as o, i (o.id)}
 				<li
