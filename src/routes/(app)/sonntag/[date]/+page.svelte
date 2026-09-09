@@ -17,7 +17,6 @@
 		personName: c.personName,
 		calling: c.calling
 	});
-	let showQuickAdd = $state(false);
 	const isFast = $derived(!data.missing && data.fastLike);
 	/** Die Rolle "Gebete" sieht nur die Gebete; Kopf und Abendmahl entfallen für sie. */
 	const prayersOnly = $derived(!data.missing && !data.showProgram && !data.showHymns && data.canPrayers);
@@ -200,7 +199,6 @@
 			{/if}
 		</div>
 		{#if form?.error}<div class="error">{form.error}</div>{/if}
-		{#if form?.added}<div class="success">{form.added} wurde angelegt und kann jetzt ausgewählt werden.</div>{/if}
 
 		{#if tabs.length > 1}
 			<nav class="subnav tabs" aria-label="Bereiche">
@@ -470,27 +468,8 @@
 						{#if showFourth}
 							{@render talkCard(findTalk(4), data.statuses)}
 						{/if}
-						<div class="actions">
-							{#if !showFourth}<button class="btn" type="button" onclick={() => (showFourth = true)}>4. Ansprache hinzufügen</button>{/if}
-							{#if data.canAddMember}<button class="btn" type="button" onclick={() => (showQuickAdd = !showQuickAdd)}>Neues Mitglied anlegen</button>{/if}
-						</div>
-						{#if showQuickAdd && data.canAddMember}
-							<form method="POST" action="?/quickAdd" use:enhance class="card grid-3">
-								<div class="field"><label for="qa-fn">Vorname</label><input id="qa-fn" name="firstName" type="text" required /></div>
-								<div class="field"><label for="qa-ln">Nachname</label><input id="qa-ln" name="lastName" type="text" /></div>
-								<div class="field">
-									<label for="qa-kind">Art</label>
-									<select id="qa-kind" name="kind"><option value="gemeinde">Gemeindemitglied</option><option value="pfahl">Pfahlbeamter</option></select>
-								</div>
-								<div class="field">
-									<label for="qa-calling">Berufung (Pfahlbeamte)</label>
-									<select id="qa-calling" name="stakeCallingId">
-										<option value="">– keine –</option>
-										{#each data.stakeCallings as c}<option value={c.id}>{c.name}</option>{/each}
-									</select>
-								</div>
-								<div class="actions"><button class="btn btn-primary" type="submit">Anlegen</button></div>
-							</form>
+						{#if !showFourth}
+							<div class="actions"><button class="btn" type="button" onclick={() => (showFourth = true)}>4. Ansprache hinzufügen</button></div>
 						{/if}
 					</div>
 				</div>

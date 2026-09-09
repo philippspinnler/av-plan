@@ -5,7 +5,7 @@ import { leadingInt } from '$lib/hymn-input';
 import { HYMN_SLOTS, MEETING_KINDS, STATUSES, isFastLike, type HymnSlot, type MeetingKind, type Status } from '$lib/server/db/schema';
 import { optInt, optStr, str, strList } from '$lib/server/forms';
 import { hymnLabel, listHymns } from '$lib/server/hymns';
-import { createMember, displayName, listMembers } from '$lib/server/members';
+import { displayName, listMembers } from '$lib/server/members';
 import { listStakeCallings } from '$lib/server/stake-callings';
 import {
 	KIND_LABELS, SLOT_LABELS, createMeeting, getMeetingByDate, hasProgram, loadMeetingFullByDate,
@@ -49,8 +49,7 @@ export const load: PageServerLoad = ({ locals, params }) => {
 		canMusic,
 		canConductor,
 		canPrint: showProgram,
-		canCreate: can(role, 'meetings.create'),
-		canAddMember: can(role, 'members.create')
+		canCreate: can(role, 'meetings.create')
 	};
 	const full = loadMeetingFullByDate(locals.db, date);
 	if (!full) return { ...base, missing: true as const };
@@ -266,14 +265,6 @@ export const actions: Actions = {
 		const fd = await request.formData();
 		saveConductor(locals.db, id, optInt(fd, 'conductor'));
 		return { saved: 'conductor' };
-	},
-	quickAdd: async ({ request, locals }) => {
-		requireRole(locals.user, 'members.create');
-		const fd = await request.formData();
-		const firstName = str(fd, 'firstName');
-		if (!firstName) return fail(400, { error: 'Bitte mindestens einen Vornamen angeben.' });
-		const kind = str(fd, 'kind') === 'pfahl' ? 'pfahl' : 'gemeinde';
-		const m = createMember(locals.db, { firstName, lastName: str(fd, 'lastName'), kind, stakeCallingId: kind === 'pfahl' ? optInt(fd, 'stakeCallingId') : null });
-		return { saved: 'quickAdd', added: displayName(m) };
 	}
+
 };
