@@ -7,6 +7,7 @@ import { can, requireRole } from '$lib/server/permissions';
 import { memberActivity, weeksAgoLabel, type MemberActivity } from '$lib/server/stats';
 
 export const load: PageServerLoad = ({ locals, url }) => {
+	requireRole(locals.user, 'settings.edit');
 	const role = locals.user!.role;
 	const showAll = url.searchParams.get('alle') === '1';
 	const today = todayIso();
@@ -17,11 +18,15 @@ export const load: PageServerLoad = ({ locals, url }) => {
 		return {
 			id: m.id,
 			name: displayName(m),
+			sortName: `${m.lastName} ${m.firstName}`.trim(),
 			active: m.active,
-			lastTalk: stats ? weeksAgoLabel(a?.lastTalk ?? null, today) : '',
-			lastPrayer: stats ? weeksAgoLabel(a?.lastPrayer ?? null, today) : '',
-			noteTalk: stats ? m.noteTalk : null,
-			notePrayer: stats ? m.notePrayer : null
+			lastTalk: stats ? (m.noTalk ? 'möchte nicht' : weeksAgoLabel(a?.lastTalk ?? null, today)) : '',
+			lastPrayer: stats ? (m.noPrayer ? 'möchte nicht' : weeksAgoLabel(a?.lastPrayer ?? null, today)) : '',
+			noTalk: m.noTalk,
+			noPrayer: m.noPrayer,
+			lastTalkDate: stats ? (a?.lastTalk ?? null) : null,
+			lastPrayerDate: stats ? (a?.lastPrayer ?? null) : null,
+			notes: stats ? [m.noteTalk, m.notePrayer].filter(Boolean).join(' · ') : ''
 		};
 	});
 	return { members, showAll, stats, canCreate: can(role, 'members.create') };

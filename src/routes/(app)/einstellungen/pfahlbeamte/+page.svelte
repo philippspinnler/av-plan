@@ -5,9 +5,9 @@
 </script>
 
 <div class="section-title">
-	<h1>Pfahlbeamte</h1>
+	<h2>Pfahlbeamte</h2>
 	<div class="actions">
-		<a class="btn" href={data.showAll ? '/pfahlbeamte' : '/pfahlbeamte?alle=1'}>{data.showAll ? 'Nur aktive' : 'Alle anzeigen'}</a>
+		<a class="btn" href={data.showAll ? '/einstellungen/pfahlbeamte' : '/einstellungen/pfahlbeamte?alle=1'}>{data.showAll ? 'Nur aktive' : 'Alle anzeigen'}</a>
 		{#if data.canCreate}<button class="btn btn-primary" type="button" onclick={() => (showForm = !showForm)}>Pfahlbeamten hinzufügen</button>{/if}
 	</div>
 </div>

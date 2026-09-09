@@ -9,6 +9,7 @@ import { can, requireRole } from '$lib/server/permissions';
 import { hymnHistory } from '$lib/server/stats';
 
 export const load: PageServerLoad = ({ locals, params }) => {
+	requireRole(locals.user, 'hymns.view');
 	const hymn = getHymnByNumber(locals.db, Number(params.number));
 	if (!hymn) error(404, 'Lied nicht gefunden');
 	return {

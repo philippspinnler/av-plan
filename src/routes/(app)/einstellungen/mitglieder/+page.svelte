@@ -1,13 +1,18 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import SortHeader from '$lib/components/SortHeader.svelte';
+	import { sortMembers, type MemberSortState } from '$lib/member-sort';
 	let { data, form } = $props();
 	let showForm = $state(false);
+	let sort = $state<MemberSortState>({ key: 'name', dir: 'asc' });
+	const sorted = $derived(sortMembers(data.members, sort));
+	const onsort = (s: MemberSortState) => (sort = s);
 </script>
 
 <div class="section-title">
-	<h1>Mitglieder</h1>
+	<h2>Mitglieder</h2>
 	<div class="actions">
-		<a class="btn" href={data.showAll ? '/mitglieder' : '/mitglieder?alle=1'}>{data.showAll ? 'Nur aktive' : 'Alle anzeigen'}</a>
+		<a class="btn" href={data.showAll ? '/einstellungen/mitglieder' : '/einstellungen/mitglieder?alle=1'}>{data.showAll ? 'Nur aktive' : 'Alle anzeigen'}</a>
 		{#if data.canCreate}<button class="btn btn-primary" type="button" onclick={() => (showForm = !showForm)}>Mitglied hinzufügen</button>{/if}
 	</div>
 </div>
@@ -29,19 +34,23 @@
 	<table class="table">
 		<thead>
 			<tr>
-				<th>Name</th>
-				{#if data.stats}<th>Letzte Ansprache</th><th>Letztes Gebet</th><th>Notizen</th>{/if}
-				{#if data.showAll}<th>Status</th>{/if}
+				<SortHeader key="name" label="Name" {sort} {onsort} />
+				{#if data.stats}
+					<SortHeader key="lastTalk" label="Letzte Ansprache" {sort} {onsort} />
+					<SortHeader key="lastPrayer" label="Letztes Gebet" {sort} {onsort} />
+					<SortHeader key="notes" label="Notizen" {sort} {onsort} />
+				{/if}
+				{#if data.showAll}<SortHeader key="status" label="Status" {sort} {onsort} />{/if}
 			</tr>
 		</thead>
 		<tbody>
-			{#each data.members as m}
+			{#each sorted as m (m.id)}
 				<tr class="clickable" onclick={() => goto(`/mitglieder/${m.id}`)}>
 					<td><a href="/mitglieder/{m.id}">{m.name}</a></td>
 					{#if data.stats}
-						<td>{m.lastTalk}</td>
-						<td>{m.lastPrayer}</td>
-						<td class="hint">{[m.noteTalk, m.notePrayer].filter(Boolean).join(' · ')}</td>
+						<td class:muted={m.noTalk}>{m.lastTalk}</td>
+						<td class:muted={m.noPrayer}>{m.lastPrayer}</td>
+						<td class="hint">{m.notes}</td>
 					{/if}
 					{#if data.showAll}<td>{m.active ? 'aktiv' : 'inaktiv'}</td>{/if}
 				</tr>

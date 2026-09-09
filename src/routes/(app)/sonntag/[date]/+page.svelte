@@ -1,8 +1,9 @@
 <script lang="ts">
 	import { untrack } from 'svelte';
 	import { enhance } from '$app/forms';
+	import { replaceState } from '$app/navigation';
+	import { page } from '$app/state';
 	import MemberSelect from '$lib/components/MemberSelect.svelte';
-	import { PRINT_TEXTS } from '$lib/print/texts';
 	let { data, form } = $props();
 
 	let announcements = $state<string[]>([]);
@@ -16,20 +17,32 @@
 	});
 	let showQuickAdd = $state(false);
 	const isFast = $derived(!data.missing && data.fastLike);
-	const steps = $derived([
-		'kopf',
-		...(data.showProgram ? ['begruessung'] : []),
-		'anfangslied',
-		...(data.showProgram ? ['anfangsgebet', 'berufungen'] : []),
-		'abendmahl',
-		...(data.showProgram && !isFast ? ['ansprachen12'] : []),
-		...(!isFast ? ['zwischenlied'] : []),
-		...(data.showProgram && !isFast ? ['ansprache3'] : []),
-		'schlusslied',
-		...(data.showProgram ? ['schlussgebet'] : []),
-		'musik'
-	]);
-	const num = (key: string) => steps.indexOf(key) + 1;
+	/** Die Rolle "Gebete" sieht nur die Gebete; Kopf und Abendmahl entfallen für sie. */
+	const prayersOnly = $derived(!data.missing && !data.showProgram && !data.showHymns && data.canPrayers);
+	type TabKey = 'allgemein' | 'begruessung' | 'aenderungen' | 'musik' | 'gebete' | 'ansprachen';
+	/** Reiter je nach Rolle und Sonntagstyp. Alle Felder bleiben geladen, sichtbar ist nur der gewählte Reiter. */
+	const tabs = $derived.by((): { key: TabKey; label: string; open: string[] }[] => {
+		if (data.missing) return [];
+		const t: { key: TabKey; label: string; open: string[] }[] = [];
+		if (!prayersOnly) t.push({ key: 'allgemein', label: 'Allgemein', open: data.open.allgemein });
+		if (data.hasProgram) {
+			if (data.showProgram) t.push({ key: 'begruessung', label: 'Begrüssung und Bekanntmachungen', open: [] }, { key: 'aenderungen', label: 'Beamtenänderungen', open: [] });
+			if (data.showHymns) t.push({ key: 'musik', label: 'Musik', open: data.open.musik });
+			if (data.showProgram || data.canPrayers) t.push({ key: 'gebete', label: 'Gebete', open: data.open.gebete });
+			if (data.showProgram && !isFast) t.push({ key: 'ansprachen', label: 'Ansprachen', open: data.open.ansprachen });
+		}
+		return t;
+	});
+	let requested = $state<string | null>(page.url.searchParams.get('tab'));
+	const active = $derived(tabs.find((t) => t.key === requested)?.key ?? tabs[0]?.key ?? 'allgemein');
+	function selectTab(key: TabKey) {
+		requested = key;
+		const url = new URL(page.url);
+		url.searchParams.set('tab', key);
+		replaceState(url, page.state);
+	}
+	/** Gebete hängen am Programmformular; die Rolle "Gebete" hat ein eigenes, kleines Formular. */
+	const prayerForm = $derived(data.showProgram ? 'programForm' : 'prayersForm');
 	// svelte-ignore state_referenced_locally -- initial value only; re-synced by the date-keyed effect below
 	let showFourth = $state(data.missing ? false : data.showFourth);
 	let seededAnnouncements = $state<string | null>(null);
@@ -79,6 +92,7 @@
 		if (data.missing) return;
 		results = {};
 		if (data.showProgram) (document.getElementById('programForm') as HTMLFormElement | null)?.requestSubmit();
+		else if (data.canPrayers) (document.getElementById('prayersForm') as HTMLFormElement | null)?.requestSubmit();
 		if (data.canMusic) (document.getElementById('musicForm') as HTMLFormElement | null)?.requestSubmit();
 		else if (data.canConductor) (document.getElementById('conductorForm') as HTMLFormElement | null)?.requestSubmit();
 	}
@@ -155,62 +169,25 @@
 				<span class="kind-tag">{data.kinds.find((k) => k.value === data.meeting.kind)?.label}</span>
 				<h1>{data.dateLabel}</h1>
 			</div>
-			{#if data.canPrint}<a class="btn" href="/sonntag/{data.date}/druck">Drucken</a>{/if}
+			{#if data.canPrint}
+				<div class="actions">
+					<a class="btn" href="/sonntag/{data.date}/druck?vollbild=1">Vollbild</a>
+					<a class="btn" href="/sonntag/{data.date}/druck">Drucken</a>
+				</div>
+			{/if}
 		</div>
 		{#if form?.error}<div class="error">{form.error}</div>{/if}
 		{#if form?.added}<div class="success">{form.added} wurde angelegt und kann jetzt ausgewählt werden.</div>{/if}
 
-		<!-- 1. Kopf -->
-		<div class="section flow-step">
-			<h2>{num('kopf')}. Kopf</h2>
-			<p class="field-static"><strong>Datum:</strong> {data.dateLabel}</p>
-			<div class="grid-2">
-				<div class="field">
-					<label for="kind">Typ</label>
-					{#if data.showProgram}
-						<select id="kind" name="kind" form="programForm">{#each data.kinds as k}<option value={k.value} selected={k.value === data.meeting.kind}>{k.label}</option>{/each}</select>
-					{:else}
-						<p>{data.kinds.find((k) => k.value === data.meeting.kind)?.label}</p>
-					{/if}
-				</div>
-				{#if data.showProgram}
-					<div class="field"><label for="presiding">Leitung</label><MemberSelect id="presiding" name="presiding" form="programForm" options={data.presidingOptions} value={data.meeting.presidingMemberId} /></div>
-				{/if}
-			</div>
-			<div class="field">
-				<label for="theme">Thema</label>
-				{#if data.showProgram}
-					<input id="theme" name="theme" type="text" form="programForm" value={data.meeting.theme ?? ''} />
-				{:else}
-					<p>{data.meeting.theme ?? '–'}</p>
-				{/if}
-			</div>
-			<div class="grid-2">
-				<div class="field">
-					<label for="specialNote">Besonderes</label>
-					{#if data.showProgram}
-						<input id="specialNote" name="specialNote" type="text" form="programForm" value={data.meeting.specialNote ?? ''} placeholder="z.B. Kindersegnung, FSY-Teilnehmer" />
-					{:else if data.meeting.specialNote}
-						<p>{data.meeting.specialNote}</p>
-					{/if}
-				</div>
-				{#if data.showProgram}
-					<div class="field">
-						<span class="label">Abwesend (Bischofschaft)</span>
-						{#if data.absenceOptions.length}
-							<div class="check-list">
-								{#each data.absenceOptions as o}
-									<label class="check"><input type="checkbox" name="absent" value={o.id} form="programForm" checked={data.meeting.absenceIds?.includes(o.id)} /> {o.label}</label>
-								{/each}
-							</div>
-						{:else}
-							<p class="hint">Bischofschaft noch nicht festgelegt. Ein Admin kann sie unter Einstellungen erfassen.</p>
-						{/if}
-						{#if data.meeting.absencesLegacy}<p class="hint">Bisheriger Eintrag: {data.meeting.absencesLegacy}</p>{/if}
-					</div>
-				{/if}
-			</div>
-		</div>
+		{#if tabs.length > 1}
+			<nav class="subnav tabs" aria-label="Bereiche">
+				{#each tabs as t (t.key)}
+					<button type="button" class:active={active === t.key} aria-selected={active === t.key} role="tab" onclick={() => selectTab(t.key)}>
+						{t.label}{#if t.open.length}<span class="tab-badge" title={t.open.join(', ')}>{t.open.length}</span>{/if}
+					</button>
+				{/each}
+			</nav>
+		{/if}
 
 		{#if data.showProgram}
 			<form
@@ -222,6 +199,21 @@
 					return async ({ result, update }) => {
 						pending--;
 						results.program = result.type === 'success' ? { ok: true } : { ok: false, error: result.type === 'failure' ? String(result.data?.error ?? 'Fehler') : 'Fehler' };
+						await update();
+					};
+				}}
+			></form>
+		{/if}
+		{#if !data.showProgram && data.canPrayers}
+			<form
+				id="prayersForm"
+				method="POST"
+				action="?/prayers"
+				use:enhance={() => {
+					pending++;
+					return async ({ result, update }) => {
+						pending--;
+						results.prayers = result.type === 'success' ? { ok: true } : { ok: false, error: result.type === 'failure' ? String(result.data?.error ?? 'Fehler') : 'Fehler' };
 						await update();
 					};
 				}}
@@ -258,97 +250,200 @@
 		{/if}
 		<datalist id="hymnlist">{#each data.hymnList as h}<option value={h}></option>{/each}</datalist>
 
+		<!-- Allgemein -->
+		{#if !prayersOnly}
+			<div class="tab-panel" hidden={active !== 'allgemein'}>
+				<div class="section">
+					<div class="grid-2">
+						<div class="field">
+							<label for="kind">Typ</label>
+							{#if data.showProgram}
+								<select id="kind" name="kind" form="programForm">{#each data.kinds as k}<option value={k.value} selected={k.value === data.meeting.kind}>{k.label}</option>{/each}</select>
+							{:else}
+								<p>{data.kinds.find((k) => k.value === data.meeting.kind)?.label}</p>
+							{/if}
+						</div>
+						{#if data.showProgram && data.hasProgram}
+							<div class="field"><label for="presiding">Leitung</label><MemberSelect id="presiding" name="presiding" form="programForm" options={data.presidingOptions} value={data.meeting.presidingMemberId} /></div>
+						{/if}
+					</div>
+					{#if !data.hasProgram}
+						<p class="hint">Für diesen Sonntagstyp gibt es kein Programm: keine Leitung, kein Thema, keine Gebete, Ansprachen oder Lieder.</p>
+					{:else}
+						<div class="field">
+							<label for="theme">Thema</label>
+							{#if data.showProgram}
+								<input id="theme" name="theme" type="text" form="programForm" value={data.meeting.theme ?? ''} />
+							{:else}
+								<p>{data.meeting.theme ?? '–'}</p>
+							{/if}
+						</div>
+						<div class="grid-2">
+							<div class="field">
+								<label for="specialNote">Besonderes</label>
+								{#if data.showProgram}
+									<input id="specialNote" name="specialNote" type="text" form="programForm" value={data.meeting.specialNote ?? ''} placeholder="z.B. Kindersegnung, FSY-Teilnehmer" />
+								{:else if data.meeting.specialNote}
+									<p>{data.meeting.specialNote}</p>
+								{:else}
+									<p class="muted">–</p>
+								{/if}
+							</div>
+							{#if data.showProgram}
+								<div class="field">
+									<span class="label">Abwesend (Bischofschaft)</span>
+									{#if data.absenceOptions.length}
+										<div class="check-list">
+											{#each data.absenceOptions as o}
+												<label class="check"><input type="checkbox" name="absent" value={o.id} form="programForm" checked={data.meeting.absenceIds?.includes(o.id)} /> {o.label}</label>
+											{/each}
+										</div>
+									{:else}
+										<p class="hint">Bischofschaft noch nicht festgelegt. Ein Admin kann sie unter Einstellungen erfassen.</p>
+									{/if}
+									{#if data.meeting.absencesLegacy}<p class="hint">Bisheriger Eintrag: {data.meeting.absencesLegacy}</p>{/if}
+								</div>
+							{/if}
+						</div>
+					{/if}
+				</div>
+			</div>
+		{/if}
+
 		{#if data.hasProgram}
 			{#if data.showProgram}
-				<!-- 2. Begrüssung und Bekanntmachungen -->
-				<div class="section flow-step">
-					<h2>{num('begruessung')}. Begrüssung und Bekanntmachungen</h2>
-					<ul class="greeting-list">
-						{#each PRINT_TEXTS.greetingItems as g}<li class="muted">{g}</li>{/each}
-					</ul>
-					<ul class="row-list">
-						{#each announcements as a, i}
-							<li>
-								<input type="text" name="announcement" form="programForm" bind:value={announcements[i]} placeholder="Text der Bekanntmachung" />
-								<button class="btn btn-small" type="button" onclick={() => move(announcements, i, -1)} aria-label="nach oben">↑</button>
-								<button class="btn btn-small" type="button" onclick={() => move(announcements, i, 1)} aria-label="nach unten">↓</button>
-								<button class="btn btn-small btn-danger" type="button" onclick={() => announcements.splice(i, 1)} aria-label="entfernen">✕</button>
-							</li>
-						{/each}
-					</ul>
-					<div class="actions">
-						<button class="btn" type="button" onclick={() => announcements.push('')}>Zeile hinzufügen</button>
+				<!-- Begrüssung und Bekanntmachungen -->
+				<div class="tab-panel" hidden={active !== 'begruessung'}>
+					<div class="section">
+						<div class="grid-2">
+							<div class="field"><label for="guest">Gast (Pfahl)</label><MemberSelect id="guest" name="guest" form="programForm" options={data.guestOptions} value={data.meeting.guestMemberId} /></div>
+							<div class="field">
+								<label for="chair">Vorsitz</label>
+								<select id="chair" name="chair" form="programForm">
+									<option value="">automatisch{data.chairAutoName ? `: ${data.chairAutoName}` : ' (niemand bestimmt)'}</option>
+									{#each data.chairOptions as o}<option value={o.id} selected={o.id === data.meeting.chairMemberId}>{o.label}</option>{/each}
+								</select>
+							</div>
+						</div>
+						<p class="hint">Automatisch: Gast mit Vorsitz, sonst Bischof, sonst 1. oder 2. Ratgeber, je nach Abwesenheit. Wird beim Speichern neu berechnet.</p>
+					</div>
+					<div class="section">
+						<h2>Bekanntmachungen</h2>
+						<ul class="row-list">
+							{#each announcements as a, i}
+								<li>
+									<input type="text" name="announcement" form="programForm" bind:value={announcements[i]} placeholder="Text der Bekanntmachung" />
+									<button class="btn btn-small" type="button" onclick={() => move(announcements, i, -1)} aria-label="nach oben">↑</button>
+									<button class="btn btn-small" type="button" onclick={() => move(announcements, i, 1)} aria-label="nach unten">↓</button>
+									<button class="btn btn-small btn-danger" type="button" onclick={() => announcements.splice(i, 1)} aria-label="entfernen">✕</button>
+								</li>
+							{/each}
+						</ul>
+						<div class="actions">
+							<button class="btn" type="button" onclick={() => announcements.push('')}>Zeile hinzufügen</button>
+						</div>
+					</div>
+				</div>
+
+				<!-- Beamtenänderungen -->
+				<div class="tab-panel" hidden={active !== 'aenderungen'}>
+					<div class="section">
+						<div class="grid-2">
+							<div>
+								<h2>Entlassungen</h2>
+								<ul class="row-list">
+									{#each releases as r, i}
+										<li class="calling-row">
+											{@render personSelect('release_person', releases[i])}
+											<input type="text" name="release_calling" form="programForm" bind:value={releases[i].calling} placeholder="Amt" />
+											<button class="btn btn-small btn-danger" type="button" onclick={() => releases.splice(i, 1)} aria-label="entfernen">✕</button>
+										</li>
+									{/each}
+								</ul>
+								<button class="btn btn-small" type="button" onclick={() => releases.push({ person: '', personName: '', calling: '' })}>Entlassung hinzufügen</button>
+							</div>
+							<div>
+								<h2>Berufungen</h2>
+								<ul class="row-list">
+									{#each sustainings as s, i}
+										<li class="calling-row">
+											{@render personSelect('sustain_person', sustainings[i])}
+											<input type="text" name="sustain_calling" form="programForm" bind:value={sustainings[i].calling} placeholder="Amt" />
+											<button class="btn btn-small btn-danger" type="button" onclick={() => sustainings.splice(i, 1)} aria-label="entfernen">✕</button>
+										</li>
+									{/each}
+								</ul>
+								<button class="btn btn-small" type="button" onclick={() => sustainings.push({ person: '', personName: '', calling: '' })}>Berufung hinzufügen</button>
+							</div>
+						</div>
+					</div>
+					<div class="section">
+						<label class="check"><input type="checkbox" name="stakeChanges" value="1" form="programForm" checked={data.meeting.stakeChanges} /> Beamtenänderungen vom Pfahl</label>
+						<p class="hint">Setzt auf dem Leitungszettel einen Hinweis, dass der Pfahl Entlassungen und Berufungen bekanntgibt.</p>
 					</div>
 				</div>
 			{/if}
 
-			<!-- 3. Anfangslied -->
-			<div class="section flow-step">
-				<h2>{num('anfangslied')}. Anfangslied</h2>
-				{@render hymnRow(findHymn('anfang'))}
-			</div>
-
-			{#if data.showProgram}
-				<!-- 4. Anfangsgebet -->
-				<div class="section flow-step">
-					<h2>{num('anfangsgebet')}. Anfangsgebet</h2>
-					{#each data.prayers.filter((p) => p.position === 1) as p}
-						<div class="field"><label for="prayer{p.position}">{p.label}</label><MemberSelect id="prayer{p.position}" name="prayer{p.position}_member" form="programForm" options={p.options} value={p.memberId} /></div>
-					{/each}
-				</div>
-
-				<!-- 5. Entlassungen und Berufungen -->
-				<div class="section flow-step">
-					<h2>{num('berufungen')}. Entlassungen und Berufungen</h2>
-					<div class="grid-2">
-						<div>
-							<h3>Entlassungen</h3>
-							<ul class="row-list">
-								{#each releases as r, i}
-									<li>
-										{@render personSelect('release_person', releases[i])}
-										<input type="text" name="release_calling" form="programForm" bind:value={releases[i].calling} placeholder="Amt" />
-										<button class="btn btn-small btn-danger" type="button" onclick={() => releases.splice(i, 1)} aria-label="entfernen">✕</button>
-									</li>
-								{/each}
-							</ul>
-							<button class="btn btn-small" type="button" onclick={() => releases.push({ person: '', personName: '', calling: '' })}>Entlassung hinzufügen</button>
+			{#if data.showHymns}
+				<!-- Musik -->
+				<div class="tab-panel" hidden={active !== 'musik'}>
+					<div class="section">
+						<h2>Lieder</h2>
+						<div class="grid-2">
+							{@render hymnRow(findHymn('anfang'))}
+							{@render hymnRow(findHymn('abendmahl'))}
+							{#if !isFast}{@render hymnRow(findHymn('zwischen'))}{/if}
+							{@render hymnRow(findHymn('schluss'))}
 						</div>
-						<div>
-							<h3>Berufungen</h3>
-							<ul class="row-list">
-								{#each sustainings as s, i}
-									<li>
-										{@render personSelect('sustain_person', sustainings[i])}
-										<input type="text" name="sustain_calling" form="programForm" bind:value={sustainings[i].calling} placeholder="Amt" />
-										<button class="btn btn-small btn-danger" type="button" onclick={() => sustainings.splice(i, 1)} aria-label="entfernen">✕</button>
-									</li>
-								{/each}
-							</ul>
-							<button class="btn btn-small" type="button" onclick={() => sustainings.push({ person: '', personName: '', calling: '' })}>Berufung hinzufügen</button>
-						</div>
+					</div>
+					<div class="section">
+						<h2>Orgel / Klavier und Dirigieren</h2>
+						{#if data.canMusic}
+							<div class="grid-2">
+								<div class="field"><label for="organist">Orgel / Klavier</label><MemberSelect id="organist" name="organist" form="musicForm" options={data.organistOptions} value={data.meeting.organistMemberId} /></div>
+								<div class="field"><label for="conductor">Dirigieren</label><MemberSelect id="conductor" name="conductor" form="musicForm" options={data.conductorOptions} value={data.meeting.conductorMemberId} /></div>
+							</div>
+							<div class="field"><label for="musicNote">Notiz Musik</label><input id="musicNote" name="musicNote" type="text" form="musicForm" value={data.meeting.musicNote ?? ''} /></div>
+						{:else if data.canConductor}
+							<p><strong>Orgel / Klavier:</strong> {data.organistName ?? '–'}</p>
+							<div class="field"><label for="conductor">Dirigieren</label><MemberSelect id="conductor" name="conductor" form="conductorForm" options={data.conductorOptions} value={data.meeting.conductorMemberId} /></div>
+							{#if data.meeting.musicNote}<p class="hint">{data.meeting.musicNote}</p>{/if}
+						{:else}
+							<p><strong>Orgel / Klavier:</strong> {data.organistName ?? '–'} · <strong>Dirigieren:</strong> {data.conductorName ?? '–'}</p>
+							{#if data.meeting.musicNote}<p class="hint">{data.meeting.musicNote}</p>{/if}
+						{/if}
 					</div>
 				</div>
 			{/if}
 
-			<!-- 6. Abendmahlslied und Abendmahl -->
-			<div class="section flow-step">
-				<h2>{num('abendmahl')}. Abendmahlslied und Abendmahl</h2>
-				{@render hymnRow(findHymn('abendmahl'))}
-				<p class="muted">{PRINT_TEXTS.sacramentThanks}</p>
-			</div>
+			{#if data.showProgram || data.canPrayers}
+				<!-- Gebete -->
+				<div class="tab-panel" hidden={active !== 'gebete'}>
+					<div class="section">
+						<div class="grid-2">
+							{#each data.prayers as p (p.position)}
+								<div class="field"><label for="prayer{p.position}">{p.label}</label><MemberSelect id="prayer{p.position}" name="prayer{p.position}_member" form={prayerForm} options={p.options} value={p.memberId} /></div>
+							{/each}
+						</div>
+					</div>
+				</div>
+			{/if}
 
 			{#if data.showProgram && !isFast}
-				<!-- Ansprache 1 und 2 -->
-				<div class="section flow-step">
-					<h2>{num('ansprachen12')}. Ansprache 1 und 2</h2>
-					{@render talkCard(findTalk(1), data.statuses)}
-					{@render talkCard(findTalk(2), data.statuses)}
-					{#if data.canAddMember}
+				<!-- Ansprachen -->
+				<div class="tab-panel" hidden={active !== 'ansprachen'}>
+					<div class="section">
+						{@render talkCard(findTalk(1), data.statuses)}
+						{@render talkCard(findTalk(2), data.statuses)}
+						{@render talkCard(findTalk(3), data.statuses)}
+						{#if showFourth}
+							{@render talkCard(findTalk(4), data.statuses)}
+						{/if}
 						<div class="actions">
-							<button class="btn" type="button" onclick={() => (showQuickAdd = !showQuickAdd)}>Neues Mitglied anlegen</button>
+							{#if !showFourth}<button class="btn" type="button" onclick={() => (showFourth = true)}>4. Ansprache hinzufügen</button>{/if}
+							{#if data.canAddMember}<button class="btn" type="button" onclick={() => (showQuickAdd = !showQuickAdd)}>Neues Mitglied anlegen</button>{/if}
 						</div>
-						{#if showQuickAdd}
+						{#if showQuickAdd && data.canAddMember}
 							<form method="POST" action="?/quickAdd" use:enhance class="card grid-3">
 								<div class="field"><label for="qa-fn">Vorname</label><input id="qa-fn" name="firstName" type="text" required /></div>
 								<div class="field"><label for="qa-ln">Nachname</label><input id="qa-ln" name="lastName" type="text" /></div>
@@ -366,68 +461,9 @@
 								<div class="actions"><button class="btn btn-primary" type="submit">Anlegen</button></div>
 							</form>
 						{/if}
-					{/if}
-				</div>
-			{/if}
-
-			{#if !isFast}
-				<!-- Zwischenlied -->
-				<div class="section flow-step">
-					<h2>{num('zwischenlied')}. Zwischenlied</h2>
-					{@render hymnRow(findHymn('zwischen'))}
-				</div>
-			{/if}
-
-			{#if data.showProgram && !isFast}
-				<!-- Ansprache 3 (+4) -->
-				<div class="section flow-step">
-					<h2>{num('ansprache3')}. {showFourth ? 'Ansprache 3 und 4' : 'Ansprache 3'}</h2>
-					{@render talkCard(findTalk(3), data.statuses)}
-					{#if showFourth}
-						{@render talkCard(findTalk(4), data.statuses)}
-					{/if}
-					{#if !showFourth}
-						<div class="actions"><button class="btn" type="button" onclick={() => (showFourth = true)}>4. Ansprache hinzufügen</button></div>
-					{/if}
-				</div>
-			{/if}
-
-			<!-- 10. Schlusslied -->
-			<div class="section flow-step">
-				<h2>{num('schlusslied')}. Schlusslied</h2>
-				{@render hymnRow(findHymn('schluss'))}
-			</div>
-
-			{#if data.showProgram}
-				<!-- 11. Schlussgebet -->
-				<div class="section flow-step">
-					<h2>{num('schlussgebet')}. Schlussgebet</h2>
-					{#each data.prayers.filter((p) => p.position === 2) as p}
-						<div class="field"><label for="prayer{p.position}">{p.label}</label><MemberSelect id="prayer{p.position}" name="prayer{p.position}_member" form="programForm" options={p.options} value={p.memberId} /></div>
-					{/each}
-				</div>
-			{/if}
-
-			<!-- 12. Orgel / Klavier, Dirigieren, Notiz Musik -->
-			<div class="section flow-step">
-				<h2>{num('musik')}. Orgel / Klavier, Dirigieren, Notiz Musik</h2>
-				{#if data.canMusic}
-					<div class="grid-2">
-						<div class="field"><label for="organist">Orgel / Klavier</label><MemberSelect id="organist" name="organist" form="musicForm" options={data.organistOptions} value={data.meeting.organistMemberId} /></div>
-						<div class="field"><label for="conductor">Dirigieren</label><MemberSelect id="conductor" name="conductor" form="musicForm" options={data.conductorOptions} value={data.meeting.conductorMemberId} /></div>
 					</div>
-					<div class="field"><label for="musicNote">Notiz Musik</label><input id="musicNote" name="musicNote" type="text" form="musicForm" value={data.meeting.musicNote ?? ''} /></div>
-				{:else if data.canConductor}
-					<p><strong>Orgel / Klavier:</strong> {data.organistName ?? '–'}</p>
-					<div class="field"><label for="conductor">Dirigieren</label><MemberSelect id="conductor" name="conductor" form="conductorForm" options={data.conductorOptions} value={data.meeting.conductorMemberId} /></div>
-					{#if data.meeting.musicNote}<p class="hint">{data.meeting.musicNote}</p>{/if}
-				{:else}
-					<p><strong>Orgel / Klavier:</strong> {data.organistName ?? '–'} · <strong>Dirigieren:</strong> {data.conductorName ?? '–'}</p>
-					{#if data.meeting.musicNote}<p class="hint">{data.meeting.musicNote}</p>{/if}
-				{/if}
-			</div>
-		{:else}
-			<div class="card"><p class="muted">Für diesen Sonntagstyp gibt es kein Programm (keine Gebete, Ansprachen oder Lieder).</p></div>
+				</div>
+			{/if}
 		{/if}
 	</div>
 

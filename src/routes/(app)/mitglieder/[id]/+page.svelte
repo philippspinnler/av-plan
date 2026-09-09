@@ -5,7 +5,7 @@
 	const kind = $derived(m.kind);
 </script>
 
-<p><a href={kind === 'pfahl' ? '/pfahlbeamte' : '/mitglieder'}>← {kind === 'pfahl' ? 'Pfahlbeamte' : 'Mitglieder'}</a></p>
+<p><a href={data.backHref}>← {data.backLabel}</a></p>
 <h1>{data.title}</h1>
 {#if form?.error}<div class="error">{form.error}</div>{/if}
 {#if form?.saved}<div class="success">Gespeichert.</div>{/if}
@@ -34,6 +34,10 @@
 					<div class="field"><label for="nt">Notiz Ansprache</label><input id="nt" name="noteTalk" type="text" value={m.noteTalk ?? ''} /></div>
 					<div class="field"><label for="np">Notiz Gebet</label><input id="np" name="notePrayer" type="text" value={m.notePrayer ?? ''} /></div>
 				</div>
+				<div class="grid-2">
+					<label class="check"><input type="checkbox" name="noTalk" value="1" checked={m.noTalk} /> Möchte keine Ansprache halten</label>
+					<label class="check"><input type="checkbox" name="noPrayer" value="1" checked={m.noPrayer} /> Möchte kein Gebet sprechen</label>
+				</div>
 			{/if}
 			<div class="field">
 				<label for="active">Status</label>
@@ -49,6 +53,8 @@
 		{#if data.stats && m.kind === 'gemeinde'}
 			{#if m.noteTalk}<p><strong>Notiz Ansprache:</strong> {m.noteTalk}</p>{/if}
 			{#if m.notePrayer}<p><strong>Notiz Gebet:</strong> {m.notePrayer}</p>{/if}
+			{#if m.noTalk}<p>Möchte keine Ansprache halten.</p>{/if}
+			{#if m.noPrayer}<p>Möchte kein Gebet sprechen.</p>{/if}
 		{/if}
 	{/if}
 </div>

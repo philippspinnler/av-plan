@@ -1,10 +1,11 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
-	import MemberSelect from '$lib/components/MemberSelect.svelte';
 	let { data, form } = $props();
+	function submitOnChange(e: Event) {
+		(e.currentTarget as HTMLInputElement | HTMLSelectElement).form?.requestSubmit();
+	}
 </script>
 
-<h1>Einstellungen</h1>
 {#if form?.error}<div class="error">{form.error}</div>{/if}
 {#if form?.saved}<div class="success">Gespeichert.</div>{/if}
 {#if form?.created !== undefined}<div class="success">{form.created} neue Sonntage angelegt.</div>{/if}
@@ -19,34 +20,24 @@
 
 <div class="section">
 	<h2>Bischofschaft</h2>
-	<p class="hint">Nur diese Personen können als Leitung eingetragen und bei "Abwesend" angekreuzt werden.</p>
-	{#if data.bishopric.length === 0}
-		<p class="muted">Noch niemand festgelegt.</p>
-	{:else}
-		<ul class="row-list">
-			{#each data.bishopric as b}
-				<li>
-					<span style="flex: 1">{b.name}</span>
-					<form method="POST" action="?/removeBishop" use:enhance>
-						<input type="hidden" name="member" value={b.id} />
-						<button class="btn btn-small btn-danger" type="submit">Entfernen</button>
-					</form>
-				</li>
-			{/each}
-		</ul>
-	{/if}
-	<form method="POST" action="?/addBishop" use:enhance class="actions">
-		<div class="field" style="flex: 1; margin: 0; min-width: 16rem">
-			<label for="member">Mitglied hinzufügen</label>
-			<MemberSelect id="member" name="member" options={data.candidates} />
-		</div>
-		<button class="btn btn-primary" type="submit">Hinzufügen</button>
-	</form>
+	<p class="hint">Leitung und Abwesenheiten beziehen sich auf diese drei Personen. Vorsitz: Bischof, sonst 1., sonst 2. Ratgeber.</p>
+	<div class="grid-3">
+		{#each data.bishopric as b (b.role)}
+			<form method="POST" action="?/bishopRole" use:enhance class="field">
+				<input type="hidden" name="role" value={b.role} />
+				<label for="role-{b.role}">{b.label}</label>
+				<select id="role-{b.role}" name="member" onchange={submitOnChange}>
+					<option value="">– niemand –</option>
+					{#each data.candidates as c}<option value={c.id} selected={c.id === b.memberId}>{c.label}</option>{/each}
+				</select>
+			</form>
+		{/each}
+	</div>
 </div>
 
 <div class="section">
 	<h2>Berufungen der Pfahlbeamten</h2>
-	<p class="hint">Diese Liste steht bei Pfahlbeamten zur Auswahl. Der Name erscheint in Klammern hinter der Person.</p>
+	<p class="hint">Berufungen für Pfahlbeamte, angezeigt in Klammern hinter dem Namen. Gäste mit Häkchen "Vorsitz" übernehmen den Vorsitz.</p>
 	<ul class="row-list">
 		{#each data.callings as c, i}
 			<li>
@@ -54,6 +45,10 @@
 					<input type="hidden" name="id" value={c.id} />
 					<input type="text" name="name" value={c.name} required style="flex: 1" />
 					<button class="btn btn-small" type="submit">Umbenennen</button>
+				</form>
+				<form method="POST" action="?/presidesCalling" use:enhance>
+					<input type="hidden" name="id" value={c.id} />
+					<label class="check"><input type="checkbox" name="presides" value="1" checked={c.presides} onchange={submitOnChange} /> Vorsitz</label>
 				</form>
 				<form method="POST" action="?/moveCalling" use:enhance>
 					<input type="hidden" name="id" value={c.id} />

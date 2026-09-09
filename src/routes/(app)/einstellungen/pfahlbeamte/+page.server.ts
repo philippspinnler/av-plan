@@ -6,6 +6,7 @@ import { listStakeCallings } from '$lib/server/stake-callings';
 import { can, requireRole } from '$lib/server/permissions';
 
 export const load: PageServerLoad = ({ locals, url }) => {
+	requireRole(locals.user, 'settings.edit');
 	const showAll = url.searchParams.get('alle') === '1';
 	const officers = listMembers(locals.db, { activeOnly: !showAll, kind: 'pfahl' }).map((m) => ({
 		id: m.id,

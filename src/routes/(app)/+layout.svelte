@@ -4,7 +4,7 @@
 	const isActive = (href: string) => (href === '/' ? page.url.pathname === '/' : page.url.pathname.startsWith(href));
 	const role = $derived(data.user?.role);
 	const accountRole = $derived(data.accountRole);
-	const ROLE_LABELS: Record<string, string> = { admin: 'Admin', bischofschaft: 'Bischofschaft', musik: 'Musik', dirigent: 'Dirigent/in' };
+	const ROLE_LABELS: Record<string, string> = { admin: 'Admin', bischofschaft: 'Bischofschaft', gebete: 'Gebete', musik: 'Musik', dirigent: 'Dirigent/in' };
 	function submitOnChange(e: Event) {
 		(e.currentTarget as HTMLSelectElement).form?.requestSubmit();
 	}
@@ -13,11 +13,9 @@
 <nav class="topnav no-print">
 	<div class="inner">
 		<a href="/" class:active={isActive('/')}>Sonntage</a>
-		<a href="/lieder" class:active={isActive('/lieder')}>Lieder</a>
-		<a href="/mitglieder" class:active={isActive('/mitglieder')}>Mitglieder</a>
-		<a href="/pfahlbeamte" class:active={isActive('/pfahlbeamte')}>Pfahlbeamte</a>
+		{#if data.canHymns}<a href="/lieder" class:active={isActive('/lieder')}>Lieder</a>{/if}
+		{#if data.canAsk}<a href="/fragen" class:active={isActive('/fragen') || isActive('/mitglieder')}>Fragen</a>{/if}
 		{#if role === 'admin'}
-			<a href="/admin/benutzer" class:active={isActive('/admin')}>Benutzer</a>
 			<a href="/einstellungen" class:active={isActive('/einstellungen')}>Einstellungen</a>
 		{/if}
 		<span class="spacer"></span>

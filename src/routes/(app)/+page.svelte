@@ -4,6 +4,19 @@
 	const MONTHS = ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'];
 	const monthLabel = (date: string) => `${MONTHS[Number(date.slice(5, 7)) - 1]} ${date.slice(0, 4)}`;
 	const dayLabel = (date: string) => `${Number(date.slice(8, 10))}.`;
+	/** Offene Punkte der Box, jeder mit Link auf den Reiter, in dem man ihn erledigt. */
+	const tabFor = (item: string) =>
+		item === 'Leitung' ? 'allgemein' : item.endsWith('gebet') ? 'gebete' : item.startsWith('Ansprachen') ? 'ansprachen' : 'musik';
+	const openItems = $derived.by(() => {
+		if (!data.next || !data.next.rated) return [];
+		const items: string[] = [];
+		if (data.prayersOnly) items.push(...(data.next.prayers.opening ? [] : ['Anfangsgebet']), ...(data.next.prayers.closing ? [] : ['Schlussgebet']));
+		else {
+			if (data.showProgram) items.push(...data.next.missingProgram);
+			if (data.showHymns) items.push(...data.next.missingMusic);
+		}
+		return items.map((label) => ({ label, href: `/sonntag/${data.next!.date}?tab=${tabFor(label)}` }));
+	});
 	const groups = $derived(
 		data.meetings.reduce<{ label: string; items: typeof data.meetings }[]>((acc, m) => {
 			const label = monthLabel(m.date);
@@ -15,69 +28,98 @@
 	);
 </script>
 
-<h1>Sonntage</h1>
+{#snippet value(v: string | null)}{#if v}{v}{:else}<span class="muted">offen</span>{/if}{/snippet}
 
-{#if data.next && !data.year}
-	<div class="card big-card">
-		<div class="section-title">
-			<div>
-				<span class="kind-tag">Nächster Sonntag · {data.next.kindLabel}</span>
-				<h2>{data.next.dateLabel}</h2>
+{#if data.next && data.nav && !data.year}
+	<div class="section-title">
+		<h1>{data.nextTitle}</h1>
+		<div class="actions sunday-nav">
+			{#if data.nav.prev}<a class="btn btn-small" href="/?datum={data.nav.prev}" aria-label="Vorheriger Sonntag">‹</a>{:else}<span class="btn btn-small" aria-disabled="true">‹</span>{/if}
+			<a class="btn btn-small" href="/" class:btn-primary={data.nav.isUpcoming}>Bevorstehend</a>
+			{#if data.nav.next}<a class="btn btn-small" href="/?datum={data.nav.next}" aria-label="Nächster Sonntag">›</a>{:else}<span class="btn btn-small" aria-disabled="true">›</span>{/if}
+		</div>
+	</div>
+	<div class="card big-card" class:has-open={openItems.length > 0}>
+		{#if openItems.length}
+			<div class="todo-strip">
+				<strong>Noch offen:</strong>
+				{#each openItems as o, i (o.label)}{#if i > 0}<span class="muted"> · </span>{/if}<a href={o.href}>{o.label}</a>{/each}
 			</div>
+		{:else if data.next.rated}
+			<div class="ready-strip">Alles bereit</div>
+		{/if}
+		<div class="section-title">
+			<span class="kind-tag">{data.next.kindLabel}</span>
 			<div class="actions">
 				<a class="btn btn-primary" href="/sonntag/{data.next.date}">Bearbeiten</a>
-				{#if data.showProgram}<a class="btn" href="/sonntag/{data.next.date}/druck">Drucken</a>{/if}
+				{#if data.showProgram && data.next.hasProgram}
+					<a class="btn" href="/sonntag/{data.next.date}/druck?vollbild=1">Vollbild</a>
+					<a class="btn" href="/sonntag/{data.next.date}/druck">Drucken</a>
+				{/if}
 			</div>
 		</div>
-		{#if data.next.theme}<p><strong>Thema:</strong> {data.next.theme}</p>{/if}
-		{#if data.showProgram}
-			<p><strong>Leitung:</strong> {data.next.presiding ?? '–'}</p>
-			<p><strong>Sprecher:</strong> {data.next.speakers.length ? data.next.speakers.join(', ') : '–'}</p>
-		{/if}
-		<p><strong>Lieder:</strong> {data.next.hymns.length ? data.next.hymns.join(' · ') : '–'}</p>
-		{#if data.next.rated}
-			<div class="status-row">
-				{#if data.showProgram}
-					<div><span class="status-label">Programm</span>
-						{#if data.next.missingProgram.length}<span class="badge badge-offen">{data.next.missingProgram.join(', ')}</span>{:else}<span class="badge badge-zugesagt">bereit</span>{/if}
-					</div>
-				{/if}
-				<div><span class="status-label">Musik</span>
-					{#if data.next.missingMusic.length}<span class="badge badge-offen">{data.next.missingMusic.join(', ')}</span>{:else}<span class="badge badge-zugesagt">bereit</span>{/if}
-				</div>
-			</div>
+		{#if !data.next.hasProgram}
+			<p class="muted">Kein Programm an diesem Sonntag.</p>
+		{:else if data.prayersOnly}
+			<p><strong>Anfangsgebet:</strong> {@render value(data.next.prayers.opening)}</p>
+			<p><strong>Schlussgebet:</strong> {@render value(data.next.prayers.closing)}</p>
+		{:else}
+			{#if data.next.theme}<p><strong>Thema:</strong> {data.next.theme}</p>{/if}
+			{#if data.showProgram}
+				<p><strong>Leitung:</strong> {@render value(data.next.presiding)}</p>
+				<p><strong>Gebete:</strong> {@render value(data.next.prayers.opening)} · {@render value(data.next.prayers.closing)}</p>
+				<p><strong>Sprecher:</strong> {@render value(data.next.speakers.length ? data.next.speakers.join(', ') : null)}</p>
+			{/if}
+			<p><strong>Lieder:</strong> {@render value(data.next.hymns.length ? data.next.hymns.join(' · ') : null)}</p>
+			{#if data.showHymns}
+				<p><strong>Orgel / Klavier:</strong> {@render value(data.next.organist)} · <strong>Dirigieren:</strong> {@render value(data.next.conductor)}</p>
+			{/if}
 		{/if}
 	</div>
 {/if}
 
-<div class="section">
-	<div class="section-title">
-		<h2>{data.year ? `Alle Sonntage ${data.year}` : 'Kommende Sonntage'}</h2>
-		<div class="actions">
-			<a class="btn btn-small" href="/" class:btn-primary={!data.year}>Kommende</a>
-			{#each data.years as y}<a class="btn btn-small" href="/?jahr={y}" class:btn-primary={data.year === y}>{y}</a>{/each}
-		</div>
+<div class="section-title">
+	<h1>{data.year ? `Alle Sonntage ${data.year}` : 'Kommende Sonntage'}</h1>
+	<div class="actions">
+		<a class="btn btn-small" href="/" class:btn-primary={!data.year}>Kommende</a>
+		{#each data.years as y}<a class="btn btn-small" href="/?jahr={y}" class:btn-primary={data.year === y}>{y}</a>{/each}
 	</div>
-	{#if data.meetings.length === 0}
-		<p class="muted">Keine Sonntage in diesem Zeitraum. Ein Admin kann sie unter Einstellungen anlegen.</p>
-	{:else}
-		{#each groups as g}
-		<h3 class="month-title">{g.label}</h3>
-		<div class="table-wrap">
+</div>
+{#if data.meetings.length === 0}
+	<div class="section"><p class="muted">Keine Sonntage in diesem Zeitraum. Ein Admin kann sie unter Einstellungen anlegen.</p></div>
+{:else}
+	{#each groups as g}
+		<h2 class="month-title">{g.label}</h2>
+		<div class="section table-wrap">
 			<table class="table overview">
 				<colgroup>
 					<col class="c-day" />
 					<col class="c-kind" />
-					<col class="c-theme" />
-					{#if data.showProgram}<col class="c-status" />{/if}
-					<col class="c-status" />
+					{#if data.prayersOnly}
+						<col />
+						<col />
+					{:else}
+						<col class="c-theme" />
+						{#if data.showProgram}<col class="c-status" />{/if}
+						{#if data.musicColumns}<col class="c-person" /><col class="c-person" />{/if}
+						<col class="c-status" />
+					{/if}
 				</colgroup>
-				<thead><tr><th class="col-day">Datum</th><th>Typ</th><th>Thema</th>{#if data.showProgram}<th>Programm</th>{/if}<th>Musik</th></tr></thead>
+				<thead>
+					<tr>
+						<th class="col-day">Datum</th><th>Typ</th>
+						{#if data.prayersOnly}<th>Anfangsgebet</th><th>Schlussgebet</th>{:else}<th>Thema</th>{#if data.showProgram}<th>Programm</th>{/if}{#if data.musicColumns}<th>Orgel / Klavier</th><th>Dirigieren</th>{/if}<th>Musik</th>{/if}
+					</tr>
+				</thead>
 				<tbody>
 					{#each g.items as m}
 						<tr class="clickable" class:muted={m.date < data.today} onclick={() => goto(`/sonntag/${m.date}`)}>
 							<td class="col-day"><a href="/sonntag/{m.date}">{dayLabel(m.date)}</a></td>
 							<td>{m.kind === 'normal' ? '' : m.kindLabel}</td>
+							{#if data.prayersOnly}
+								<td>{#if m.prayers.opening}{m.prayers.opening}{:else if m.rated}<span class="badge badge-offen">offen</span>{/if}</td>
+								<td>{#if m.prayers.closing}{m.prayers.closing}{:else if m.rated}<span class="badge badge-offen">offen</span>{/if}</td>
+							{:else}
 							<td>{m.theme ?? ''}</td>
 							{#if data.showProgram}
 								<td>
@@ -86,16 +128,20 @@
 									{/if}
 								</td>
 							{/if}
+							{#if data.musicColumns}
+								<td>{m.organist ?? ''}</td>
+								<td>{m.conductor ?? ''}</td>
+							{/if}
 							<td>
 								{#if m.rated}
 									{#if m.missingMusic.length}<span class="badge badge-offen">{m.missingMusic.join(', ')}</span>{:else}<span class="badge badge-zugesagt">bereit</span>{/if}
 								{/if}
 							</td>
+							{/if}
 						</tr>
 					{/each}
 				</tbody>
 			</table>
 		</div>
-		{/each}
-	{/if}
-</div>
+	{/each}
+{/if}

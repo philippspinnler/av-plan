@@ -12,11 +12,15 @@ export const load: PageServerLoad = ({ locals, params }) => {
 	if (!member) error(404, 'Mitglied nicht gefunden');
 	const role = locals.user!.role;
 	const stats = can(role, 'members.stats');
+	const canEdit = can(role, 'members.edit');
+	const settingsList = member.kind === 'pfahl' ? 'pfahlbeamte' : 'mitglieder';
 	return {
+		backHref: canEdit ? `/einstellungen/${settingsList}` : '/fragen',
+		backLabel: canEdit ? (member.kind === 'pfahl' ? 'Pfahlbeamte' : 'Mitglieder') : 'Fragen',
 		member: { ...member, noteTalk: stats ? member.noteTalk : null, notePrayer: stats ? member.notePrayer : null },
 		title: displayName(member),
 		callings: listStakeCallings(locals.db).map((c) => ({ id: c.id, name: c.name })),
-		canEdit: can(role, 'members.edit'),
+		canEdit,
 		stats,
 		history: stats
 			? memberHistory(locals.db, member.id).map((h) => ({
@@ -44,7 +48,9 @@ export const actions: Actions = {
 			affiliation: kind === 'gemeinde' ? optStr(fd, 'affiliation') : null,
 			active: str(fd, 'active') === '1',
 			noteTalk: optStr(fd, 'noteTalk'),
-			notePrayer: optStr(fd, 'notePrayer')
+			notePrayer: optStr(fd, 'notePrayer'),
+			noTalk: kind === 'gemeinde' && fd.get('noTalk') === '1',
+			noPrayer: kind === 'gemeinde' && fd.get('noPrayer') === '1'
 		});
 		return { saved: true };
 	}

@@ -7,6 +7,9 @@ import { displayName } from '$lib/server/members';
 import { KIND_LABELS, hasProgram, loadMeetingFullByDate } from '$lib/server/meetings';
 import { isFastLike } from '$lib/server/db/schema';
 import { requireRole } from '$lib/server/permissions';
+import { chairFor, getBishopric, parseAbsences } from '$lib/server/bishopric';
+import { listMembers } from '$lib/server/members';
+import { listStakeCallings } from '$lib/server/stake-callings';
 import { getAllSettings } from '$lib/server/settings';
 import { PRINT_TEXTS } from '$lib/print/texts';
 
@@ -17,6 +20,17 @@ export const load: PageServerLoad = ({ locals, params }) => {
 	if (!full) error(404, 'Sonntag nicht gefunden');
 	const settings = getAllSettings(locals.db);
 	const m = full.meeting;
+	let chair = full.chair;
+	if (!chair) {
+		const callingsById = new Map(listStakeCallings(locals.db).map((c) => [c.id, c]));
+		const g = full.guest;
+		const id = chairFor({
+			bishopric: getBishopric(locals.db),
+			absentIds: parseAbsences(m.absences).ids,
+			guest: g ? { id: g.id, presides: !!(g.stakeCallingId && callingsById.get(g.stakeCallingId)?.presides) } : null
+		});
+		chair = id ? (listMembers(locals.db).find((x) => x.id === id) ?? null) : null;
+	}
 	const talks = full.talks.filter((t) => t.member || t.topic);
 	const order = programOrder(talks.map((t) => t.position));
 	const hymn = (slot: 'anfang' | 'abendmahl' | 'zwischen' | 'schluss') => {
@@ -35,9 +49,12 @@ export const load: PageServerLoad = ({ locals, params }) => {
 		hasProgram: hasProgram(m.kind),
 		wardName: settings.ward_name,
 		presiding: full.presiding ? displayName(full.presiding) : '',
+		chair: chair ? displayName(chair) : '',
+		guest: full.guest ? displayName(full.guest) : '',
 		theme: m.theme ?? '',
 		specialNote: m.specialNote ?? '',
 		announcements: full.announcements,
+		stakeChanges: m.stakeChanges,
 		releases: full.callings.filter((c) => c.kind === 'entlassung'),
 		sustainings: full.callings.filter((c) => c.kind === 'berufung'),
 		hymns: { anfang: hymn('anfang'), abendmahl: hymn('abendmahl'), zwischen: hymn('zwischen'), schluss: hymn('schluss') },

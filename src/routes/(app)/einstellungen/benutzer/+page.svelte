@@ -6,6 +6,7 @@
 		{ value: 'admin', label: 'Admin' },
 		{ value: 'bischofschaft', label: 'Bischofschaft' },
 		{ value: 'musik', label: 'Musik' },
+		{ value: 'gebete', label: 'Gebete' },
 		{ value: 'dirigent', label: 'Dirigent/in' }
 	];
 	let copied = $state(false);
@@ -17,8 +18,7 @@
 	}
 </script>
 
-<h1>Benutzer</h1>
-<p><a class="btn btn-small" href="/admin/export">Datenbank herunterladen (Backup)</a></p>
+<h2>Benutzer</h2>
 {#if form?.error}<div class="error">{form.error}</div>{/if}
 
 <div class="section">

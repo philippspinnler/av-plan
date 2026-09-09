@@ -1,9 +1,16 @@
 <script lang="ts">
+	import SortHeader from '$lib/components/SortHeader.svelte';
+	import { sortHymns, type HymnSortState } from '$lib/hymn-sort';
 	let { data, form } = $props();
 	let q = $state('');
 	let showForm = $state(false);
+	let sort = $state<HymnSortState>({ key: 'number', dir: 'asc' });
+	const onsort = (s: HymnSortState) => (sort = s);
 	const filtered = $derived(
-		data.hymns.filter((h) => !q || String(h.number).startsWith(q.trim()) || h.title.toLowerCase().includes(q.trim().toLowerCase()))
+		sortHymns(
+			data.hymns.filter((h) => !q || String(h.number).startsWith(q.trim()) || h.title.toLowerCase().includes(q.trim().toLowerCase())),
+			sort
+		)
 	);
 </script>
 
@@ -29,13 +36,20 @@
 	<div class="field"><label for="q">Suchen (Nummer oder Titel)</label><input id="q" type="text" bind:value={q} placeholder="z.B. 56 oder Felsen" /></div>
 	<div class="table-wrap">
 		<table class="table">
-			<thead><tr><th>Nr.</th><th>Titel</th><th>Buch</th><th>Dauer</th><th>Zuletzt</th><th>Letzte 52 Wochen</th></tr></thead>
+			<thead>
+				<tr>
+					<SortHeader key="number" label="Nr." {sort} {onsort} />
+					<SortHeader key="title" label="Titel" {sort} {onsort} />
+					<SortHeader key="duration" label="Dauer" {sort} {onsort} />
+					<SortHeader key="lastSung" label="Zuletzt" {sort} {onsort} />
+					<SortHeader key="count52" label="Letzte 52 Wochen" {sort} {onsort} />
+				</tr>
+			</thead>
 			<tbody>
-				{#each filtered as h}
+				{#each filtered as h (h.number)}
 					<tr>
 						<td><a href="/lieder/{h.number}">{h.number}</a></td>
 						<td><a href="/lieder/{h.number}">{h.title}</a></td>
-						<td class="muted">{h.book}</td>
 						<td>{h.duration}</td>
 						<td>{h.lastSung}</td>
 						<td>{h.count52}</td>

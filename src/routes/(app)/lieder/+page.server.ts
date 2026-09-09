@@ -8,6 +8,7 @@ import { can, requireRole } from '$lib/server/permissions';
 import { hymnUsage } from '$lib/server/stats';
 
 export const load: PageServerLoad = ({ locals }) => {
+	requireRole(locals.user, 'hymns.view');
 	const usage = hymnUsage(locals.db, todayIso());
 	return {
 		canEdit: can(locals.user!.role, 'hymns.edit'),
@@ -16,9 +17,10 @@ export const load: PageServerLoad = ({ locals }) => {
 			return {
 				number: h.number,
 				title: h.title,
-				book: h.book === 'neu' ? 'Neu' : 'Gesangbuch',
 				duration: formatDuration(h.durationSeconds),
 				lastSung: u?.lastSung ? formatDateShort(u.lastSung) : 'nie',
+				lastSungDate: u?.lastSung ?? null,
+				durationSeconds: h.durationSeconds ?? null,
 				count52: u?.count52 ?? 0
 			};
 		})

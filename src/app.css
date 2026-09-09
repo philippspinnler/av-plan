@@ -1,5 +1,5 @@
 :root {
-	--bg: #f6f5f1;
+	--bg: #ecebe6;
 	--surface: #ffffff;
 	--text: #1f2937;
 	--muted: #6b7280;
@@ -26,10 +26,19 @@ h2 { font-size: 1.25rem; margin: 0 0 0.75rem; }
 .topnav a { text-decoration: none; padding: 0.5rem 0.75rem; border-radius: var(--radius); color: var(--text); font-weight: 500; }
 .topnav a.active, .topnav a:hover { background: var(--bg); }
 .topnav .spacer { flex: 1; }
+.subnav { display: flex; flex-wrap: wrap; gap: 0.25rem; margin: -0.25rem 0 1rem; border-bottom: 1px solid var(--line); }
+.subnav a { text-decoration: none; padding: 0.5rem 0.9rem; color: var(--muted); font-weight: 500; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+.subnav a.active { color: var(--primary); border-bottom-color: var(--primary); }
+.subnav a:hover { color: var(--text); }
+.subnav button { all: unset; cursor: pointer; padding: 0.5rem 0.9rem; color: var(--muted); font-weight: 500; border-bottom: 2px solid transparent; margin-bottom: -1px; display: inline-flex; align-items: center; gap: 0.4rem; }
+.subnav button.active { color: var(--primary); border-bottom-color: var(--primary); }
+.subnav button:hover, .subnav button:focus-visible { color: var(--text); }
+.tab-badge { display: inline-block; min-width: 1.3em; padding: 0 0.35em; border-radius: 999px; background: var(--danger); color: #fff; font-size: 0.75rem; font-weight: 700; text-align: center; line-height: 1.3em; }
+.tab-panel .section h2 { font-size: 1.05rem; margin-bottom: 0.5rem; }
 .card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 1rem 1.25rem; margin-bottom: 1rem; }
 .section { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 1rem 1.25rem; margin-bottom: 1rem; }
 .section-title { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 0.75rem; }
-.section-title h2 { margin: 0; }
+.section-title h1, .section-title h2 { margin: 0; }
 .readonly { opacity: 0.85; }
 .field { display: flex; flex-direction: column; gap: 0.3rem; margin-bottom: 0.9rem; }
 .field label { font-weight: 600; font-size: 0.95rem; }
@@ -43,6 +52,8 @@ textarea { min-height: 5rem; }
 .btn-secondary { background: var(--surface); }
 .btn-danger { color: var(--danger); border-color: var(--danger); }
 .btn-small { min-height: 36px; padding: 0.3rem 0.7rem; font-size: 0.9rem; }
+.btn[aria-disabled='true'] { opacity: 0.4; cursor: default; }
+.sunday-nav .btn { min-width: 36px; justify-content: center; }
 .actions { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; margin-top: 0.5rem; }
 .grid-2 { display: grid; grid-template-columns: 1fr; gap: 0 1rem; }
 .grid-3 { display: grid; grid-template-columns: 1fr; gap: 0 1rem; }
@@ -60,11 +71,33 @@ textarea { min-height: 5rem; }
 .table tr.clickable { cursor: pointer; }
 .table tr.clickable:hover { background: var(--bg); }
 .table-wrap { overflow-x: auto; }
+.combo { position: relative; }
+.combo-input { padding-right: 2.4rem; }
+.combo-clear { position: absolute; right: 0.35rem; top: 50%; transform: translateY(-50%); border: 0; background: transparent; color: var(--muted); font: inherit; cursor: pointer; padding: 0.4rem 0.6rem; border-radius: 6px; }
+.combo-clear:hover { background: var(--bg); color: var(--text); }
+.combo-list { position: absolute; left: 0; right: 0; top: calc(100% + 4px); z-index: 20; margin: 0; padding: 0.25rem; list-style: none; background: var(--surface); border: 1px solid #cbd2d9; border-radius: 8px; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12); max-height: 18rem; overflow-y: auto; }
+.combo-item { display: flex; justify-content: space-between; gap: 0.75rem; align-items: baseline; padding: 0.55rem 0.7rem; border-radius: 6px; cursor: pointer; }
+.combo-item.active { background: var(--bg); }
+.combo-item.chosen { font-weight: 600; }
+.combo-none { color: var(--muted); }
+.combo-hint { color: var(--muted); font-size: 0.9rem; text-align: right; }
+.combo-empty { padding: 0.55rem 0.7rem; color: var(--muted); font-size: 0.9rem; }
+.sort-btn { all: unset; cursor: pointer; font: inherit; font-weight: inherit; color: inherit; display: inline-flex; align-items: center; gap: 0.3rem; }
+.sort-btn:hover, .sort-btn:focus-visible { text-decoration: underline; }
+.sort-arrow { font-size: 0.7em; min-width: 1em; }
 .row-list { list-style: none; padding: 0; margin: 0; }
 .row-list li { display: flex; gap: 0.5rem; align-items: center; margin-bottom: 0.5rem; }
 .row-list li input { flex: 1; }
+/* Entlassungen/Berufungen: Person auf einer Zeile, Amt darunter in voller Breite */
+.calling-row { flex-wrap: wrap; padding-bottom: 0.5rem; border-bottom: 1px solid var(--line); }
+.calling-row select { flex: 1 1 100%; }
+.calling-row input { flex: 1 1 auto; min-width: 0; }
 .hint { font-size: 0.9rem; color: var(--muted); }
-.big-card { border-left: 6px solid var(--primary); }
+.big-card { border-left: 6px solid var(--ok); }
+.big-card.has-open { border-left-color: var(--danger); }
+.todo-strip { background: #fee4e2; color: var(--danger); border-radius: 8px; padding: 0.55rem 0.8rem; margin: -0.25rem 0 0.9rem; }
+.todo-strip a { color: var(--danger); font-weight: 600; }
+.ready-strip { color: var(--ok); font-weight: 600; margin: -0.25rem 0 0.9rem; }
 .kind-tag { font-size: 0.85rem; color: var(--muted); }
 .auth-box { max-width: 420px; margin: 4rem auto; }
 .copy-box { background: var(--bg); border: 1px dashed var(--line); border-radius: 8px; padding: 0.8rem; white-space: pre-wrap; font-size: 0.95rem; }
@@ -83,8 +116,8 @@ textarea { min-height: 5rem; }
 .greeting-list { list-style: none; padding: 0; margin: 0 0 0.75rem; color: var(--muted); }
 .greeting-list li::before { content: '□ '; }
 @media print { .no-print { display: none !important; } }
-.month-title { margin: 1.25rem 0 0.4rem; font-size: 1.1rem; color: var(--primary); display: flex; align-items: center; gap: 0.75rem; }
-.month-title:first-of-type { margin-top: 0.25rem; }
+.month-title { margin: 1.25rem 0 0.5rem; font-size: 1.1rem; color: var(--primary); }
+.section-title + .month-title { margin-top: 0; }
 .col-day { width: 4.5rem; white-space: nowrap; font-weight: 600; }
 .field .label { font-weight: 600; font-size: 0.95rem; }
 .check-list { display: flex; flex-wrap: wrap; gap: 0.25rem 1.25rem; }
@@ -94,7 +127,5 @@ textarea { min-height: 5rem; }
 .overview .c-day { width: 4.5rem; }
 .overview .c-kind { width: 10rem; }
 .overview .c-status { width: 22%; }
+.overview .c-person { width: 16%; }
 .overview td { overflow-wrap: anywhere; }
-.status-row { display: flex; flex-wrap: wrap; gap: 0.5rem 2rem; margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid var(--line); }
-.status-row > div { display: flex; align-items: center; gap: 0.5rem; }
-.status-label { font-weight: 600; }
