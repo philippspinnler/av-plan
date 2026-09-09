@@ -91,7 +91,7 @@
 	{#each groups as g}
 		<h2 class="month-title">{g.label}</h2>
 		<div class="section table-wrap">
-			<table class="table overview">
+			<table class="table overview stack">
 				<colgroup>
 					<col class="c-day" />
 					<col class="c-kind" />
@@ -114,25 +114,25 @@
 				<tbody>
 					{#each g.items as m}
 						<tr class="clickable" class:muted={m.date < data.today} onclick={() => goto(`/sonntag/${m.date}`)}>
-							<td class="col-day"><a href="/sonntag/{m.date}">{dayLabel(m.date)}</a></td>
-							<td>{m.kind === 'normal' ? '' : m.kindLabel}</td>
+							<td class="col-day td-main td-inline"><a href="/sonntag/{m.date}">{dayLabel(m.date)}</a></td>
+							<td class="td-inline">{m.kind === 'normal' ? '' : m.kindLabel}</td>
 							{#if data.prayersOnly}
-								<td>{#if m.prayers.opening}{m.prayers.opening}{:else if m.rated}<span class="badge badge-offen">offen</span>{/if}</td>
-								<td>{#if m.prayers.closing}{m.prayers.closing}{:else if m.rated}<span class="badge badge-offen">offen</span>{/if}</td>
+								<td data-label="Anfangsgebet">{#if m.prayers.opening}{m.prayers.opening}{:else if m.rated}<span class="badge badge-offen">offen</span>{/if}</td>
+								<td data-label="Schlussgebet">{#if m.prayers.closing}{m.prayers.closing}{:else if m.rated}<span class="badge badge-offen">offen</span>{/if}</td>
 							{:else}
 							<td>{m.theme ?? ''}</td>
 							{#if data.showProgram}
-								<td>
+								<td data-label={m.rated ? 'Programm' : null}>
 									{#if m.rated}
 										{#if m.missingProgram.length}<span class="badge badge-offen">{m.missingProgram.join(', ')}</span>{:else}<span class="badge badge-zugesagt">bereit</span>{/if}
 									{/if}
 								</td>
 							{/if}
 							{#if data.musicColumns}
-								<td>{m.organist ?? ''}</td>
-								<td>{m.conductor ?? ''}</td>
+								<td data-label={m.organist ? 'Orgel / Klavier' : null}>{m.organist ?? ''}</td>
+								<td data-label={m.conductor ? 'Dirigieren' : null}>{m.conductor ?? ''}</td>
 							{/if}
-							<td>
+							<td data-label={m.rated ? 'Musik' : null}>
 								{#if m.rated}
 									{#if m.missingMusic.length}<span class="badge badge-offen">{m.missingMusic.join(', ')}</span>{:else}<span class="badge badge-zugesagt">bereit</span>{/if}
 								{/if}

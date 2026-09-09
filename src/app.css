@@ -16,6 +16,7 @@
 	background: var(--bg);
 }
 * { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
 body { margin: 0; background: var(--bg); color: var(--text); }
 a { color: var(--primary); }
 h1 { font-size: 1.6rem; margin: 0 0 1rem; }
@@ -25,7 +26,10 @@ h2 { font-size: 1.25rem; margin: 0 0 0.75rem; }
 .topnav .inner { max-width: 1100px; margin: 0 auto; display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 1rem; padding: 0.6rem 1rem; }
 .topnav a { text-decoration: none; padding: 0.5rem 0.75rem; border-radius: var(--radius); color: var(--text); font-weight: 500; }
 .topnav a.active, .topnav a:hover { background: var(--bg); }
-.topnav .spacer { flex: 1; }
+.nav-links { display: flex; gap: 0.25rem; flex: 1; min-width: 0; overflow-x: auto; scrollbar-width: none; }
+.nav-links::-webkit-scrollbar { display: none; }
+.nav-links a { white-space: nowrap; }
+.nav-user { display: flex; align-items: center; gap: 0.75rem; flex-shrink: 0; }
 .subnav { display: flex; flex-wrap: wrap; gap: 0.25rem; margin: -0.25rem 0 1rem; border-bottom: 1px solid var(--line); }
 .subnav a { text-decoration: none; padding: 0.5rem 0.9rem; color: var(--muted); font-weight: 500; border-bottom: 2px solid transparent; margin-bottom: -1px; }
 .subnav a.active { color: var(--primary); border-bottom-color: var(--primary); }
@@ -129,3 +133,39 @@ textarea { min-height: 5rem; }
 .overview .c-status { width: 22%; }
 .overview .c-person { width: 16%; }
 .overview td { overflow-wrap: anywhere; }
+
+/* ---------- Handy ---------- */
+@media (max-width: 640px) {
+	.container { padding: 0.75rem; }
+	h1 { font-size: 1.35rem; }
+	.section, .card { padding: 0.8rem 0.9rem; }
+	.topnav .inner { flex-direction: column; align-items: stretch; gap: 0.35rem; padding: 0.45rem 0.75rem; }
+	.topnav a { padding: 0.45rem 0.55rem; font-size: 0.95rem; }
+	.subnav a, .subnav button { padding: 0.45rem 0.65rem; font-size: 0.95rem; }
+	.btn { padding: 0.5rem 0.8rem; }
+	.nav-user { justify-content: space-between; }
+	.nav-user .muted { display: none; }
+	.role-switch label { display: none; }
+	.section-title { flex-direction: column; align-items: stretch; gap: 0.5rem; }
+	.section-title .actions { margin-top: 0; }
+	.subnav { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; margin-left: -0.75rem; margin-right: -0.75rem; padding: 0 0.75rem; }
+	.subnav::-webkit-scrollbar { display: none; }
+	.subnav a, .subnav button { white-space: nowrap; flex-shrink: 0; }
+	.row-list li { flex-wrap: wrap; }
+	.row-list li input { flex: 1 1 100%; }
+	.savebar { padding: 0.5rem 0.75rem; }
+	.todo-strip, .ready-strip { margin-top: 0; }
+	/* Tabellen werden zu Karten: eine Zeile pro Eintrag, Zellen untereinander mit Beschriftung */
+	.table.stack thead { display: none; }
+	.table.stack, .table.stack tbody, .table.stack tr, .table.stack td { display: block; width: auto; }
+	.table.stack tr { padding: 0.55rem 0; border-bottom: 1px solid var(--line); }
+	.table.stack tr:last-child { border-bottom: 0; }
+	.table.stack td { border: 0; padding: 0.1rem 0; overflow-wrap: anywhere; }
+	.table.stack td[data-label] { display: flex; gap: 0.6rem; align-items: baseline; }
+	.table.stack td[data-label]::before { content: attr(data-label); color: var(--muted); font-size: 0.85rem; flex: 0 0 7rem; }
+	.table.stack td.td-main { font-weight: 600; font-size: 1.05rem; }
+	.table.stack td.td-inline { display: inline-block; margin-right: 0.5rem; }
+	.overview { table-layout: auto; }
+	.col-day { width: auto; }
+	.combo-list { max-height: 14rem; }
+}

@@ -35,7 +35,7 @@
 <div class="section">
 	<div class="field"><label for="q">Suchen (Nummer oder Titel)</label><input id="q" type="text" bind:value={q} placeholder="z.B. 56 oder Felsen" /></div>
 	<div class="table-wrap">
-		<table class="table">
+		<table class="table stack">
 			<thead>
 				<tr>
 					<SortHeader key="number" label="Nr." {sort} {onsort} />
@@ -48,11 +48,11 @@
 			<tbody>
 				{#each filtered as h (h.number)}
 					<tr>
-						<td><a href="/lieder/{h.number}">{h.number}</a></td>
-						<td><a href="/lieder/{h.number}">{h.title}</a></td>
-						<td>{h.duration}</td>
-						<td>{h.lastSung}</td>
-						<td>{h.count52}</td>
+						<td class="td-main td-inline"><a href="/lieder/{h.number}">{h.number}</a></td>
+						<td class="td-main td-inline"><a href="/lieder/{h.number}">{h.title}</a></td>
+						<td data-label={h.duration ? 'Dauer' : null}>{h.duration}</td>
+						<td data-label="Zuletzt">{h.lastSung}</td>
+						<td data-label="52 Wochen">{h.count52}</td>
 					</tr>
 				{/each}
 			</tbody>

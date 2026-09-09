@@ -46,12 +46,12 @@
 	<div class="section">
 		<h2>Offene Einladungen</h2>
 		<div class="table-wrap">
-			<table class="table">
+			<table class="table stack">
 				<thead><tr><th>Name</th><th>E-Mail</th><th>Rolle</th><th>Gültig bis</th><th></th></tr></thead>
 				<tbody>
 					{#each data.invites as inv}
 						<tr>
-							<td>{inv.name}</td><td>{inv.email}</td><td>{inv.role}</td><td>{formatDateShort(inv.expiresAt.slice(0, 10))}</td>
+							<td class="td-main">{inv.name}</td><td data-label="E-Mail">{inv.email}</td><td data-label="Rolle">{inv.role}</td><td data-label="Gültig bis">{formatDateShort(inv.expiresAt.slice(0, 10))}</td>
 							<td>
 								<form method="POST" action="?/deleteInvite" use:enhance>
 									<input type="hidden" name="id" value={inv.id} />
@@ -69,14 +69,14 @@
 <div class="section">
 	<h2>Konten</h2>
 	<div class="table-wrap">
-		<table class="table">
+		<table class="table stack">
 			<thead><tr><th>Name</th><th>E-Mail</th><th>Rolle</th><th>Status</th><th></th></tr></thead>
 			<tbody>
 				{#each data.users as u}
 					<tr>
-						<td>{u.name}</td>
-						<td>{u.email}</td>
-						<td>
+						<td class="td-main">{u.name}</td>
+						<td data-label="E-Mail">{u.email}</td>
+						<td data-label="Rolle">
 							{#if u.id === data.user?.id}
 								{roles.find((r) => r.value === u.role)?.label}
 							{:else}
@@ -88,7 +88,7 @@
 								</form>
 							{/if}
 						</td>
-						<td>{u.active ? 'aktiv' : 'deaktiviert'}</td>
+						<td data-label="Status">{u.active ? 'aktiv' : 'deaktiviert'}</td>
 						<td>
 							{#if u.id !== data.user?.id}
 								<form method="POST" action="?/setActive" use:enhance>

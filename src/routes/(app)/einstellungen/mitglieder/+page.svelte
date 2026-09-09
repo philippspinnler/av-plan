@@ -31,7 +31,7 @@
 {/if}
 
 <div class="section table-wrap">
-	<table class="table">
+	<table class="table stack">
 		<thead>
 			<tr>
 				<SortHeader key="name" label="Name" {sort} {onsort} />
@@ -46,13 +46,13 @@
 		<tbody>
 			{#each sorted as m (m.id)}
 				<tr class="clickable" onclick={() => goto(`/mitglieder/${m.id}`)}>
-					<td><a href="/mitglieder/{m.id}">{m.name}</a></td>
+					<td class="td-main"><a href="/mitglieder/{m.id}">{m.name}</a></td>
 					{#if data.stats}
-						<td class:muted={m.noTalk}>{m.lastTalk}</td>
-						<td class:muted={m.noPrayer}>{m.lastPrayer}</td>
-						<td class="hint">{m.notes}</td>
+						<td class:muted={m.noTalk} data-label="Letzte Ansprache">{m.lastTalk}</td>
+						<td class:muted={m.noPrayer} data-label="Letztes Gebet">{m.lastPrayer}</td>
+						<td class="hint" data-label={m.notes ? 'Notizen' : null}>{m.notes}</td>
 					{/if}
-					{#if data.showAll}<td>{m.active ? 'aktiv' : 'inaktiv'}</td>{/if}
+					{#if data.showAll}<td data-label="Status">{m.active ? 'aktiv' : 'inaktiv'}</td>{/if}
 				</tr>
 			{/each}
 		</tbody>

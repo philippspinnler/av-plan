@@ -25,9 +25,9 @@
 	{#if data.history.length === 0}
 		<p class="muted">Noch nie geplant.</p>
 	{:else}
-		<table class="table">
+		<table class="table stack">
 			<thead><tr><th>Datum</th><th>Als</th></tr></thead>
-			<tbody>{#each data.history as h}<tr><td><a href="/sonntag/{h.date}">{h.dateLabel}</a></td><td>{h.slot}</td></tr>{/each}</tbody>
+			<tbody>{#each data.history as h}<tr><td class="td-main td-inline"><a href="/sonntag/{h.date}">{h.dateLabel}</a></td><td class="td-inline muted">{h.slot}</td></tr>{/each}</tbody>
 		</table>
 	{/if}
 </div>

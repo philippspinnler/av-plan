@@ -12,13 +12,15 @@
 
 <nav class="topnav no-print">
 	<div class="inner">
-		<a href="/" class:active={isActive('/')}>Sonntage</a>
-		{#if data.canHymns}<a href="/lieder" class:active={isActive('/lieder')}>Lieder</a>{/if}
-		{#if data.canAsk}<a href="/fragen" class:active={isActive('/fragen') || isActive('/mitglieder')}>Fragen</a>{/if}
-		{#if role === 'admin'}
-			<a href="/einstellungen" class:active={isActive('/einstellungen')}>Einstellungen</a>
-		{/if}
-		<span class="spacer"></span>
+		<div class="nav-links">
+			<a href="/" class:active={isActive('/')}>Sonntage</a>
+			{#if data.canHymns}<a href="/lieder" class:active={isActive('/lieder')}>Lieder</a>{/if}
+			{#if data.canAsk}<a href="/fragen" class:active={isActive('/fragen') || isActive('/mitglieder')}>Fragen</a>{/if}
+			{#if role === 'admin'}
+				<a href="/einstellungen" class:active={isActive('/einstellungen')}>Einstellungen</a>
+			{/if}
+		</div>
+		<div class="nav-user">
 		{#if accountRole === 'admin'}
 			<form method="POST" action="/ansicht" class="role-switch">
 				<label for="role-view-select">Ansicht als</label>
@@ -31,6 +33,7 @@
 		{/if}
 		<span class="muted">{data.user?.name}</span>
 		<form method="POST" action="/logout"><button class="btn btn-small" type="submit">Abmelden</button></form>
+		</div>
 	</div>
 </nav>
 {#if accountRole === 'admin' && role !== accountRole}

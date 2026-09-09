@@ -33,14 +33,14 @@
 {/if}
 
 <div class="section table-wrap">
-	<table class="table">
+	<table class="table stack">
 		<thead><tr><th>Name</th><th>Berufung</th>{#if data.showAll}<th>Status</th>{/if}</tr></thead>
 		<tbody>
 			{#each data.officers as o}
 				<tr class="clickable" onclick={() => goto(`/mitglieder/${o.id}`)}>
-					<td><a href="/mitglieder/{o.id}">{o.name}</a></td>
-					<td>{o.calling}</td>
-					{#if data.showAll}<td>{o.active ? 'aktiv' : 'inaktiv'}</td>{/if}
+					<td class="td-main"><a href="/mitglieder/{o.id}">{o.name}</a></td>
+					<td data-label={o.calling ? 'Berufung' : null}>{o.calling}</td>
+					{#if data.showAll}<td data-label="Status">{o.active ? 'aktiv' : 'inaktiv'}</td>{/if}
 				</tr>
 			{/each}
 		</tbody>
