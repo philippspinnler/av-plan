@@ -89,13 +89,26 @@
 		return data.missing ? undefined : data.talks.find((t) => t.position === position);
 	}
 
+	/**
+	 * Speichert die Formulare nacheinander, nicht gleichzeitig. Bei parallelen Anfragen konnte das
+	 * Neuladen der Daten des einen Formulars vor dem Schreiben des anderen laufen und so frisch
+	 * eingegebene Werte im Browser mit alten Daten überschreiben; beim nächsten Speichern wären sie
+	 * dann tatsächlich verloren gegangen.
+	 */
+	let queue: string[] = [];
+	function submitNext() {
+		const id = queue.shift();
+		if (id) (document.getElementById(id) as HTMLFormElement | null)?.requestSubmit();
+	}
 	function saveAll() {
 		if (data.missing) return;
 		results = {};
-		if (data.showProgram) (document.getElementById('programForm') as HTMLFormElement | null)?.requestSubmit();
-		else if (data.canPrayers) (document.getElementById('prayersForm') as HTMLFormElement | null)?.requestSubmit();
-		if (data.canMusic) (document.getElementById('musicForm') as HTMLFormElement | null)?.requestSubmit();
-		else if (data.canConductor) (document.getElementById('conductorForm') as HTMLFormElement | null)?.requestSubmit();
+		queue = [];
+		if (data.showProgram) queue.push('programForm');
+		else if (data.canPrayers) queue.push('prayersForm');
+		if (data.canMusic) queue.push('musicForm');
+		else if (data.canConductor) queue.push('conductorForm');
+		submitNext();
 	}
 
 	const saveStatus = $derived.by(() => {
@@ -200,7 +213,8 @@
 					return async ({ result, update }) => {
 						pending--;
 						results.program = result.type === 'success' ? { ok: true } : { ok: false, error: result.type === 'failure' ? String(result.data?.error ?? 'Fehler') : 'Fehler' };
-						await update();
+						await update({ reset: false });
+						submitNext();
 					};
 				}}
 			></form>
@@ -215,7 +229,8 @@
 					return async ({ result, update }) => {
 						pending--;
 						results.prayers = result.type === 'success' ? { ok: true } : { ok: false, error: result.type === 'failure' ? String(result.data?.error ?? 'Fehler') : 'Fehler' };
-						await update();
+						await update({ reset: false });
+						submitNext();
 					};
 				}}
 			></form>
@@ -230,7 +245,8 @@
 					return async ({ result, update }) => {
 						pending--;
 						results.music = result.type === 'success' ? { ok: true } : { ok: false, error: result.type === 'failure' ? String(result.data?.error ?? 'Fehler') : 'Fehler' };
-						await update();
+						await update({ reset: false });
+						submitNext();
 					};
 				}}
 			></form>
@@ -244,7 +260,8 @@
 					return async ({ result, update }) => {
 						pending--;
 						results.conductor = result.type === 'success' ? { ok: true } : { ok: false, error: result.type === 'failure' ? String(result.data?.error ?? 'Fehler') : 'Fehler' };
-						await update();
+						await update({ reset: false });
+						submitNext();
 					};
 				}}
 			></form>
