@@ -1,5 +1,5 @@
 import { hash, verify } from '@node-rs/argon2';
-import { and, desc, eq, gt, gte, isNull, lt } from 'drizzle-orm';
+import { and, desc, eq, gt, gte, isNull, lt, ne } from 'drizzle-orm';
 import { randomBytes } from 'node:crypto';
 import type { Db } from './db';
 import { invites, loginAttempts, sessions, users, type Invite, type Role, type User } from './db/schema';
@@ -108,6 +108,29 @@ export function validateSession(
 		db.update(sessions).set({ expiresAt }).where(eq(sessions.id, sessionId)).run();
 	}
 	return { user: { id: row.id, email: row.email, name: row.name, role: row.role }, expiresAt };
+}
+
+export const MIN_PASSWORD_LENGTH = 8;
+
+/**
+ * Ändert das eigene Passwort nach Prüfung des bisherigen. Alle anderen Sitzungen
+ * der Person werden beendet; die aktuelle (keepSessionId) bleibt bestehen.
+ */
+export async function changePassword(
+	db: Db,
+	userId: number,
+	currentPassword: string,
+	newPassword: string,
+	keepSessionId: string | null = null
+): Promise<'ok' | 'wrong' | 'weak'> {
+	if (newPassword.length < MIN_PASSWORD_LENGTH) return 'weak';
+	const user = db.select().from(users).where(eq(users.id, userId)).get();
+	if (!user || !(await verifyPassword(user.passwordHash, currentPassword))) return 'wrong';
+	const passwordHash = await hashPassword(newPassword);
+	db.update(users).set({ passwordHash, updatedAt: iso(new Date()) }).where(eq(users.id, userId)).run();
+	const others = keepSessionId ? and(eq(sessions.userId, userId), ne(sessions.id, keepSessionId)) : eq(sessions.userId, userId);
+	db.delete(sessions).where(others).run();
+	return 'ok';
 }
 
 export function deleteSession(db: Db, sessionId: string): void {

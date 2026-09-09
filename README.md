@@ -19,7 +19,7 @@ cp .env.example .env     # ORIGIN = öffentliche Adresse, sonst schlagen Formula
 docker compose up -d     # zieht philippspinnler/av-plan:latest
 ```
 
-Beim ersten Aufruf wird unter `/setup` das Admin-Konto angelegt. Weitere Personen lädt der Admin unter Einstellungen → Benutzer per Link ein.
+Beim ersten Aufruf wird unter `/setup` das Admin-Konto angelegt. Weitere Personen lädt der Admin unter Einstellungen → Benutzer per Link ein. Das eigene Passwort ändert jede Person über ihren Namen oben rechts (Konto). Passwörter werden mit Argon2 gehasht gespeichert.
 
 Die Datenbank liegt in `./data/app.db`. Backup über Einstellungen → Allgemein → "Datenbank herunterladen".
 

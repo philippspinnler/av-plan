@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { createDb, type Db } from './db';
 import {
-	acceptInvite, createInvite, createSession, createUser, deleteSession, findUserByEmail, getValidInvite,
+	acceptInvite, changePassword, createInvite, createSession, createUser, deleteSession, findUserByEmail, getValidInvite,
 	hashPassword, listOpenInvites, loginWithPassword, userCount, validateSession, verifyPassword
 } from './auth';
 
@@ -16,6 +16,21 @@ describe('Passwörter', () => {
 		expect(h).not.toContain('geheim123');
 		expect(await verifyPassword(h, 'geheim123')).toBe(true);
 		expect(await verifyPassword(h, 'falsch')).toBe(false);
+	});
+});
+
+describe('Passwort ändern', () => {
+	it('prüft das alte Passwort, verlangt 8 Zeichen und beendet andere Sitzungen', async () => {
+		const u = await createUser(db, { email: 'a@b.ch', name: 'A', role: 'musik', password: 'geheim123' });
+		const keep = createSession(db, u.id);
+		const other = createSession(db, u.id);
+		expect(await changePassword(db, u.id, 'falsch', 'neuesPasswort', keep.id)).toBe('wrong');
+		expect(await changePassword(db, u.id, 'geheim123', 'kurz', keep.id)).toBe('weak');
+		expect(await changePassword(db, u.id, 'geheim123', 'neuesPasswort', keep.id)).toBe('ok');
+		expect((await loginWithPassword(db, 'a@b.ch', 'neuesPasswort')).ok).toBe(true);
+		expect((await loginWithPassword(db, 'a@b.ch', 'geheim123')).ok).toBe(false);
+		expect(validateSession(db, keep.id)).not.toBeNull();
+		expect(validateSession(db, other.id)).toBeNull();
 	});
 });
 

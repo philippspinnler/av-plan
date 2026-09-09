@@ -30,6 +30,7 @@ h2 { font-size: 1.25rem; margin: 0 0 0.75rem; }
 .nav-links::-webkit-scrollbar { display: none; }
 .nav-links a { white-space: nowrap; }
 .nav-user { display: flex; align-items: center; gap: 0.75rem; flex-shrink: 0; }
+.nav-account { color: var(--muted) !important; font-weight: 500; }
 .subnav { display: flex; flex-wrap: wrap; gap: 0.25rem; margin: -0.25rem 0 1rem; border-bottom: 1px solid var(--line); }
 .subnav a { text-decoration: none; padding: 0.5rem 0.9rem; color: var(--muted); font-weight: 500; border-bottom: 2px solid transparent; margin-bottom: -1px; }
 .subnav a.active { color: var(--primary); border-bottom-color: var(--primary); }
@@ -144,7 +145,6 @@ textarea { min-height: 5rem; }
 	.subnav a, .subnav button { padding: 0.45rem 0.65rem; font-size: 0.95rem; }
 	.btn { padding: 0.5rem 0.8rem; }
 	.nav-user { justify-content: space-between; }
-	.nav-user .muted { display: none; }
 	.role-switch label { display: none; }
 	.section-title { flex-direction: column; align-items: stretch; gap: 0.5rem; }
 	.section-title .actions { margin-top: 0; }

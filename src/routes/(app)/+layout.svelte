@@ -31,7 +31,7 @@
 				</select>
 			</form>
 		{/if}
-		<span class="muted">{data.user?.name}</span>
+		<a href="/konto" class="nav-account" class:active={isActive('/konto')} title="Konto und Passwort">{data.user?.name}</a>
 		<form method="POST" action="/logout"><button class="btn btn-small" type="submit">Abmelden</button></form>
 		</div>
 	</div>
