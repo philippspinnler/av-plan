@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
-	addDays, addMonths, formatDateDe, formatDateShort, isSunday, nextSundayIso,
+	addDays, addMonths, formatDateDe, formatDateLong, formatDateShort, isSunday, nextSundayIso,
 	sundaysBetween, todayIso, weeksBetween
 } from './dates';
 
@@ -28,6 +28,8 @@ describe('dates', () => {
 	it('formatiert deutsch', () => {
 		expect(formatDateDe('2026-09-13')).toBe('So, 13.09.2026');
 		expect(formatDateShort('2026-09-13')).toBe('13.09.2026');
+		expect(formatDateLong('2026-09-13')).toBe('Sonntag, 13. September 2026');
+		expect(formatDateLong('2026-03-02')).toBe('Montag, 2. März 2026');
 	});
 	it('todayIso nutzt lokale Kalenderdaten', () => {
 		expect(todayIso(new Date(2026, 8, 7, 23, 30))).toBe('2026-09-07');

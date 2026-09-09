@@ -1,7 +1,7 @@
 import { sql } from 'drizzle-orm';
 import { integer, sqliteTable, text, uniqueIndex } from 'drizzle-orm/sqlite-core';
 
-export const ROLES = ['admin', 'bischofschaft', 'musik', 'dirigent'] as const;
+export const ROLES = ['admin', 'bischofschaft', 'gebete', 'musik', 'dirigent'] as const;
 export type Role = (typeof ROLES)[number];
 export const MEETING_KINDS = ['normal', 'fastsonntag', 'dka', 'fhv', 'aek', 'jd', 'jm', 'ostern', 'weihnachten', 'gemeindekonferenz', 'generalkonferenz', 'pfahlkonferenz', 'keine'] as const;
 /** Sonntage ohne feste Sprecher und ohne Zwischenlied (verhalten sich wie ein Fastsonntag). */
@@ -64,7 +64,9 @@ export const loginAttempts = sqliteTable('login_attempts', {
 export const stakeCallings = sqliteTable('stake_callings', {
 	id: integer('id').primaryKey({ autoIncrement: true }),
 	name: text('name').notNull().unique(),
-	position: integer('position').notNull().default(0)
+	position: integer('position').notNull().default(0),
+	/** Hat den Vorsitz, wenn als Gast anwesend (z.B. Pfahlpräsidentschaft). */
+	presides: integer('presides', { mode: 'boolean' }).notNull().default(false)
 });
 
 export const members = sqliteTable('members', {
@@ -77,6 +79,8 @@ export const members = sqliteTable('members', {
 	active: integer('active', { mode: 'boolean' }).notNull().default(true),
 	noteTalk: text('note_talk'),
 	notePrayer: text('note_prayer'),
+	noTalk: integer('no_talk', { mode: 'boolean' }).notNull().default(false),
+	noPrayer: integer('no_prayer', { mode: 'boolean' }).notNull().default(false),
 	...timestamps
 });
 
@@ -97,6 +101,12 @@ export const meetings = sqliteTable('meetings', {
 	specialNote: text('special_note'),
 	presidingMemberId: integer('presiding_member_id').references(() => members.id),
 	absences: text('absences'),
+	/** Gast aus dem Pfahl. */
+	guestMemberId: integer('guest_member_id').references(() => members.id),
+	/** Vorsitz, falls von Hand gesetzt; null = automatisch nach Regel. */
+	chairMemberId: integer('chair_member_id').references(() => members.id),
+	/** Der Pfahl gibt an diesem Sonntag Entlassungen/Berufungen bekannt. */
+	stakeChanges: integer('stake_changes', { mode: 'boolean' }).notNull().default(false),
 	organistMemberId: integer('organist_member_id').references(() => members.id),
 	conductorMemberId: integer('conductor_member_id').references(() => members.id),
 	talksStartTime: text('talks_start_time'),

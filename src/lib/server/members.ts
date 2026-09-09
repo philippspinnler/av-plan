@@ -28,6 +28,8 @@ export interface MemberInput {
 	active?: boolean;
 	noteTalk?: string | null;
 	notePrayer?: string | null;
+	noTalk?: boolean;
+	noPrayer?: boolean;
 }
 
 export function listMembers(db: Db, opts: { activeOnly?: boolean; kind?: MemberKind } = {}): Member[] {
@@ -54,7 +56,9 @@ export function createMember(db: Db, input: MemberInput): Member {
 			stakeCallingId: input.kind === 'pfahl' ? (input.stakeCallingId ?? null) : null,
 			active: input.active ?? true,
 			noteTalk: input.noteTalk?.trim() || null,
-			notePrayer: input.notePrayer?.trim() || null
+			notePrayer: input.notePrayer?.trim() || null,
+			noTalk: input.noTalk ?? false,
+			noPrayer: input.noPrayer ?? false
 		})
 		.returning()
 		.get();

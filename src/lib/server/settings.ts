@@ -4,7 +4,8 @@ import { settings } from './db/schema';
 
 export const SETTING_DEFAULTS = {
 	ward_name: 'Gemeinde',
-	bishopric_member_ids: '[]'
+	bishopric_member_ids: '[]',
+	bishopric: '[]'
 } as const;
 
 export type SettingKey = keyof typeof SETTING_DEFAULTS;

@@ -14,6 +14,14 @@ beforeEach(() => {
 });
 
 describe('members', () => {
+	it('speichert "keine Ansprache" und "kein Gebet"', () => {
+		const m = createMember(db, { firstName: 'Ruth', lastName: 'Keller', noTalk: true });
+		expect(m.noTalk).toBe(true);
+		expect(m.noPrayer).toBe(false);
+		updateMember(db, m.id, { noTalk: false, noPrayer: true });
+		expect(listMembers(db).find((x) => x.id === m.id)).toMatchObject({ noTalk: false, noPrayer: true });
+		expect(listMembers(db).find((x) => x.lastName === 'Rey')).toMatchObject({ noTalk: false, noPrayer: false });
+	});
 	it('listet sortiert und filtert aktive', () => {
 		expect(listMembers(db).map((m) => m.lastName)).toEqual(['Achermann', 'Dürst', 'Koller', 'Moser', 'Rey']);
 		expect(listMembers(db, { activeOnly: true }).map((m) => m.lastName)).toEqual(['Dürst', 'Koller', 'Moser', 'Rey']);

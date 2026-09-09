@@ -1,4 +1,4 @@
-import { and, asc, eq, gte, inArray, lte } from 'drizzle-orm';
+import { and, asc, desc, eq, gt, gte, inArray, lt, lte } from 'drizzle-orm';
 import { addMonths, isSunday, sundaysBetween } from '../dates';
 import type { Db } from './db';
 import {
@@ -42,6 +42,8 @@ export interface CallingRow { kind: CallingKind; personName: string; calling: st
 export interface MeetingFull {
 	meeting: Meeting;
 	presiding: Member | null;
+	guest: Member | null;
+	chair: Member | null;
 	organist: Member | null;
 	conductor: Member | null;
 	prayers: PrayerRow[];
@@ -100,7 +102,7 @@ function assemble(db: Db, meeting: Meeting): MeetingFull {
 	const annRows = db.select().from(announcements).where(eq(announcements.meetingId, meeting.id)).orderBy(asc(announcements.position)).all();
 	const callRows = db.select().from(callings).where(eq(callings.meetingId, meeting.id)).orderBy(asc(callings.position)).all();
 	const people = membersById(db, [
-		meeting.presidingMemberId, meeting.organistMemberId, meeting.conductorMemberId,
+		meeting.presidingMemberId, meeting.guestMemberId, meeting.chairMemberId, meeting.organistMemberId, meeting.conductorMemberId,
 		...prayerRows.map((p) => p.memberId), ...talkRows.map((t) => t.memberId)
 	]);
 	const pick = (id: number | null) => (id === null ? null : (people.get(id) ?? null));
@@ -109,6 +111,8 @@ function assemble(db: Db, meeting: Meeting): MeetingFull {
 	return {
 		meeting,
 		presiding: pick(meeting.presidingMemberId),
+		guest: pick(meeting.guestMemberId),
+		chair: pick(meeting.chairMemberId),
 		organist: pick(meeting.organistMemberId),
 		conductor: pick(meeting.conductorMemberId),
 		prayers: prayerRows.map((p) => ({ position: p.position, member: pick(p.memberId), status: p.status })),
@@ -128,6 +132,13 @@ export function listMeetings(db: Db, from: string, to: string): MeetingFull[] {
 		.map((m) => assemble(db, m));
 }
 
+/** Datum des vorherigen und des nächsten vorhandenen Sonntags rund um `date`. */
+export function adjacentMeetingDates(db: Db, date: string): { prev: string | null; next: string | null } {
+	const prev = db.select({ date: meetings.date }).from(meetings).where(lt(meetings.date, date)).orderBy(desc(meetings.date)).limit(1).get();
+	const next = db.select({ date: meetings.date }).from(meetings).where(gt(meetings.date, date)).orderBy(asc(meetings.date)).limit(1).get();
+	return { prev: prev?.date ?? null, next: next?.date ?? null };
+}
+
 export function loadMeetingFull(db: Db, meetingId: number): MeetingFull | null {
 	const m = db.select().from(meetings).where(eq(meetings.id, meetingId)).get();
 	return m ? assemble(db, m) : null;
@@ -141,7 +152,10 @@ export function loadMeetingFullByDate(db: Db, date: string): MeetingFull | null 
 export function saveGeneral(
 	db: Db,
 	meetingId: number,
-	input: { kind: MeetingKind; theme: string | null; specialNote: string | null; presidingMemberId: number | null; absences: string | null }
+	input: {
+		kind: MeetingKind; theme: string | null; specialNote: string | null; presidingMemberId: number | null; absences: string | null;
+		guestMemberId?: number | null; chairMemberId?: number | null; stakeChanges?: boolean;
+	}
 ): void {
 	db.update(meetings).set({ ...input, updatedAt: nowIso() }).where(eq(meetings.id, meetingId)).run();
 }

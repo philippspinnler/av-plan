@@ -2,7 +2,7 @@ import { addDays, formatDateDe } from '../dates';
 import type { MeetingKind } from './db/schema';
 import { hymnLabel } from './hymns';
 import { displayName } from './members';
-import { KIND_LABELS, type MeetingFull } from './meetings';
+import { KIND_LABELS, hasProgram, type MeetingFull } from './meetings';
 import { isRated, readiness } from './stats';
 
 export interface MeetingSummary {
@@ -16,11 +16,22 @@ export interface MeetingSummary {
 	hymns: string[];
 	missingProgram: string[];
 	missingMusic: string[];
+	/** Anfangs- und Schlussgebet (Name oder null), nur für Rollen mit Gebetsrecht. */
+	prayers: { opening: string | null; closing: string | null };
+	organist: string | null;
+	conductor: string | null;
 	rated: boolean;
+	/** Konferenzen und "keine Versammlung" haben kein Programm. */
+	hasProgram: boolean;
 }
 
-export function summarize(m: MeetingFull, opts: { showProgram: boolean }): MeetingSummary {
+export function summarize(m: MeetingFull, opts: { showProgram: boolean; showPrayers?: boolean }): MeetingSummary {
 	const r = readiness(m);
+	const showPrayers = opts.showPrayers ?? opts.showProgram;
+	const prayer = (pos: number) => {
+		const p = m.prayers.find((x) => x.position === pos);
+		return showPrayers && p?.member ? displayName(p.member) : null;
+	};
 	return {
 		date: m.meeting.date,
 		dateLabel: formatDateDe(m.meeting.date),
@@ -35,7 +46,11 @@ export function summarize(m: MeetingFull, opts: { showProgram: boolean }): Meeti
 			.map((h) => (h.hymn ? hymnLabel(h.hymn) : h.freeText!)),
 		missingProgram: opts.showProgram ? r.program : [],
 		missingMusic: r.music,
-		rated: isRated(m.meeting.kind)
+		prayers: { opening: prayer(1), closing: prayer(2) },
+		organist: m.organist ? displayName(m.organist) : null,
+		conductor: m.conductor ? displayName(m.conductor) : null,
+		rated: isRated(m.meeting.kind),
+		hasProgram: hasProgram(m.meeting.kind)
 	};
 }
 

@@ -8,5 +8,5 @@ it('liefert Defaults und speichert Änderungen', () => {
 	setSetting(db, 'ward_name', 'Bern');
 	setSetting(db, 'ward_name', 'Bern West');
 	expect(getSetting(db, 'ward_name')).toBe('Bern West');
-	expect(getAllSettings(db)).toEqual({ ward_name: 'Bern West', bishopric_member_ids: '[]' });
+	expect(getAllSettings(db)).toEqual({ ward_name: 'Bern West', bishopric_member_ids: '[]', bishopric: '[]' });
 });

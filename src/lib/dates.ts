@@ -1,5 +1,7 @@
 const DAY_MS = 86_400_000;
 const WEEKDAYS = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
+const WEEKDAYS_LONG = ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag'];
+const MONTHS_LONG = ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'];
 
 export function parseIso(iso: string): Date {
 	const [y, m, d] = iso.split('-').map(Number);
@@ -53,4 +55,10 @@ export function formatDateShort(iso: string): string {
 
 export function formatDateDe(iso: string): string {
 	return `${WEEKDAYS[parseIso(iso).getUTCDay()]}, ${formatDateShort(iso)}`;
+}
+
+/** z.B. "Sonntag, 13. September 2026" */
+export function formatDateLong(iso: string): string {
+	const d = parseIso(iso);
+	return `${WEEKDAYS_LONG[d.getUTCDay()]}, ${d.getUTCDate()}. ${MONTHS_LONG[d.getUTCMonth()]} ${d.getUTCFullYear()}`;
 }

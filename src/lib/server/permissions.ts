@@ -4,26 +4,34 @@ import type { Role } from './db/schema';
 export type Action =
 	| 'program.view'
 	| 'meeting.program'
+	| 'meeting.prayers'
 	| 'meeting.music'
 	| 'meeting.conductor'
 	| 'meetings.create'
+	| 'hymns.view'
 	| 'hymns.edit'
 	| 'members.create'
 	| 'members.edit'
 	| 'members.stats'
+	| 'ask.talks'
+	| 'ask.prayers'
 	| 'users.manage'
 	| 'settings.edit';
 
 const MATRIX: Record<Action, Role[]> = {
 	'program.view': ['admin', 'bischofschaft'],
 	'meeting.program': ['admin', 'bischofschaft'],
+	'meeting.prayers': ['admin', 'bischofschaft', 'gebete'],
 	'meeting.music': ['admin', 'bischofschaft', 'musik'],
 	'meeting.conductor': ['admin', 'bischofschaft', 'musik', 'dirigent'],
 	'meetings.create': ['admin', 'bischofschaft'],
+	'hymns.view': ['admin', 'bischofschaft', 'musik', 'dirigent'],
 	'hymns.edit': ['admin', 'bischofschaft', 'musik'],
 	'members.create': ['admin'],
 	'members.edit': ['admin'],
 	'members.stats': ['admin', 'bischofschaft'],
+	'ask.talks': ['admin', 'bischofschaft'],
+	'ask.prayers': ['admin', 'bischofschaft', 'gebete'],
 	'users.manage': ['admin'],
 	'settings.edit': ['admin']
 };
@@ -38,5 +46,5 @@ export function requireRole(user: { role: Role } | null | undefined, action: Act
 }
 
 export function roleLabel(role: Role): string {
-	return { admin: 'Admin', bischofschaft: 'Bischofschaft', musik: 'Musik', dirigent: 'Dirigent/in' }[role];
+	return { admin: 'Admin', bischofschaft: 'Bischofschaft', gebete: 'Gebete', musik: 'Musik', dirigent: 'Dirigent/in' }[role];
 }

@@ -2,8 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { can, requireRole, roleLabel } from './permissions';
 
 const ACTIONS = [
-	'program.view', 'meeting.program', 'meeting.music', 'meeting.conductor', 'meetings.create',
-	'hymns.edit', 'members.create', 'members.edit', 'members.stats', 'users.manage', 'settings.edit'
+	'program.view', 'meeting.program', 'meeting.prayers', 'meeting.music', 'meeting.conductor', 'meetings.create',
+	'hymns.view', 'hymns.edit', 'members.create', 'members.edit', 'members.stats', 'ask.talks', 'ask.prayers', 'users.manage', 'settings.edit'
 ] as const;
 
 describe('can', () => {
@@ -22,6 +22,21 @@ describe('can', () => {
 		expect(can('bischofschaft', 'members.edit')).toBe(false);
 		expect(can('bischofschaft', 'users.manage')).toBe(false);
 		expect(can('bischofschaft', 'settings.edit')).toBe(false);
+	});
+	it('gebete trägt nur Gebete ein und sieht die Gebete-Fragen, sonst nichts vom Programm', () => {
+		expect(can('gebete', 'meeting.prayers')).toBe(true);
+		expect(can('gebete', 'ask.prayers')).toBe(true);
+		expect(can('gebete', 'ask.talks')).toBe(false);
+		expect(can('gebete', 'program.view')).toBe(false);
+		expect(can('gebete', 'meeting.program')).toBe(false);
+		expect(can('gebete', 'meeting.music')).toBe(false);
+		expect(can('gebete', 'hymns.view')).toBe(false);
+		expect(can('dirigent', 'hymns.view')).toBe(true);
+		expect(can('gebete', 'members.stats')).toBe(false);
+		expect(can('gebete', 'settings.edit')).toBe(false);
+		expect(can('bischofschaft', 'meeting.prayers')).toBe(true);
+		expect(can('bischofschaft', 'ask.talks')).toBe(true);
+		expect(can('musik', 'meeting.prayers')).toBe(false);
 	});
 	it('musik pflegt nur Musik, sieht kein Programm', () => {
 		expect(can('musik', 'meeting.music')).toBe(true);

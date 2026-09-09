@@ -3,7 +3,7 @@ import { createDb, type Db } from './db';
 import { createHymn, getHymnByNumber } from './hymns';
 import { createMember } from './members';
 import { createMeeting, loadMeetingFullByDate, saveGeneral, saveMusic, savePrayers, saveTalks } from './meetings';
-import { hymnHistory, hymnUsage, memberActivity, memberHistory, readiness, weeksAgoLabel } from './stats';
+import { hymnHistory, hymnUsage, memberActivity, memberHistory, readiness, weeksAgoLabel, weeksAheadLabel } from './stats';
 
 let db: Db;
 let anna: number;
@@ -35,6 +35,11 @@ describe('memberActivity', () => {
 		const a = memberActivity(db, TODAY);
 		expect(a.get(anna)).toEqual({ lastTalk: '2026-08-30', lastPrayer: null, nextTalk: '2026-09-20', nextPrayer: '2026-09-20' });
 		expect(a.get(beat)).toEqual({ lastTalk: null, lastPrayer: '2026-08-30', nextTalk: null, nextPrayer: null });
+	});
+	it('weeksAheadLabel', () => {
+		expect(weeksAheadLabel('2026-09-13', TODAY)).toBe('diese Woche');
+		expect(weeksAheadLabel('2026-09-20', TODAY)).toBe('nächste Woche');
+		expect(weeksAheadLabel('2026-10-04', TODAY)).toBe('in 3 Wochen');
 	});
 	it('weeksAgoLabel', () => {
 		expect(weeksAgoLabel(null, TODAY)).toBe('nie');

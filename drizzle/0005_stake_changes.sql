@@ -1,0 +1,1 @@
+ALTER TABLE `meetings` ADD `stake_changes` integer DEFAULT false NOT NULL;

@@ -31,6 +31,10 @@ export function renameStakeCalling(db: Db, id: number, name: string): void {
 	db.update(stakeCallings).set({ name: clean }).where(eq(stakeCallings.id, id)).run();
 }
 
+export function setStakeCallingPresides(db: Db, id: number, presides: boolean): void {
+	db.update(stakeCallings).set({ presides }).where(eq(stakeCallings.id, id)).run();
+}
+
 /** Löscht eine Berufung; false, wenn sie noch bei Pfahlbeamten verwendet wird. */
 export function deleteStakeCalling(db: Db, id: number): boolean {
 	const used = db.select({ id: members.id }).from(members).where(eq(members.stakeCallingId, id)).get();

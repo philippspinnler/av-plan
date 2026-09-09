@@ -12,7 +12,8 @@ export function memberOptions(
 	today: string,
 	includeId: number | null = null
 ): PickerOption[] {
-	const visible = members.filter((m) => m.active || m.id === includeId);
+	const declines = (m: Member) => (mode === 'talk' ? m.noTalk : mode === 'prayer' ? m.noPrayer : false);
+	const visible = members.filter((m) => m.id === includeId || (m.active && !declines(m)));
 	const last = (m: Member) => {
 		const a = activity.get(m.id);
 		return mode === 'talk' ? (a?.lastTalk ?? null) : mode === 'prayer' ? (a?.lastPrayer ?? null) : null;
@@ -33,7 +34,7 @@ export function memberOptions(
 	return sorted.map((m) => {
 		let hint = '';
 		if (mode !== 'plain') {
-			hint = weeksAgoLabel(last(m), today);
+			hint = (declines(m) ? 'möchte nicht · ' : '') + weeksAgoLabel(last(m), today);
 			const n = next(m);
 			if (n) hint += `, geplant ${formatDateShort(n)}`;
 			const note = mode === 'talk' ? m.noteTalk : m.notePrayer;

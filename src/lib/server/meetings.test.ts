@@ -2,10 +2,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import { createDb, type Db } from './db';
 import { createHymn } from './hymns';
 import { createMember } from './members';
-import {
-	createMeeting, ensureSundays, getMeetingByDate, hasProgram, listMeetings, loadMeetingFullByDate,
-	saveAnnouncements, saveCallings, saveConductor, saveGeneral, saveMusic, savePrayers, saveTalks
-} from './meetings';
+import { adjacentMeetingDates, createMeeting, ensureSundays, getMeetingByDate, hasProgram, listMeetings, loadMeetingFullByDate, saveAnnouncements, saveCallings, saveConductor, saveGeneral, saveMusic, savePrayers, saveTalks } from './meetings';
 
 let db: Db;
 beforeEach(() => {
@@ -113,5 +110,15 @@ describe('meetings', () => {
 		expect(result.unknownNumbers).toEqual([]);
 		const full = loadMeetingFullByDate(db, '2026-09-13')!;
 		expect(full.hymns.zwischen).toEqual({ hymn: null, freeText: null });
+	});
+});
+
+describe('adjacentMeetingDates', () => {
+	it('liefert den vorherigen und den nächsten vorhandenen Sonntag', () => {
+		const db = createDb(':memory:');
+		for (const d of ['2026-09-06', '2026-09-13', '2026-09-27']) createMeeting(db, d);
+		expect(adjacentMeetingDates(db, '2026-09-13')).toEqual({ prev: '2026-09-06', next: '2026-09-27' });
+		expect(adjacentMeetingDates(db, '2026-09-06')).toEqual({ prev: null, next: '2026-09-13' });
+		expect(adjacentMeetingDates(db, '2026-09-27')).toEqual({ prev: '2026-09-13', next: null });
 	});
 });

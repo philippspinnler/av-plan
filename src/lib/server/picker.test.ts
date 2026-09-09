@@ -4,7 +4,7 @@ import { memberOptions } from './picker';
 import type { MemberActivity } from './stats';
 
 const m = (id: number, firstName: string, lastName: string, extra: Partial<Member> = {}): Member => ({
-	id, firstName, lastName, affiliation: null, kind: 'gemeinde', stakeCallingId: null, calling: null, active: true, noteTalk: null, notePrayer: null, createdAt: '', updatedAt: '', ...extra
+	id, firstName, lastName, affiliation: null, kind: 'gemeinde', stakeCallingId: null, calling: null, active: true, noteTalk: null, notePrayer: null, noTalk: false, noPrayer: false, createdAt: '', updatedAt: '', ...extra
 });
 const members = [m(1, 'Anna', 'Rey'), m(2, 'Beat', 'Fischer', { noteTalk: 'gerne kurz' }), m(3, 'Carla', 'Hofer', { active: false }), m(4, 'Dora', 'Arnold', { affiliation: 'Hoherat' })];
 const act = new Map<number, MemberActivity>([
@@ -23,6 +23,18 @@ describe('memberOptions', () => {
 	});
 	it('nimmt ein inaktives, aber gewähltes Mitglied mit', () => {
 		expect(memberOptions(members, act, 'talk', TODAY, 3).map((x) => x.id)).toEqual([4, 3, 1, 2]);
+	});
+	it('blendet Mitglieder aus, die keine Ansprache bzw. kein Gebet möchten', () => {
+		const withFlags = [...members, m(5, 'Eva', 'Nef', { noTalk: true }), m(6, 'Fritz', 'Ott', { noPrayer: true })];
+		expect(memberOptions(withFlags, act, 'talk', TODAY).map((x) => x.id)).toEqual([4, 6, 1, 2]);
+		expect(memberOptions(withFlags, act, 'prayer', TODAY).map((x) => x.id)).toEqual([4, 2, 5, 1]);
+		expect(memberOptions(withFlags, act, 'plain', TODAY).map((x) => x.id)).toEqual([4, 2, 5, 6, 1]);
+	});
+	it('zeigt ein bereits gewähltes Mitglied trotz "keine Ansprache" mit Hinweis', () => {
+		const withFlags = [...members, m(5, 'Eva', 'Nef', { noTalk: true })];
+		const o = memberOptions(withFlags, act, 'talk', TODAY, 5);
+		expect(o.map((x) => x.id)).toEqual([4, 5, 1, 2]);
+		expect(o[1].hint).toBe('möchte nicht · nie');
 	});
 	it('plain sortiert nach Namen ohne Hinweis', () => {
 		const o = memberOptions(members, act, 'plain', TODAY);
