@@ -26,7 +26,8 @@ export const load: PageServerLoad = ({ locals, url }) => {
 			noPrayer: m.noPrayer,
 			lastTalkDate: stats ? (a?.lastTalk ?? null) : null,
 			lastPrayerDate: stats ? (a?.lastPrayer ?? null) : null,
-			notes: stats ? [m.noteTalk, m.notePrayer].filter(Boolean).join(' · ') : ''
+			noteTalk: stats ? (m.noteTalk ?? '') : '',
+			notePrayer: stats ? (m.notePrayer ?? '') : ''
 		};
 	});
 	return { members, showAll, stats, canCreate: can(role, 'members.create') };

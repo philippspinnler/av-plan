@@ -102,6 +102,8 @@ textarea { min-height: 5rem; }
 .calling-row select, .calling-row .combo { flex: 1 1 100%; }
 .calling-row input { flex: 1 1 auto; min-width: 0; }
 .hint { font-size: 0.9rem; color: var(--muted); }
+/* Zusatzzeile in einer Tabellenzelle, z.B. Notiz unter dem Wert */
+.cell-note { display: block; font-size: 0.85rem; color: var(--muted); }
 .big-card { border-left: 6px solid var(--ok); }
 .big-card.has-open { border-left-color: var(--danger); }
 .todo-strip { background: #fee4e2; color: var(--danger); border-radius: 8px; padding: 0.55rem 0.8rem; margin: -0.25rem 0 0.9rem; }
@@ -169,6 +171,8 @@ textarea { min-height: 5rem; }
 	.table.stack td[data-label]::before { content: attr(data-label); color: var(--muted); font-size: 0.85rem; flex: 0 0 7rem; }
 	.table.stack td.td-main { font-weight: 600; font-size: 1.05rem; }
 	.table.stack td.td-inline { display: inline-block; margin-right: 0.5rem; }
+	.table.stack td[data-label] { flex-wrap: wrap; }
+	.table.stack td[data-label] .cell-note { flex-basis: 100%; padding-left: 7.6rem; }
 	.overview { table-layout: auto; }
 	.col-day { width: auto; }
 	.combo-list { max-height: 14rem; }

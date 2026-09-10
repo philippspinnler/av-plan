@@ -38,7 +38,6 @@
 				{#if data.stats}
 					<SortHeader key="lastTalk" label="Letzte Ansprache" {sort} {onsort} />
 					<SortHeader key="lastPrayer" label="Letztes Gebet" {sort} {onsort} />
-					<SortHeader key="notes" label="Notizen" {sort} {onsort} />
 				{/if}
 				{#if data.showAll}<SortHeader key="status" label="Status" {sort} {onsort} />{/if}
 			</tr>
@@ -48,9 +47,8 @@
 				<tr class="clickable" onclick={() => goto(`/mitglieder/${m.id}`)}>
 					<td class="td-main"><a href="/mitglieder/{m.id}">{m.name}</a></td>
 					{#if data.stats}
-						<td class:muted={m.noTalk} data-label="Letzte Ansprache">{m.lastTalk}</td>
-						<td class:muted={m.noPrayer} data-label="Letztes Gebet">{m.lastPrayer}</td>
-						<td class="hint" data-label={m.notes ? 'Notizen' : null}>{m.notes}</td>
+						<td data-label="Letzte Ansprache"><span class:muted={m.noTalk}>{m.lastTalk}</span>{#if m.noteTalk}<span class="cell-note">{m.noteTalk}</span>{/if}</td>
+						<td data-label="Letztes Gebet"><span class:muted={m.noPrayer}>{m.lastPrayer}</span>{#if m.notePrayer}<span class="cell-note">{m.notePrayer}</span>{/if}</td>
 					{/if}
 					{#if data.showAll}<td data-label="Status">{m.active ? 'aktiv' : 'inaktiv'}</td>{/if}
 				</tr>
