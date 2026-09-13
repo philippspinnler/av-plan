@@ -114,9 +114,9 @@
 				</thead>
 				<tbody>
 					{#each g.items as m}
-						<tr class="clickable" class:muted={m.date < data.today} onclick={() => goto(`/sonntag/${m.date}`)}>
+						<tr class="clickable" class:muted={m.date < data.today} class:no-meeting={!m.hasProgram} onclick={() => goto(`/sonntag/${m.date}`)}>
 							<td class="col-day td-main td-inline"><a href="/sonntag/{m.date}">{dayLabel(m.date)}</a></td>
-							<td class="td-inline">{m.kind === 'normal' ? '' : m.kindLabel}</td>
+							<td class="td-inline td-kind">{m.kind === 'normal' ? '' : m.kindLabel}</td>
 							{#if data.prayersOnly}
 								<td data-label="Anfangsgebet">{#if m.prayers.opening}{m.prayers.opening}{:else if m.rated}<span class="badge badge-offen">offen</span>{/if}</td>
 								<td data-label="Schlussgebet">{#if m.prayers.closing}{m.prayers.closing}{:else if m.rated}<span class="badge badge-offen">offen</span>{/if}</td>

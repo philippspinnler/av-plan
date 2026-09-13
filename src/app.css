@@ -136,9 +136,14 @@ textarea { min-height: 5rem; }
 .check input { width: 1.35rem; height: 1.35rem; min-height: 0; margin: 0; }
 .overview { table-layout: fixed; }
 .overview .c-day { width: 4.5rem; }
-.overview .c-kind { width: 8rem; }
-.overview .c-status { width: 19%; }
+.overview .c-kind { width: 9.5rem; }
+.overview .c-status { width: 18%; }
 .overview .c-person { width: 13%; }
+.overview .c-kind, .overview td.td-kind { white-space: nowrap; }
+/* Sonntage ohne Versammlung (Konferenzen, keine Versammlung) sind für die Planung nicht relevant */
+.overview tr.no-meeting { color: var(--muted); background: var(--bg); }
+.overview tr.no-meeting a { color: var(--muted); }
+@media (max-width: 640px) { .overview td.td-kind { white-space: normal; } }
 .overview td { overflow-wrap: anywhere; }
 
 /* ---------- Handy ---------- */
