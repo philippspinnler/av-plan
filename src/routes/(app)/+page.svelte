@@ -101,7 +101,7 @@
 						<col />
 					{:else}
 						<col class="c-theme" />
-						{#if data.showProgram}<col class="c-status" />{/if}
+						{#if data.showProgram}<col class="c-person" /><col class="c-status" />{/if}
 						{#if data.musicColumns}<col class="c-person" /><col class="c-person" />{/if}
 						<col class="c-status" />
 					{/if}
@@ -109,7 +109,7 @@
 				<thead>
 					<tr>
 						<th class="col-day">Datum</th><th>Typ</th>
-						{#if data.prayersOnly}<th>Anfangsgebet</th><th>Schlussgebet</th>{:else}<th>Thema</th>{#if data.showProgram}<th>Programm</th>{/if}{#if data.musicColumns}<th>Orgel / Klavier</th><th>Dirigieren</th>{/if}<th>Musik</th>{/if}
+						{#if data.prayersOnly}<th>Anfangsgebet</th><th>Schlussgebet</th>{:else}<th>Thema</th>{#if data.showProgram}<th>Leitung</th><th>Programm</th>{/if}{#if data.musicColumns}<th>Orgel / Klavier</th><th>Dirigieren</th>{/if}<th>Musik</th>{/if}
 					</tr>
 				</thead>
 				<tbody>
@@ -123,6 +123,7 @@
 							{:else}
 							<td>{m.theme ?? ''}</td>
 							{#if data.showProgram}
+								<td data-label={m.presiding ? 'Leitung' : null}>{m.presiding ?? ''}</td>
 								<td data-label={m.rated ? 'Programm' : null}>
 									{#if m.rated}
 										{#if m.missingProgram.length}<span class="badge badge-offen">{m.missingProgram.join(', ')}</span>{:else}<span class="badge badge-zugesagt">bereit</span>{/if}
