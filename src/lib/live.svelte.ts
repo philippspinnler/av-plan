@@ -1,13 +1,13 @@
 import { invalidateAll } from '$app/navigation';
 
-/** Was der Live-Kanal über die anderen weiss (siehe src/lib/server/live.ts). */
+/** What the live channel knows about the others (see src/lib/server/live.ts). */
 export type Presence = { client: string; userId: number; name: string; page: string; field: string | null };
 
 export const live = $state({ others: [] as Presence[] });
 
 /**
- * Verbindet den Browser mit dem Live-Kanal: Änderungen anderer laden die Seite nach, die eigene
- * Position (Seite, fokussiertes Feld) wird gemeldet.
+ * Connects the browser to the live channel: others' changes reload the page, and our own
+ * position (page, focused field) is reported.
  */
 export function connectLive(getPage: () => string): { disconnect: () => void; pageChanged: () => void } {
 	const client = crypto.randomUUID();

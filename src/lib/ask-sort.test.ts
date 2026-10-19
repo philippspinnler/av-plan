@@ -13,13 +13,13 @@ const rows = [
 const ids = (r: AskRow[]) => r.map((x) => x.id);
 
 describe('sortAskRows', () => {
-	it('standardmässig "nie" zuerst, dann längste Pause, Eingeplante am Ende (nächster Termin zuerst)', () => {
+	it('by default "never" first, then longest pause, scheduled last (soonest first)', () => {
 		expect(ids(sortAskRows(rows, DEFAULT_ASK_SORT))).toEqual([2, 3, 4, 1]);
 	});
-	it('absteigend dreht die ganze Reihenfolge um', () => {
+	it('descending reverses the whole order', () => {
 		expect(ids(sortAskRows(rows, { key: 'last', dir: 'desc' }))).toEqual([1, 4, 3, 2]);
 	});
-	it('notiz: leere zuletzt, name alphabetisch', () => {
+	it('note: empty last, name alphabetical', () => {
 		expect(ids(sortAskRows(rows, { key: 'note', dir: 'asc' }))).toEqual([3, 4, 2, 1]);
 		expect(ids(sortAskRows(rows, { key: 'name', dir: 'asc' }))).toEqual([4, 2, 1, 3]);
 	});

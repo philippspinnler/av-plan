@@ -5,7 +5,7 @@
 	const MONTHS = ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'];
 	const monthLabel = (date: string) => `${MONTHS[Number(date.slice(5, 7)) - 1]} ${date.slice(0, 4)}`;
 	const dayLabel = (date: string) => `${Number(date.slice(8, 10))}.`;
-	/** Offene Punkte der Box, jeder mit Link auf den Reiter, in dem man ihn erledigt. */
+	/** Open items of the box, each linking to the tab where it is resolved. */
 	const tabFor = (item: string) =>
 		item === 'Leitung' ? 'allgemein' : item.endsWith('gebet') ? 'gebete' : item.startsWith('Ansprachen') ? 'ansprachen' : 'musik';
 	const openItems = $derived.by(() => {

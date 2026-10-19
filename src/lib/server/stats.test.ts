@@ -27,7 +27,7 @@ beforeEach(() => {
 });
 
 describe('memberActivity', () => {
-	it('findet letzten und nächsten Einsatz und ignoriert Konferenzen', () => {
+	it('finds last and next assignment and ignores conferences', () => {
 		sunday('2025-06-01', { talk: anna });
 		sunday('2026-08-30', { talk: anna, prayer: beat });
 		sunday('2026-09-06', { talk: anna, kind: 'generalkonferenz' });
@@ -47,7 +47,7 @@ describe('memberActivity', () => {
 		expect(weeksAgoLabel('2026-08-30', TODAY)).toBe('vor 1 Woche');
 		expect(weeksAgoLabel('2026-06-07', TODAY)).toBe('vor 13 Wochen');
 	});
-	it('memberHistory ist absteigend', () => {
+	it('memberHistory is descending', () => {
 		sunday('2026-08-30', { talk: anna });
 		sunday('2026-09-20', { prayer: anna });
 		expect(memberHistory(db, anna).map((h) => [h.date, h.kind])).toEqual([['2026-09-20', 'prayer'], ['2026-08-30', 'talk']]);
@@ -55,7 +55,7 @@ describe('memberActivity', () => {
 });
 
 describe('hymnUsage', () => {
-	it('zählt letzte 52 Wochen und gesamt', () => {
+	it('counts last 52 weeks and total', () => {
 		sunday('2025-01-05', { hymn: 3 });
 		sunday('2026-06-07', { hymn: 3 });
 		sunday('2026-08-30', { hymn: 3 });
@@ -67,14 +67,14 @@ describe('hymnUsage', () => {
 });
 
 describe('readiness', () => {
-	it('listet fehlende Teile getrennt nach Programm und Musik', () => {
+	it('lists missing parts separately for program and music', () => {
 		const m = sunday('2026-09-13', { hymn: 3 });
 		saveTalks(db, m.id, [{ position: 1, memberId: anna, topic: null, durationMinutes: null, status: 'zugesagt', note: null }]);
 		const r = readiness(loadMeetingFullByDate(db, '2026-09-13')!);
 		expect(r.program).toEqual(['Leitung', 'Anfangsgebet', 'Schlussgebet', 'Ansprachen (1 von 2 zugesagt)']);
 		expect(r.music).toEqual(['Abendmahlslied', 'Schlusslied', 'Orgel', 'Dirigieren']);
 	});
-	it('Fastsonntag braucht keine Ansprachen, Konferenzen brauchen nichts', () => {
+	it('fast Sunday needs no talks, conferences need nothing', () => {
 		const f = sunday('2026-10-04');
 		saveGeneral(db, f.id, { kind: 'fastsonntag', theme: null, specialNote: null, presidingMemberId: anna, absences: null });
 		savePrayers(db, f.id, [{ position: 1, memberId: anna, status: 'zugesagt' }, { position: 2, memberId: beat, status: 'zugesagt' }]);

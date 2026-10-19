@@ -14,7 +14,7 @@ beforeEach(() => {
 });
 
 describe('members', () => {
-	it('speichert "keine Ansprache" und "kein Gebet"', () => {
+	it('stores "no talk" and "no prayer"', () => {
 		const m = createMember(db, { firstName: 'Ruth', lastName: 'Keller', noTalk: true });
 		expect(m.noTalk).toBe(true);
 		expect(m.noPrayer).toBe(false);
@@ -22,11 +22,11 @@ describe('members', () => {
 		expect(listMembers(db).find((x) => x.id === m.id)).toMatchObject({ noTalk: false, noPrayer: true });
 		expect(listMembers(db).find((x) => x.lastName === 'Rey')).toMatchObject({ noTalk: false, noPrayer: false });
 	});
-	it('listet sortiert und filtert aktive', () => {
+	it('lists sorted and filters active', () => {
 		expect(listMembers(db).map((m) => m.lastName)).toEqual(['Achermann', 'Dürst', 'Koller', 'Moser', 'Rey']);
 		expect(listMembers(db, { activeOnly: true }).map((m) => m.lastName)).toEqual(['Dürst', 'Koller', 'Moser', 'Rey']);
 	});
-	it('zeigt Zugehörigkeit im Anzeigenamen', () => {
+	it('shows affiliation in the display name', () => {
 		const d = findMemberByName(db, 'HR-Daniel Dürst');
 		expect(d && displayName(d)).toBe('Daniel Dürst (Hoherat)');
 		expect(displayName({ firstName: 'Anna', lastName: 'Rey', affiliation: null })).toBe('Anna Rey');
@@ -38,13 +38,13 @@ describe('members', () => {
 		expect(listMembers(db, { kind: 'pfahl' }).map((m) => m.id)).toEqual([stake.id]);
 		expect(listMembers(db, { kind: 'gemeinde' })).toHaveLength(5);
 	});
-	it('findet per Name in beiden Schreibweisen, ignoriert Präfix', () => {
+	it('finds by name in both spellings, ignores prefix', () => {
 		expect(findMemberByName(db, 'anna rey')?.firstName).toBe('Anna');
 		expect(findMemberByName(db, 'Rey, Anna')?.firstName).toBe('Anna');
 		expect(findMemberByName(db, 'Durst Daniel')).toBeNull();
 		expect(findMemberByName(db, 'Unbekannt Person')).toBeNull();
 	});
-	it('matchByFirstName ist nur bei eindeutigem aktivem Treffer gesetzt', () => {
+	it('matchByFirstName is set only for a unique active match', () => {
 		const all = listMembers(db);
 		expect(matchByFirstName(all, 'Anna')?.lastName).toBe('Rey');
 		expect(matchByFirstName(all, 'Thomas')).toBeNull();
@@ -52,7 +52,7 @@ describe('members', () => {
 		expect(matchMember(all, 'Koller Thomas')).toBeNull();
 		expect(matchMember(all, 'Thomas Koller')?.lastName).toBe('Koller');
 	});
-	it('aktualisiert Felder', () => {
+	it('updates fields', () => {
 		const a = findMemberByName(db, 'Anna Rey')!;
 		updateMember(db, a.id, { active: false, noteTalk: 'gerne kurz' });
 		const again = listMembers(db).find((m) => m.id === a.id)!;

@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { createLive } from './live';
 
 describe('live', () => {
-	it('verteilt Änderungen an alle Abonnenten', () => {
+	it('broadcasts changes to all subscribers', () => {
 		const live = createLive();
 		const got: unknown[] = [];
 		const off = live.subscribe((e) => got.push(e));
@@ -11,7 +11,7 @@ describe('live', () => {
 		live.changed('/fragen');
 		expect(got).toEqual([{ kind: 'change', page: '/sonntag/2026-09-13' }]);
 	});
-	it('merkt sich, wer wo ist, und vergisst Abgemeldete und Verstummte', () => {
+	it('tracks who is where, and forgets those who left or went silent', () => {
 		const live = createLive(() => 1000);
 		const got: unknown[] = [];
 		live.subscribe((e) => got.push(e));
@@ -25,7 +25,7 @@ describe('live', () => {
 		later.setPresence('c3', { userId: 3, name: 'Mia' }, '/', null);
 		expect(later.list().map((p) => p.client)).toEqual(['c3']);
 	});
-	it('vergisst Einträge ohne Lebenszeichen', () => {
+	it('forgets entries without a heartbeat', () => {
 		let t = 0;
 		const live = createLive(() => t);
 		live.setPresence('c1', { userId: 1, name: 'Urs' }, '/', null);

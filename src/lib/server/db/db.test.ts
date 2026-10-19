@@ -3,7 +3,7 @@ import { sql } from 'drizzle-orm';
 import { createDb } from './index';
 
 describe('createDb', () => {
-	it('legt alle Tabellen an und aktiviert Fremdschlüssel', () => {
+	it('creates all tables and enables foreign keys', () => {
 		const db = createDb(':memory:');
 		const rows = db.all<{ name: string }>(sql`select name from sqlite_master where type = 'table'`);
 		const names = rows.map((r) => r.name);

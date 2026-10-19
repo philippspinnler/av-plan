@@ -6,7 +6,7 @@ import { memberActivity, weeksAgoLabel, weeksAheadLabel } from './stats';
 
 export interface AskTables { talks: AskRow[]; prayers: AskRow[] }
 
-/** Kandidaten für Ansprachen (Gemeinde + Pfahl) und Gebete (nur Gemeinde), ohne "möchte nicht" und Inaktive. */
+/** Candidates for talks (ward + stake) and prayers (ward only), excluding "does not want" and inactive. */
 export function askTables(db: Db, today: string): AskTables {
 	const members = listMembers(db, { activeOnly: true });
 	const activity = memberActivity(db, today);

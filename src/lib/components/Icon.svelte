@@ -1,5 +1,5 @@
 <script lang="ts">
-	/** Kleine Symbole als eingebettetes SVG (Feather-Stil, Strichzeichnung, erbt die Textfarbe). */
+	/** Small inline SVG icons (Feather style, stroke only, inherits text color). */
 	let { name, size = 18 }: { name: 'edit' | 'expand' | 'print' | 'user'; size?: number } = $props();
 	const PATHS: Record<typeof name, string> = {
 		edit: 'M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z',

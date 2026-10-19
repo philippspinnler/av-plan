@@ -7,10 +7,10 @@ const ACTIONS = [
 ] as const;
 
 describe('can', () => {
-	it('admin darf alles', () => {
+	it('admin may do everything', () => {
 		for (const a of ACTIONS) expect(can('admin', a)).toBe(true);
 	});
-	it('bischofschaft plant Programm und Musik, aber keine Benutzer/Einstellungen und ändert keine Personen', () => {
+	it('bishopric plans program and music, but no users/settings and edits no people', () => {
 		expect(can('bischofschaft', 'program.view')).toBe(true);
 		expect(can('bischofschaft', 'meeting.program')).toBe(true);
 		expect(can('bischofschaft', 'meeting.music')).toBe(true);
@@ -25,7 +25,7 @@ describe('can', () => {
 		expect(can('bischofschaft', 'users.manage')).toBe(false);
 		expect(can('bischofschaft', 'settings.edit')).toBe(false);
 	});
-	it('gebete trägt nur Gebete ein und sieht die Gebete-Fragen, sonst nichts vom Programm', () => {
+	it('prayers role enters prayers only and sees the prayer asks, nothing else of the program', () => {
 		expect(can('gebete', 'meeting.prayers')).toBe(true);
 		expect(can('gebete', 'ask.prayers')).toBe(true);
 		expect(can('gebete', 'ask.talks')).toBe(false);
@@ -43,7 +43,7 @@ describe('can', () => {
 		expect(can('bischofschaft', 'ask.talks')).toBe(true);
 		expect(can('musik', 'meeting.prayers')).toBe(false);
 	});
-	it('musik pflegt nur Musik, sieht kein Programm', () => {
+	it('music role maintains music only, sees no program', () => {
 		expect(can('musik', 'meeting.music')).toBe(true);
 		expect(can('musik', 'meeting.conductor')).toBe(true);
 		expect(can('musik', 'hymns.edit')).toBe(true);
@@ -56,7 +56,7 @@ describe('can', () => {
 		expect(can('musik', 'users.manage')).toBe(false);
 		expect(can('musik', 'settings.edit')).toBe(false);
 	});
-	it('dirigent setzt nur das Dirigieren-Feld', () => {
+	it('conductor sets only the conducting field', () => {
 		expect(can('dirigent', 'meeting.conductor')).toBe(true);
 		expect(can('dirigent', 'meeting.music')).toBe(false);
 		expect(can('dirigent', 'hymns.edit')).toBe(false);
@@ -72,7 +72,7 @@ describe('can', () => {
 });
 
 describe('requireRole', () => {
-	it('wirft 401 ohne Benutzer und 403 bei fehlendem Recht', () => {
+	it('throws 401 without user and 403 without permission', () => {
 		expect(() => requireRole(null, 'meeting.music')).toThrowError(expect.objectContaining({ status: 401 }));
 		expect(() => requireRole({ role: 'musik' }, 'meeting.program')).toThrowError(expect.objectContaining({ status: 403 }));
 		expect(() => requireRole({ role: 'musik' }, 'meeting.music')).not.toThrow();
@@ -80,7 +80,7 @@ describe('requireRole', () => {
 });
 
 describe('roleLabel', () => {
-	it('liefert deutsche Bezeichnungen für alle Rollen', () => {
+	it('returns German labels for all roles', () => {
 		expect(roleLabel('admin')).toBe('Admin');
 		expect(roleLabel('bischofschaft')).toBe('Bischofschaft');
 		expect(roleLabel('musik')).toBe('Musik');

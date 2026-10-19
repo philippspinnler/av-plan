@@ -9,7 +9,7 @@ beforeEach(() => {
 });
 
 describe('stake callings', () => {
-	it('werden durch die Migration vorbelegt und sind sortiert', () => {
+	it('are seeded by the migration and sorted', () => {
 		expect(listStakeCallings(db).map((c) => c.name)).toEqual([
 			'Pfahlpräsident',
 			'1. Ratgeber Pfahlpräsidentschaft',
@@ -18,7 +18,7 @@ describe('stake callings', () => {
 			'Missionspräsident'
 		]);
 	});
-	it('legt an, verhindert Duplikate und benennt um', () => {
+	it('creates, prevents duplicates and renames', () => {
 		const c = createStakeCalling(db, ' Tempelpräsident ');
 		expect(c.name).toBe('Tempelpräsident');
 		expect(() => createStakeCalling(db, 'hoherat')).toThrowError('Berufung existiert bereits');
@@ -27,7 +27,7 @@ describe('stake callings', () => {
 		expect(listStakeCallings(db).at(-1)?.name).toBe('Tempelpräsidentschaft');
 		expect(() => renameStakeCalling(db, c.id, 'Hoherat')).toThrowError('Berufung existiert bereits');
 	});
-	it('löscht nur unbenutzte Berufungen', () => {
+	it('deletes unused callings only', () => {
 		const hr = ensureStakeCalling(db, 'Hoherat');
 		createMember(db, { firstName: 'Daniel', lastName: 'Dürst', kind: 'pfahl', stakeCallingId: hr.id });
 		expect(deleteStakeCalling(db, hr.id)).toBe(false);
@@ -35,7 +35,7 @@ describe('stake callings', () => {
 		expect(deleteStakeCalling(db, mp.id)).toBe(true);
 		expect(listStakeCallings(db).map((c) => c.name)).not.toContain('Missionspräsident');
 	});
-	it('verschiebt in der Reihenfolge', () => {
+	it('reorders', () => {
 		const hr = ensureStakeCalling(db, 'Hoherat');
 		moveStakeCalling(db, hr.id, -1);
 		expect(listStakeCallings(db).map((c) => c.name).indexOf('Hoherat')).toBe(2);

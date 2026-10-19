@@ -1,7 +1,7 @@
 <script lang="ts">
 	/**
-	 * Personenauswahl mit Suchfeld: tippen filtert die Liste, Klick oder Enter wählt.
-	 * Der gewählte Wert wandert über ein verstecktes Feld ins Formular.
+	 * Member picker with search: typing filters the list, click or Enter selects.
+	 * The selected value reaches the form via a hidden field.
 	 */
 	type Option = { id: number; label: string; hint: string };
 	let {
@@ -20,9 +20,9 @@
 		value?: number | null;
 		form?: string;
 		placeholder?: string;
-		/** Text des Eintrags, der die Auswahl leert (z.B. "automatisch: …"). */
+		/** Label of the entry that clears the selection (e.g. "automatisch: …"). */
 		emptyLabel?: string;
-		/** Formularwert für die gewählte Kennung; erlaubt Sonderfälle wie Freitext-Namen. */
+		/** Form value for the selected id; allows special cases such as free-text names. */
 		serialize?: (id: number | null) => string;
 	} = $props();
 
@@ -34,7 +34,7 @@
 	let hidden: HTMLInputElement;
 	let syncedValue = $state<number | null | undefined>(undefined);
 
-	// Wenn die Seite einen anderen Sonntag lädt, den gewählten Wert nachziehen.
+	// Re-sync the selected value when the page loads a different Sunday.
 	$effect(() => {
 		if (value !== syncedValue) {
 			selected = value ?? null;
@@ -111,7 +111,7 @@
 		<button type="button" class="combo-clear" aria-label="Auswahl entfernen" onclick={() => choose(null)}>✕</button>
 	{/if}
 	{#if open}
-		<!-- Tastatur läuft über das Eingabefeld (Pfeile, Enter, Escape); die Einträge selbst sind nur für Maus und Touch. -->
+		<!-- Keyboard goes through the input (arrows, Enter, Escape); the entries themselves are for mouse and touch only. -->
 		<!-- svelte-ignore a11y_click_events_have_key_events -->
 		<ul class="combo-list" id="{id}-list" role="listbox">
 			{#if current}

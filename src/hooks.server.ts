@@ -37,7 +37,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 		redirect(303, `/login?next=${encodeURIComponent(path)}`);
 	}
 	const response = await resolve(event);
-	// Jeder erfolgreiche POST ändert Daten (Formular-Aktionen): alle offenen Browser laden nach.
+	// Every successful POST changes data (form actions): all open browsers reload.
 	if (event.request.method === 'POST' && response.status < 400 && path !== '/presence') live.changed(path);
 	return response;
 };

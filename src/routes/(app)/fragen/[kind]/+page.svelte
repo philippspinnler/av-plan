@@ -7,7 +7,7 @@
 	let sort = $state<AskSortState>(DEFAULT_ASK_SORT);
 	const rows = $derived(sortAskRows(data.rows, sort));
 	const onsort = (s: AskSortState) => (sort = s);
-	/** Zeile, deren Notiz gerade bearbeitet wird. */
+	/** Row whose note is being edited. */
 	let editing = $state<number | null>(null);
 	const focus = (el: HTMLInputElement) => el.focus();
 </script>

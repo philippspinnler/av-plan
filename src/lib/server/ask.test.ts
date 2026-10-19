@@ -8,7 +8,7 @@ import { ensureStakeCalling } from './stake-callings';
 const TODAY = '2026-09-07';
 
 describe('askTables', () => {
-	it('trennt Ansprachen und Gebete, lässt "möchte nicht", Inaktive und Pfahl bei Gebeten weg', () => {
+	it('separates talks and prayers; omits "prefers not", inactive and stake members for prayers', () => {
 		const db = createDb(':memory:');
 		const anna = createMember(db, { firstName: 'Anna', lastName: 'Rey' });
 		const beat = createMember(db, { firstName: 'Beat', lastName: 'Fischer', noTalk: true, notePrayer: 'gerne' });

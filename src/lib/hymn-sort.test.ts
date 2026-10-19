@@ -9,12 +9,12 @@ const rows: HymnRow[] = [
 const nums = (r: HymnRow[]) => r.map((x) => x.number);
 
 describe('sortHymns', () => {
-	it('sortiert nach Nummer, Titel und Zuletzt ("nie" zuerst)', () => {
+	it('sorts by number, title and last used ("never" first)', () => {
 		expect(nums(sortHymns(rows, { key: 'number', dir: 'desc' }))).toEqual([1001, 12, 5]);
 		expect(nums(sortHymns(rows, { key: 'title', dir: 'asc' }))).toEqual([1001, 12, 5]);
 		expect(nums(sortHymns(rows, { key: 'lastSung', dir: 'asc' }))).toEqual([12, 5, 1001]);
 	});
-	it('Dauer: ohne Angabe zuletzt, Anzahl numerisch', () => {
+	it('duration: missing last, count numeric', () => {
 		expect(nums(sortHymns(rows, { key: 'duration', dir: 'asc' }))).toEqual([1001, 5, 12]);
 		expect(nums(sortHymns(rows, { key: 'duration', dir: 'desc' }))).toEqual([5, 1001, 12]);
 		expect(nums(sortHymns(rows, { key: 'count52', dir: 'desc' }))).toEqual([5, 1001, 12]);

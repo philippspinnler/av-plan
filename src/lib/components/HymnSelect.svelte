@@ -1,7 +1,7 @@
 <script lang="ts">
 	/**
-	 * Liederauswahl mit Suchfeld: Nummer oder Titel tippen, aus den Treffern wählen.
-	 * Der gewählte Eintrag ("202 – Ich bin ein Kind von Gott") wandert als Text ins Formular.
+	 * Hymn picker with search: type number or title, choose from the matches.
+	 * The selected entry ("202 – Ich bin ein Kind von Gott") reaches the form as text.
 	 */
 	let {
 		id,
@@ -97,7 +97,7 @@
 		<button type="button" class="combo-clear" aria-label="Auswahl entfernen" onclick={() => choose('')}>✕</button>
 	{/if}
 	{#if open}
-		<!-- Tastatur läuft über das Eingabefeld (Pfeile, Enter, Escape); die Einträge selbst sind nur für Maus und Touch. -->
+		<!-- Keyboard goes through the input (arrows, Enter, Escape); the entries themselves are for mouse and touch only. -->
 		<!-- svelte-ignore a11y_click_events_have_key_events -->
 		<ul class="combo-list" id="{id}-list" role="listbox">
 			{#if selected}

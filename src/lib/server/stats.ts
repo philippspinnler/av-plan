@@ -51,7 +51,7 @@ export function weeksAgoLabel(lastDate: string | null, today: string): string {
 	return `vor ${w} Wochen`;
 }
 
-/** Label für einen geplanten Termin: "diese Woche", "nächste Woche", "in N Wochen". */
+/** Label for a scheduled date: "diese Woche", "nächste Woche", "in N Wochen". */
 export function weeksAheadLabel(nextDate: string, today: string): string {
 	const w = weeksBetween(today, nextDate);
 	if (w <= 0) return 'diese Woche';

@@ -3,10 +3,10 @@
 	import Icon from '$lib/components/Icon.svelte';
 	let { data } = $props();
 	const T = $derived(data.texts);
-	/** Vollbild fürs iPad: nur das Blatt, ohne Leiste und Rahmen. Per Link mit ?vollbild=1 direkt erreichbar. */
+	/** Fullscreen for the iPad: sheet only, no bar or frame. Reachable directly via ?vollbild=1. */
 	let fullscreen = $state(page.url.searchParams.get('vollbild') === '1');
 	const hasChanges = $derived(!data.hasProgram ? false : data.releases.length > 0 || data.sustainings.length > 0 || data.stakeChanges);
-	/** Auf Papier steht der Abschnitt Entlassungen/Berufungen immer (zum Nachtragen von Hand); im Vollbild nur, wenn es welche gibt. */
+	/** On paper the releases/callings section is always printed (for handwritten additions); in fullscreen only if there are entries. */
 	const showChanges = $derived(hasChanges || !fullscreen);
 	const partNo = $derived((n: number) => (showChanges || n < 2 ? n : n - 1));
 </script>
@@ -38,14 +38,13 @@
 	{#if !data.hasProgram}
 		<p class="big">{data.kindLabel}: kein Leitungszettel nötig.</p>
 	{:else}
-		<!-- Jeder Abschnitt = die Leitung steht auf und kündigt an. -->
 		<div class="part">
 			<span class="part-no" aria-hidden="true">1</span>
 			<section>
 				<h2>Bekanntmachungen</h2>
 				{#if data.announcements.length === 0 && fullscreen}<div class="row muted">keine</div>{/if}
 				{#each data.announcements as a}<div class="row"><span class="box">□</span><span>{a}</span></div>{/each}
-				<!-- Leerzeilen zum Nachtragen von Hand, nur auf Papier (nicht im Vollbild am Tablet). -->
+				<!-- Blank lines for handwritten additions, paper only (not in tablet fullscreen). -->
 				<div class="row print-only"><span class="box">□</span><span></span></div>
 				<div class="row print-only"><span class="box">□</span><span></span></div>
 			</section>
@@ -126,7 +125,7 @@
 	.lbl { color: #555; }
 	.theme { margin: 0 0 2.5mm; }
 	section { margin-bottom: 2.5mm; }
-	/* Abschnitte: die Leitung steht auf. Nummer am Rand, Linie darüber. */
+	/* Sections: number in the margin, rule above. */
 	.part { position: relative; padding: 2mm 0 0 8mm; margin-bottom: 2mm; border-top: 1.5px solid #111; }
 	.part > section:last-child { margin-bottom: 0.5mm; }
 	.part-no { position: absolute; left: 0; top: 2.2mm; width: 5.5mm; height: 5.5mm; border-radius: 50%; background: #111; color: #fff; font-size: 8.5pt; font-weight: 700; line-height: 5.5mm; text-align: center; }
@@ -138,7 +137,7 @@
 	.row .t { flex: 0 0 30mm; text-align: right; color: #444; font-variant-numeric: tabular-nums; }
 	.box { flex: 0 0 5mm; }
 	.boxed { border: 1px solid #111; padding: 2mm 3mm; }
-	/* Hinweistexte (kursiv) kleiner als die eigentlichen Einträge, damit der Zettel auf eine A4-Seite passt. */
+	/* Italic hints smaller than the entries so the sheet fits on one A4 page. */
 	.intro { font-style: italic; color: #6b6b6b; margin: 0.8mm 0; font-size: 9.5pt; line-height: 1.25; }
 	ul { margin: 0.5mm 0 0.5mm 5mm; padding: 0; }
 	.muted { color: #777; }

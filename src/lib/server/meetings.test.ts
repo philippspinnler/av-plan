@@ -10,13 +10,13 @@ beforeEach(() => {
 });
 
 describe('meetings', () => {
-	it('legt nur Sonntage an', () => {
+	it('creates Sundays only', () => {
 		expect(() => createMeeting(db, '2026-09-14')).toThrowError('Datum ist kein Sonntag');
 		const m = createMeeting(db, '2026-09-13');
 		expect(m.kind).toBe('normal');
 		expect(getMeetingByDate(db, '2026-09-13')?.id).toBe(m.id);
 	});
-	it('ergänzt fehlende Sonntage idempotent', () => {
+	it('adds missing Sundays idempotently', () => {
 		createMeeting(db, '2026-09-13');
 		const created = ensureSundays(db, '2026-09-07', 1);
 		expect(created).toBe(3);
@@ -33,7 +33,7 @@ describe('meetings', () => {
 		expect(hasProgram('generalkonferenz')).toBe(false);
 		expect(hasProgram('keine')).toBe(false);
 	});
-	it('speichert und lädt alle Abschnitte', () => {
+	it('saves and loads all sections', () => {
 		const m = createMeeting(db, '2026-09-13');
 		const anna = createMember(db, { firstName: 'Anna', lastName: 'Rey' });
 		const joerg = createMember(db, { firstName: 'Urs', lastName: 'Bischof' });
@@ -73,7 +73,7 @@ describe('meetings', () => {
 		expect(full.announcements).toEqual(['Pfahl-Plauschtag', 'Neue 2. Stunde']);
 		expect(full.callings[0].calling).toBe('FHV-Präsidentin');
 		expect(full.hymns.anfang.hymn?.id).toBe(h1.id);
-		// Fastsonntag: kein Zwischenlied, auch wenn eines übergeben wurde
+		// Fast Sunday: no intermediate hymn even if one was passed
 		expect(full.hymns.zwischen).toEqual({ hymn: null, freeText: null });
 		expect(full.hymns.schluss).toEqual({ hymn: null, freeText: null });
 		expect(full.organist?.firstName).toBe('Anna');
@@ -83,7 +83,7 @@ describe('meetings', () => {
 		expect(loadMeetingFullByDate(db, '2026-09-13')!.announcements).toEqual([]);
 	});
 
-	it('saveConductor setzt und löscht nur das Dirigieren-Feld', () => {
+	it('saveConductor sets and clears only the conducting field', () => {
 		const m = createMeeting(db, '2026-09-13');
 		const anna = createMember(db, { firstName: 'Anna', lastName: 'Rey' });
 		saveConductor(db, m.id, anna.id);
@@ -92,7 +92,7 @@ describe('meetings', () => {
 		expect(loadMeetingFullByDate(db, '2026-09-13')!.conductor).toBeNull();
 	});
 
-	it('saveMusic verwirft das Zwischenlied bei Fastsonntag', () => {
+	it('saveMusic discards the intermediate hymn on fast Sunday', () => {
 		const m = createMeeting(db, '2026-09-13');
 		saveGeneral(db, m.id, { kind: 'fastsonntag', theme: null, specialNote: null, presidingMemberId: null, absences: null });
 		createHymn(db, { number: 202, title: 'Ich bin ein Kind von Gott' });
@@ -114,7 +114,7 @@ describe('meetings', () => {
 });
 
 describe('adjacentMeetingDates', () => {
-	it('liefert den vorherigen und den nächsten vorhandenen Sonntag', () => {
+	it('returns the previous and next existing Sunday', () => {
 		const db = createDb(':memory:');
 		for (const d of ['2026-09-06', '2026-09-13', '2026-09-27']) createMeeting(db, d);
 		expect(adjacentMeetingDates(db, '2026-09-13')).toEqual({ prev: '2026-09-06', next: '2026-09-27' });
@@ -124,7 +124,7 @@ describe('adjacentMeetingDates', () => {
 });
 
 describe('sectionVersions', () => {
-	it('ändert sich nur für den Abschnitt, der bearbeitet wurde', () => {
+	it('changes only for the section that was edited', () => {
 		const m = createMeeting(db, '2026-09-13');
 		const anna = createMember(db, { firstName: 'Anna', lastName: 'Rey' });
 		createHymn(db, { number: 202, title: 'Ich bin ein Kind von Gott' });

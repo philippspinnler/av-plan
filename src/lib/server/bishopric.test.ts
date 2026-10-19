@@ -4,13 +4,13 @@ import { setSetting } from './settings';
 import { createDb } from './db';
 
 describe('bishopric', () => {
-	it('besetzt Rollen eindeutig', () => {
+	it('assigns roles uniquely', () => {
 		const db = createDb(':memory:');
 		expect(getBishopricIds(db)).toEqual([]);
 		setBishopricMember(db, 'bischof', 3);
 		setBishopricMember(db, 'ratgeber1', 1);
 		expect(getBishopric(db)).toEqual([{ id: 3, role: 'bischof' }, { id: 1, role: 'ratgeber1' }]);
-		// Person wechselt die Rolle: alte Rolle wird frei
+		// Person changes role: old role becomes free
 		setBishopricMember(db, 'ratgeber2', 3);
 		expect(getBishopric(db)).toEqual([{ id: 1, role: 'ratgeber1' }, { id: 3, role: 'ratgeber2' }]);
 		setBishopricMember(db, 'ratgeber1', null);
@@ -18,12 +18,12 @@ describe('bishopric', () => {
 		setBishopric(db, [{ id: 5, role: 'bischof' }, { id: 6, role: 'bischof' }, { id: 5, role: 'ratgeber1' }]);
 		expect(getBishopric(db)).toEqual([{ id: 5, role: 'bischof' }]);
 	});
-	it('liest die alte Liste ohne Rollen in Reihenfolge Bischof, 1., 2. Ratgeber', () => {
+	it('reads the old list without roles as bishop, 1st, 2nd counselor', () => {
 		const db = createDb(':memory:');
 		setSetting(db, 'bishopric_member_ids', '[7, 8, 9, 10]');
 		expect(getBishopric(db)).toEqual([{ id: 7, role: 'bischof' }, { id: 8, role: 'ratgeber1' }, { id: 9, role: 'ratgeber2' }]);
 	});
-	it('bestimmt den Vorsitz', () => {
+	it('determines who presides', () => {
 		const bishopric = [{ id: 1, role: 'bischof' as const }, { id: 2, role: 'ratgeber1' as const }, { id: 3, role: 'ratgeber2' as const }];
 		expect(chairFor({ bishopric, absentIds: [], guest: null })).toBe(1);
 		expect(chairFor({ bishopric, absentIds: [1], guest: null })).toBe(2);
@@ -33,7 +33,7 @@ describe('bishopric', () => {
 		expect(chairFor({ bishopric, absentIds: [], guest: { id: 51, presides: false } })).toBe(1);
 		expect(chairFor({ bishopric: [], absentIds: [], guest: null })).toBeNull();
 	});
-	it('kodiert Abwesenheiten und erkennt Altdaten', () => {
+	it('encodes absences and recognizes legacy data', () => {
 		expect(formatAbsences([])).toBeNull();
 		expect(formatAbsences([2, 5, 2])).toBe('ids:2,5');
 		expect(parseAbsences('ids:2,5')).toEqual({ ids: [2, 5], legacy: null });

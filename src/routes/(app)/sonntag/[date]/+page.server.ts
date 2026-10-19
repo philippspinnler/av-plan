@@ -26,7 +26,7 @@ function checkDate(date: string) {
 
 const CONFLICT = 'Jemand anderes hat diesen Sonntag inzwischen geändert. Bitte die Seite neu laden, deine letzte Änderung geht dabei verloren.';
 
-/** Sonntag laden und prüfen, dass das Formular noch den aktuellen Stand seines Abschnitts hat. */
+/** Load the Sunday and check the form still has the current version of its section. */
 function meetingIdFor(locals: App.Locals, date: string, section: Section, fd: FormData): number | ActionFailure<{ error: string }> {
 	checkDate(date);
 	const full = loadMeetingFullByDate(locals.db, date);
@@ -85,7 +85,7 @@ export const load: PageServerLoad = ({ locals, params }) => {
 	const chairAuto = chairAutoId ? (all.find((m) => m.id === chairAutoId) ?? null) : null;
 	const chairPool = [...bishopric, ...stake].filter((m) => m.active || m.id === full.meeting.chairMemberId);
 	const r = readiness(full);
-	/** Offene Punkte je Reiter, nur für Rollen, die sie auch bearbeiten können. */
+	/** Open items per tab, only for roles that can edit them. */
 	const open = {
 		allgemein: showProgram ? r.program.filter((x) => x === 'Leitung') : [],
 		gebete: canPrayers ? r.program.filter((x) => x === 'Anfangsgebet' || x === 'Schlussgebet') : [],

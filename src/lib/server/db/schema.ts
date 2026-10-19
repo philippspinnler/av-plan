@@ -4,7 +4,7 @@ import { integer, sqliteTable, text, uniqueIndex } from 'drizzle-orm/sqlite-core
 export const ROLES = ['admin', 'bischofschaft', 'gebete', 'musik', 'dirigent'] as const;
 export type Role = (typeof ROLES)[number];
 export const MEETING_KINDS = ['normal', 'fastsonntag', 'dka', 'fhv', 'aek', 'jd', 'jm', 'ostern', 'weihnachten', 'gemeindekonferenz', 'generalkonferenz', 'pfahlkonferenz', 'keine'] as const;
-/** Sonntage ohne feste Sprecher und ohne Zwischenlied (verhalten sich wie ein Fastsonntag). */
+/** Sundays without fixed speakers and without intermediate hymn (behave like a fast Sunday). */
 export const FAST_LIKE_KINDS: readonly MeetingKind[] = ['fastsonntag', 'dka', 'fhv', 'aek', 'jd', 'jm'];
 export function isFastLike(kind: MeetingKind): boolean {
 	return FAST_LIKE_KINDS.includes(kind);
@@ -65,7 +65,7 @@ export const stakeCallings = sqliteTable('stake_callings', {
 	id: integer('id').primaryKey({ autoIncrement: true }),
 	name: text('name').notNull().unique(),
 	position: integer('position').notNull().default(0),
-	/** Hat den Vorsitz, wenn als Gast anwesend (z.B. Pfahlpräsidentschaft). */
+	/** Presides if present as a guest (e.g. stake presidency). */
 	presides: integer('presides', { mode: 'boolean' }).notNull().default(false)
 });
 
@@ -101,11 +101,10 @@ export const meetings = sqliteTable('meetings', {
 	specialNote: text('special_note'),
 	presidingMemberId: integer('presiding_member_id').references(() => members.id),
 	absences: text('absences'),
-	/** Gast aus dem Pfahl. */
 	guestMemberId: integer('guest_member_id').references(() => members.id),
-	/** Vorsitz, falls von Hand gesetzt; null = automatisch nach Regel. */
+	/** Presiding person if set by hand; null = automatic by rule. */
 	chairMemberId: integer('chair_member_id').references(() => members.id),
-	/** Der Pfahl gibt an diesem Sonntag Entlassungen/Berufungen bekannt. */
+	/** The stake announces releasings/callings this Sunday. */
 	stakeChanges: integer('stake_changes', { mode: 'boolean' }).notNull().default(false),
 	organistMemberId: integer('organist_member_id').references(() => members.id),
 	conductorMemberId: integer('conductor_member_id').references(() => members.id),
@@ -176,7 +175,6 @@ export const settings = sqliteTable('settings', {
 
 export type User = typeof users.$inferSelect;
 export type MemberRow = typeof members.$inferSelect;
-/** Mitglied mit aufgelöstem Namen der Pfahl-Berufung. */
 export type Member = MemberRow & { calling: string | null };
 export type StakeCalling = typeof stakeCallings.$inferSelect;
 export type Hymn = typeof hymns.$inferSelect;

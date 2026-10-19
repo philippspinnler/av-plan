@@ -113,8 +113,8 @@ export function validateSession(
 export const MIN_PASSWORD_LENGTH = 8;
 
 /**
- * Ändert das eigene Passwort nach Prüfung des bisherigen. Alle anderen Sitzungen
- * der Person werden beendet; die aktuelle (keepSessionId) bleibt bestehen.
+ * Changes the own password after checking the old one. All other sessions of the person
+ * are ended; the current one (keepSessionId) stays.
  */
 export async function changePassword(
 	db: Db,

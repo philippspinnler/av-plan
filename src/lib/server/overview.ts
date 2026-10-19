@@ -16,12 +16,12 @@ export interface MeetingSummary {
 	hymns: string[];
 	missingProgram: string[];
 	missingMusic: string[];
-	/** Anfangs- und Schlussgebet (Name oder null), nur für Rollen mit Gebetsrecht. */
+	/** Opening and closing prayer (name or null), only for roles that may pray. */
 	prayers: { opening: string | null; closing: string | null };
 	organist: string | null;
 	conductor: string | null;
 	rated: boolean;
-	/** Konferenzen und "keine Versammlung" haben kein Programm. */
+	/** Conferences and "no meeting" have no program. */
 	hasProgram: boolean;
 }
 

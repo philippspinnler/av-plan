@@ -3,14 +3,13 @@ import { normalizeName, stripPrefix } from '../names';
 import type { Db } from './db';
 import { members, stakeCallings, type Member, type MemberKind } from './db/schema';
 
-/** Übersetzt eine importierte Zugehörigkeit (z.B. aus Präfixen wie HR-) in Art und Berufungsname. */
+/** Maps an imported affiliation (e.g. from prefixes like HR-) to kind and calling name. */
 export function stakeFromAffiliation(affiliation: string | null): { kind: MemberKind; callingName: string | null } {
 	const stake = ['Hoherat', 'Pfahlpräsidentschaft', 'Tempelpräsidentschaft', 'Missionspräsidentschaft'];
 	if (affiliation && stake.includes(affiliation)) return { kind: 'pfahl', callingName: affiliation };
 	return { kind: 'gemeinde', callingName: null };
 }
 
-/** Basisabfrage: Mitglied plus Name der Pfahl-Berufung. */
 export function memberQuery(db: Db, where?: SQL) {
 	const q = db
 		.select({ ...getTableColumns(members), calling: stakeCallings.name })

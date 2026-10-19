@@ -9,36 +9,36 @@ const rows: MemberRow[] = [
 const ids = (list: MemberRow[]) => list.map((r) => r.id);
 
 describe('sortMembers', () => {
-	it('sortiert nach Name auf- und absteigend', () => {
+	it('sorts by name ascending and descending', () => {
 		expect(ids(sortMembers(rows, { key: 'name', dir: 'asc' }))).toEqual([2, 1, 3]);
 		expect(ids(sortMembers(rows, { key: 'name', dir: 'desc' }))).toEqual([3, 1, 2]);
 	});
-	it('sortiert Ansprachen nach Datum, "nie" gilt als am ältesten', () => {
+	it('sorts talks by date, "never" counts as oldest', () => {
 		expect(ids(sortMembers(rows, { key: 'lastTalk', dir: 'asc' }))).toEqual([2, 3, 1]);
 		expect(ids(sortMembers(rows, { key: 'lastTalk', dir: 'desc' }))).toEqual([1, 3, 2]);
 	});
-	it('sortiert Gebete nach Datum', () => {
+	it('sorts prayers by date', () => {
 		expect(ids(sortMembers(rows, { key: 'lastPrayer', dir: 'asc' }))).toEqual([1, 2, 3]);
 		expect(ids(sortMembers(rows, { key: 'lastPrayer', dir: 'desc' }))).toEqual([3, 2, 1]);
 	});
-	it('sortiert Status, aktive zuerst', () => {
+	it('sorts by status, active first', () => {
 		expect(ids(sortMembers(rows, { key: 'status', dir: 'asc' }))).toEqual([1, 3, 2]);
 		expect(ids(sortMembers(rows, { key: 'status', dir: 'desc' }))).toEqual([2, 1, 3]);
 	});
-	it('setzt "möchte nicht" in der jeweiligen Spalte ans Ende', () => {
+	it('puts "prefers not" last in the respective column', () => {
 		const withFlags = [...rows, { id: 4, sortName: 'Arnold Dora', active: true, lastTalkDate: null, lastPrayerDate: null, noTalk: true, noPrayer: false }];
 		expect(ids(sortMembers(withFlags, { key: 'lastTalk', dir: 'asc' }))).toEqual([2, 3, 1, 4]);
 		expect(ids(sortMembers(withFlags, { key: 'lastTalk', dir: 'desc' }))).toEqual([1, 3, 2, 4]);
 		expect(ids(sortMembers(withFlags, { key: 'lastPrayer', dir: 'asc' }))).toEqual([4, 1, 2, 3]);
 	});
-	it('verändert die Eingabe nicht', () => {
+	it('does not mutate the input', () => {
 		sortMembers(rows, { key: 'name', dir: 'desc' });
 		expect(ids(rows)).toEqual([1, 2, 3]);
 	});
 });
 
 describe('toggleSort', () => {
-	it('wechselt bei gleicher Spalte die Richtung, sonst beginnt sie aufsteigend', () => {
+	it('flips direction on the same column, otherwise starts ascending', () => {
 		const s: SortState = { key: 'name', dir: 'asc' };
 		expect(toggleSort(s, 'name')).toEqual({ key: 'name', dir: 'desc' });
 		expect(toggleSort({ key: 'name', dir: 'desc' }, 'name')).toEqual({ key: 'name', dir: 'asc' });

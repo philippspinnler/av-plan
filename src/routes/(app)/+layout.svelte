@@ -5,7 +5,7 @@
 	import { connectLive, live } from '$lib/live.svelte';
 	let { data, children } = $props();
 
-	// Live-Kanal: Änderungen anderer sofort sehen, Anwesenheit melden und anzeigen.
+	// Live channel: show others' changes immediately, report and display presence.
 	let conn: ReturnType<typeof connectLive> | undefined;
 	onMount(() => {
 		conn = connectLive(() => page.url.pathname);
@@ -16,7 +16,7 @@
 		conn?.pageChanged();
 	});
 	const othersHere = $derived([...new Set(live.others.filter((o) => o.page === page.url.pathname && o.userId !== data.user?.id).map((o) => o.name))]);
-	/** Markiert das Feld (bzw. seinen .field-Rahmen), in dem jemand anderes gerade ist; CSS zeigt Rahmen und Namen. */
+	/** Marks the field (or its .field wrapper) another user is in; CSS shows outline and name. */
 	$effect(() => {
 		const marked: Element[] = [];
 		for (const o of live.others) {

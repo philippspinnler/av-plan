@@ -1,7 +1,7 @@
 import { expect, it } from 'vitest';
 import { formatDuration, parseDuration } from './duration';
 
-it('parst und formatiert mm:ss', () => {
+it('parses and formats mm:ss', () => {
 	expect(parseDuration('4:10')).toBe(250);
 	expect(parseDuration(' 0:45 ')).toBe(45);
 	expect(parseDuration('250')).toBe(250);

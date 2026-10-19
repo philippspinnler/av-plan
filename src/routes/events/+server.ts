@@ -2,7 +2,7 @@ import { error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { live, type LiveEvent } from '$lib/server/live';
 
-/** Server-Sent Events: jeder offene Browser hängt hier dran und erfährt Änderungen und Anwesenheit sofort. */
+/** Server-Sent Events: every open browser subscribes here for changes and presence. */
 export const GET: RequestHandler = ({ locals, url, request }) => {
 	if (!locals.user) error(401, 'Bitte anmelden');
 	const client = url.searchParams.get('c') ?? '';
@@ -21,7 +21,7 @@ export const GET: RequestHandler = ({ locals, url, request }) => {
 			};
 			send({ kind: 'presence', list: live.list() });
 			const unsubscribe = live.subscribe(send);
-			// Lebenszeichen, damit Proxys (cloudflared) die Verbindung nicht wegen Stille kappen.
+			// Keep-alive so proxies (cloudflared) don't drop the connection for silence.
 			const ping = setInterval(() => send(': ping\n\n'), 25_000);
 			cleanup = () => {
 				if (!open) return;
@@ -29,7 +29,7 @@ export const GET: RequestHandler = ({ locals, url, request }) => {
 				clearInterval(ping);
 				unsubscribe();
 				live.removePresence(client);
-				try { controller.close(); } catch { /* schon zu */ }
+				try { controller.close(); } catch { /* already closed */ }
 			};
 			request.signal.addEventListener('abort', cleanup);
 		},

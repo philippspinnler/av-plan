@@ -10,8 +10,8 @@ beforeEach(() => {
 	db = createDb(':memory:');
 });
 
-describe('Passwörter', () => {
-	it('hasht und prüft', async () => {
+describe('passwords', () => {
+	it('hashes and verifies', async () => {
 		const h = await hashPassword('geheim123');
 		expect(h).not.toContain('geheim123');
 		expect(await verifyPassword(h, 'geheim123')).toBe(true);
@@ -19,8 +19,8 @@ describe('Passwörter', () => {
 	});
 });
 
-describe('Passwort ändern', () => {
-	it('prüft das alte Passwort, verlangt 8 Zeichen und beendet andere Sitzungen', async () => {
+describe('change password', () => {
+	it('checks the old password, requires 8 characters and ends other sessions', async () => {
 		const u = await createUser(db, { email: 'a@b.ch', name: 'A', role: 'musik', password: 'geheim123' });
 		const keep = createSession(db, u.id);
 		const other = createSession(db, u.id);
@@ -34,8 +34,8 @@ describe('Passwort ändern', () => {
 	});
 });
 
-describe('Login', () => {
-	it('meldet Benutzer an und weist falsche Passwörter ab', async () => {
+describe('login', () => {
+	it('logs users in and rejects wrong passwords', async () => {
 		expect(userCount(db)).toBe(0);
 		await createUser(db, { email: 'Admin@Example.ch', name: 'Admin', role: 'admin', password: 'geheim123' });
 		expect(userCount(db)).toBe(1);
@@ -44,7 +44,7 @@ describe('Login', () => {
 		const bad = await loginWithPassword(db, 'admin@example.ch', 'nein');
 		expect(bad).toEqual({ ok: false, reason: 'invalid' });
 	});
-	it('drosselt nach fünf Fehlversuchen', async () => {
+	it('throttles after five failed attempts', async () => {
 		await createUser(db, { email: 'a@b.ch', name: 'A', role: 'admin', password: 'geheim123' });
 		const t0 = new Date('2026-09-07T10:00:00Z');
 		for (let i = 0; i < 5; i++) {
@@ -55,7 +55,7 @@ describe('Login', () => {
 		const later = await loginWithPassword(db, 'a@b.ch', 'geheim123', new Date(t0.getTime() + 70_000));
 		expect(later.ok).toBe(true);
 	});
-	it('lehnt inaktive Benutzer ab', async () => {
+	it('rejects inactive users', async () => {
 		const u = await createUser(db, { email: 'a@b.ch', name: 'A', role: 'musik', password: 'geheim123' });
 		const { setUserActive } = await import('./auth');
 		setUserActive(db, u.id, false);
@@ -63,8 +63,8 @@ describe('Login', () => {
 	});
 });
 
-describe('Sessions', () => {
-	it('erstellt, validiert, verlängert und löscht', async () => {
+describe('sessions', () => {
+	it('creates, validates, extends and deletes', async () => {
 		const u = await createUser(db, { email: 'a@b.ch', name: 'A', role: 'musik', password: 'geheim123' });
 		const t0 = new Date('2026-09-07T10:00:00Z');
 		const s = createSession(db, u.id, t0);
@@ -79,7 +79,7 @@ describe('Sessions', () => {
 		deleteSession(db, s.id);
 		expect(validateSession(db, s.id, t0)).toBeNull();
 	});
-	it('löscht Sessions bei Deaktivierung', async () => {
+	it('deletes sessions on deactivation', async () => {
 		const u = await createUser(db, { email: 'a@b.ch', name: 'A', role: 'musik', password: 'geheim123' });
 		const t0 = new Date('2026-09-07T10:00:00Z');
 		const s = createSession(db, u.id, t0);
@@ -91,8 +91,8 @@ describe('Sessions', () => {
 	});
 });
 
-describe('Invites', () => {
-	it('erstellt und löst Einladung ein', async () => {
+describe('invites', () => {
+	it('creates and redeems an invite', async () => {
 		const admin = await createUser(db, { email: 'a@b.ch', name: 'A', role: 'admin', password: 'geheim123' });
 		const t0 = new Date('2026-09-07T10:00:00Z');
 		const inv = createInvite(db, { email: 'M@b.ch', name: 'Musik', role: 'musik', createdBy: admin.id }, t0);
@@ -104,7 +104,7 @@ describe('Invites', () => {
 		expect(getValidInvite(db, inv.token, t0)).toBeNull();
 		expect(listOpenInvites(db, t0)).toHaveLength(0);
 	});
-	it('lehnt abgelaufene Einladungen ab', async () => {
+	it('rejects expired invites', async () => {
 		const admin = await createUser(db, { email: 'a@b.ch', name: 'A', role: 'admin', password: 'geheim123' });
 		const t0 = new Date('2026-09-07T10:00:00Z');
 		const inv = createInvite(db, { email: 'm@b.ch', name: 'M', role: 'musik', createdBy: admin.id }, t0);
@@ -112,7 +112,7 @@ describe('Invites', () => {
 		expect(getValidInvite(db, inv.token, t8)).toBeNull();
 		expect(await acceptInvite(db, inv.token, 'passwort1', t8)).toBeNull();
 	});
-	it('ist Single-Use nur einmal zu akzeptieren', async () => {
+	it('single-use invite can be accepted only once', async () => {
 		const admin = await createUser(db, { email: 'a@b.ch', name: 'A', role: 'admin', password: 'geheim123' });
 		const t0 = new Date('2026-09-07T10:00:00Z');
 		const inv = createInvite(db, { email: 'm@b.ch', name: 'M', role: 'musik', createdBy: admin.id }, t0);
@@ -124,7 +124,7 @@ describe('Invites', () => {
 		expect(user2).toBeNull();
 		expect(userCount(db)).toBe(2);
 	});
-	it('lehnt Einladung ab, wenn für die E-Mail schon ein Konto besteht, ohne die Einladung zu verbrennen', async () => {
+	it('rejects an invite when the email already has an account, without consuming the invite', async () => {
 		const admin = await createUser(db, { email: 'a@b.ch', name: 'A', role: 'admin', password: 'geheim123' });
 		await createUser(db, { email: 'm@b.ch', name: 'Bestehend', role: 'musik', password: 'geheim123' });
 		const t0 = new Date('2026-09-07T10:00:00Z');
@@ -135,7 +135,7 @@ describe('Invites', () => {
 });
 
 describe('findUserByEmail', () => {
-	it('findet Benutzer unabhängig von Gross-/Kleinschreibung', async () => {
+	it('finds users case-insensitively', async () => {
 		await createUser(db, { email: 'A@B.ch', name: 'A', role: 'admin', password: 'geheim123' });
 		expect(findUserByEmail(db, ' a@b.ch ')?.name).toBe('A');
 		expect(findUserByEmail(db, 'nichts@da.ch')).toBeUndefined();

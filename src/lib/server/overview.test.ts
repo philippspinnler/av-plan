@@ -25,7 +25,7 @@ describe('overview', () => {
 		expect(s.missingProgram).toContain('Leitung');
 		expect(s.missingMusic).toContain('Orgel');
 	});
-	it('summarize blendet das Programm für Musikrollen aus', () => {
+	it('summarize hides the program for music roles', () => {
 		const db = createDb(':memory:');
 		const anna = createMember(db, { firstName: 'Anna', lastName: 'Rey' });
 		const m = createMeeting(db, '2026-09-13');

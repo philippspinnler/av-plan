@@ -1,7 +1,7 @@
 import { redirect } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 
-/** Die Benutzerverwaltung ist in die Einstellungen umgezogen. */
+/** User management moved to the settings. */
 export const load: PageServerLoad = ({ url }) => {
 	redirect(301, `/einstellungen/benutzer${url.search}`);
 };

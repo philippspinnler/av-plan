@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { cellDateIso, cellNumber, cellSeconds, cellText, isIgnoredToken, parseSpecial, parseTalk } from './parse';
 
-describe('Zellen', () => {
+describe('cells', () => {
 	it('cellText', () => {
 		expect(cellText(' Anna ')).toBe('Anna');
 		expect(cellText(42)).toBe('42');
@@ -37,7 +37,7 @@ describe('Zellen', () => {
 });
 
 describe('parseSpecial', () => {
-	it('erkennt Typen und behält den Rest als Notiz', () => {
+	it('recognizes types and keeps the rest as note', () => {
 		expect(parseSpecial('')).toEqual({ kind: 'normal', note: null });
 		expect(parseSpecial('Fastsonntag')).toEqual({ kind: 'fastsonntag', note: null });
 		expect(parseSpecial('Fastsonntag?')).toEqual({ kind: 'fastsonntag', note: null });
@@ -59,7 +59,7 @@ describe('parseSpecial', () => {
 });
 
 describe('parseTalk', () => {
-	it('liest Status-Marker aus dem Thema', () => {
+	it('reads status markers from the topic', () => {
 		expect(parseTalk('Anna Rey', 'Confirm', false)).toEqual({ name: 'Anna Rey', topic: null, status: 'angefragt', durationMinutes: null, note: null });
 		expect(parseTalk('Anna Rey', 'Einladen', false)).toEqual({ name: 'Anna Rey', topic: null, status: 'offen', durationMinutes: null, note: null });
 		expect(parseTalk('Anna Rey', 'Rückfrage??', false)).toEqual({ name: 'Anna Rey', topic: null, status: 'zugesagt', durationMinutes: null, note: 'Rückfrage??' });
@@ -67,7 +67,7 @@ describe('parseTalk', () => {
 		expect(parseTalk('Anna Rey', 'Confirm', true)).toEqual({ name: 'Anna Rey', topic: null, status: 'zugesagt', durationMinutes: null, note: null });
 		expect(parseTalk('-', '', true)).toEqual({ name: null, topic: null, status: 'zugesagt', durationMinutes: null, note: null });
 	});
-	it('liest Dauer-Marken aus Namens- oder Themenfeld und ignoriert Kürzel', () => {
+	it('reads duration marks from name or topic field and ignores abbreviations', () => {
 		expect(parseTalk("15' Lena Hasler", '', true)).toEqual({ name: 'Lena Hasler', topic: null, status: 'zugesagt', durationMinutes: 15, note: null });
 		expect(parseTalk("Andrin Steiner 5'", 'Glaube', false)).toEqual({ name: 'Andrin Steiner', topic: 'Glaube', status: 'zugesagt', durationMinutes: 5, note: null });
 		expect(parseTalk('GK', '', true)).toEqual({ name: null, topic: null, status: 'zugesagt', durationMinutes: null, note: null });

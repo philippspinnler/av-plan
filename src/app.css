@@ -97,12 +97,12 @@ textarea { min-height: 5rem; }
 .row-list { list-style: none; padding: 0; margin: 0; }
 .row-list li { display: flex; gap: 0.5rem; align-items: center; margin-bottom: 0.5rem; }
 .row-list li input { flex: 1; }
-/* Entlassungen/Berufungen: Person auf einer Zeile, Amt darunter in voller Breite */
+/* Releases/callings: person on one line, office below at full width */
 .calling-row { flex-wrap: wrap; padding-bottom: 0.5rem; border-bottom: 1px solid var(--line); }
 .calling-row select, .calling-row .combo { flex: 1 1 100%; }
 .calling-row input { flex: 1 1 auto; min-width: 0; }
 .hint { font-size: 0.9rem; color: var(--muted); }
-/* Zusatzzeile in einer Tabellenzelle, z.B. Notiz unter dem Wert */
+/* Extra line in a table cell, e.g. a note below the value */
 .cell-note { display: block; font-size: 0.85rem; color: var(--muted); }
 .big-card { border-left: 6px solid var(--ok); }
 .big-card.has-open { border-left-color: var(--danger); }
@@ -140,13 +140,13 @@ textarea { min-height: 5rem; }
 .overview .c-status { width: 18%; }
 .overview .c-person { width: 13%; }
 .overview .c-kind, .overview td.td-kind { white-space: nowrap; }
-/* Sonntage ohne Versammlung (Konferenzen, keine Versammlung) sind für die Planung nicht relevant */
+/* Sundays without a meeting (conferences) are irrelevant for planning */
 .overview tr.no-meeting { color: var(--muted); background: var(--bg); }
 .overview tr.no-meeting a { color: var(--muted); }
 @media (max-width: 640px) { .overview td.td-kind { white-space: normal; } }
 .overview td { overflow-wrap: anywhere; }
 
-/* ---------- Handy ---------- */
+/* ---------- Mobile ---------- */
 @media (max-width: 640px) {
 	.container { padding: 0.75rem; }
 	h1 { font-size: 1.35rem; }
@@ -166,7 +166,7 @@ textarea { min-height: 5rem; }
 	.row-list li input { flex: 1 1 100%; }
 	.savebar { padding: 0.5rem 0.75rem; }
 	.todo-strip, .ready-strip { margin-top: 0; }
-	/* Tabellen werden zu Karten: eine Zeile pro Eintrag, Zellen untereinander mit Beschriftung */
+	/* Tables become cards: one row per entry, cells stacked with labels */
 	.table.stack thead { display: none; }
 	.table.stack, .table.stack tbody, .table.stack tr, .table.stack td { display: block; width: auto; }
 	.table.stack tr { padding: 0.55rem 0; border-bottom: 1px solid var(--line); }
@@ -183,7 +183,7 @@ textarea { min-height: 5rem; }
 	.combo-list { max-height: 14rem; }
 }
 
-/* Live: wer sonst noch hier ist, und in welchem Feld */
+/* Live: who else is here, and in which field */
 .live-bar { display: flex; align-items: center; gap: 0.4rem; margin: 0 0 0.75rem; color: var(--muted); font-size: 0.9rem; }
 .live-dot { width: 0.6rem; height: 0.6rem; border-radius: 50%; background: #2a9d4b; }
 [data-live-user] { position: relative; }

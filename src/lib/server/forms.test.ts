@@ -11,22 +11,22 @@ fd.append('list', 'b');
 fd.append('password', '  geheim  ');
 
 describe('forms', () => {
-	it('liest Strings getrimmt', () => {
+	it('reads trimmed strings', () => {
 		expect(str(fd, 'name')).toBe('Anna');
 		expect(str(fd, 'fehlt')).toBe('');
 		expect(optStr(fd, 'x')).toBeNull();
 		expect(optStr(fd, 'name')).toBe('Anna');
 	});
-	it('liest Zahlen', () => {
+	it('reads numbers', () => {
 		expect(int(fd, 'n')).toBe(42);
 		expect(int(fd, 'x')).toBe(0);
 		expect(optInt(fd, 'x')).toBeNull();
 		expect(optInt(fd, 'n')).toBe(42);
 	});
-	it('liest Listen ohne Leereinträge', () => {
+	it('reads lists without empty entries', () => {
 		expect(strList(fd, 'list')).toEqual(['a', 'b']);
 	});
-	it('liest Strings ungetrimmt', () => {
+	it('reads untrimmed strings', () => {
 		expect(rawStr(fd, 'password')).toBe('  geheim  ');
 		expect(rawStr(fd, 'fehlt')).toBe('');
 	});

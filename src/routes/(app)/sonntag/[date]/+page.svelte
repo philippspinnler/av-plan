@@ -18,10 +18,10 @@
 		calling: c.calling
 	});
 	const isFast = $derived(!data.missing && data.fastLike);
-	/** Die Rolle "Gebete" sieht nur die Gebete; Kopf und Abendmahl entfallen für sie. */
+	/** Role "Gebete" sees only the prayers; header and sacrament are omitted for it. */
 	const prayersOnly = $derived(!data.missing && !data.showProgram && !data.showHymns && data.canPrayers);
 	type TabKey = 'allgemein' | 'begruessung' | 'aenderungen' | 'musik' | 'gebete' | 'ansprachen';
-	/** Reiter je nach Rolle und Sonntagstyp. Alle Felder bleiben geladen, sichtbar ist nur der gewählte Reiter. */
+	/** Tabs by role and Sunday type. All fields stay mounted; only the selected tab is visible. */
 	const tabs = $derived.by((): { key: TabKey; label: string; open: string[] }[] => {
 		if (data.missing) return [];
 		const t: { key: TabKey; label: string; open: string[] }[] = [];
@@ -43,7 +43,7 @@
 		replaceState(url, page.state);
 	}
 	const chairAutoLabel = $derived(data.missing ? '' : `automatisch${data.chairAutoName ? `: ${data.chairAutoName}` : ' (niemand bestimmt)'}`);
-	/** Gebete hängen am Programmformular; die Rolle "Gebete" hat ein eigenes, kleines Formular. */
+	/** Prayers belong to the program form; role "Gebete" has its own small form. */
 	const prayerForm = $derived(data.showProgram ? 'programForm' : 'prayersForm');
 	// svelte-ignore state_referenced_locally -- initial value only; re-synced by the date-keyed effect below
 	let showFourth = $state(data.missing ? false : data.showFourth);
@@ -91,11 +91,10 @@
 	}
 
 	/**
-	 * Automatisches Speichern: jede Änderung merkt ihr Formular als "ungespeichert" vor; kurz darauf
-	 * werden die vorgemerkten Formulare nacheinander abgeschickt, nie gleichzeitig. Bei parallelen
-	 * Anfragen konnte das Neuladen der Daten des einen Formulars vor dem Schreiben des anderen laufen
-	 * und so frisch eingegebene Werte im Browser mit alten Daten überschreiben. Läuft gerade ein
-	 * Speichern, wartet die nächste Runde, bis es fertig ist (sonst trüge sie eine veraltete Version).
+	 * Autosave: each change marks its form as unsaved; shortly after, the marked forms are
+	 * submitted one after another, never concurrently. With parallel requests one form's data
+	 * reload could run before the other's write and overwrite freshly typed values with stale
+	 * data. If a save is running, the next round waits for it (else it would carry a stale version).
 	 */
 	let queue: string[] = [];
 	const dirty = new Set<string>();
@@ -122,7 +121,7 @@
 		if (id) (document.getElementById(id) as HTMLFormElement | null)?.requestSubmit();
 		else flush();
 	}
-	/** Ein Formular hat geantwortet: Ergebnis merken, Daten neu laden, nächstes Formular. */
+	/** A form responded: keep the result, reload data, then the next form. */
 	function saved(key: string) {
 		pending++;
 		return async ({ result, update }: { result: { type: string; status?: number; data?: Record<string, unknown>; error?: { message?: string } }; update: (o: { reset: boolean }) => Promise<void> }) => {
@@ -135,12 +134,12 @@
 			submitNext();
 		};
 	}
-	/** Änderungen an Feldern landen hier (Felder hängen per form="…" an ihrem Formular). */
+	/** Field changes land here (fields attach to their form via form="…"). */
 	function onFieldChange(e: Event) {
 		const formId = (e.target as HTMLInputElement | null)?.form?.id;
 		if (formId) touch(formId);
 	}
-	/** Enter in einem Textfeld speichert, statt das Formular ungebremst abzuschicken. */
+	/** Enter in a text field saves instead of submitting the form unthrottled. */
 	function onFieldKey(e: KeyboardEvent) {
 		const el = e.target as HTMLInputElement | null;
 		if (e.key === 'Enter' && el?.tagName === 'INPUT' && el.form) {
@@ -176,7 +175,7 @@
 {/snippet}
 
 {#snippet personSelect(name: string, row: CallingRow, id: string)}
-	<!-- Altdaten ohne Mitgliedsbezug ("name:…") erscheinen als Eintrag mit Kennung 0 und werden unverändert zurückgeschickt. -->
+	<!-- Legacy data without a member link ("name:…") shows as an entry with id 0 and is sent back unchanged. -->
 	{@const legacy = row.person.startsWith('name:')}
 	{@const options = [...(legacy ? [{ id: 0, label: `${row.personName} (Freitext)`, hint: '' }] : []), ...(data.missing ? [] : data.callingOptions)]}
 	<MemberSelect
@@ -281,7 +280,6 @@
 			><input type="hidden" name="version" value={data.versions.conductor} /></form>
 		{/if}
 
-		<!-- Allgemein -->
 		{#if !prayersOnly}
 			<div class="tab-panel" hidden={active !== 'allgemein'}>
 				<div class="section">
@@ -343,7 +341,6 @@
 
 		{#if data.hasProgram}
 			{#if data.showProgram}
-				<!-- Begrüssung und Bekanntmachungen -->
 				<div class="tab-panel" hidden={active !== 'begruessung'}>
 					<div class="section">
 						<div class="grid-2">
@@ -381,7 +378,6 @@
 					</div>
 				</div>
 
-				<!-- Beamtenänderungen -->
 				<div class="tab-panel" hidden={active !== 'aenderungen'}>
 					<div class="section">
 						<div class="grid-2">
@@ -421,7 +417,6 @@
 			{/if}
 
 			{#if data.showHymns}
-				<!-- Musik -->
 				<div class="tab-panel" hidden={active !== 'musik'}>
 					<div class="section">
 						<h2>Lieder</h2>
@@ -453,7 +448,6 @@
 			{/if}
 
 			{#if data.showProgram || data.canPrayers}
-				<!-- Gebete -->
 				<div class="tab-panel" hidden={active !== 'gebete'}>
 					<div class="section">
 						<div class="grid-2">
@@ -466,7 +460,6 @@
 			{/if}
 
 			{#if data.showProgram && !isFast}
-				<!-- Ansprachen -->
 				<div class="tab-panel" hidden={active !== 'ansprachen'}>
 					<div class="section">
 						{@render talkCard(findTalk(1), data.statuses)}

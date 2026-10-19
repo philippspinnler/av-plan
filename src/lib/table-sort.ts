@@ -3,7 +3,7 @@ export interface SortState<K extends string = string> { key: K; dir: SortDir }
 
 export interface ColumnSpec<T> {
 	compare: (a: T, b: T) => number;
-	/** Zeilen, die unabhängig von der Richtung ans Ende gehören (z.B. leere Werte). */
+	/** Rows that always sort last, regardless of direction (e.g. empty values). */
 	last?: (row: T) => boolean;
 }
 

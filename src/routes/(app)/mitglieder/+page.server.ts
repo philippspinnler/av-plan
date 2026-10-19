@@ -1,7 +1,7 @@
 import { redirect } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 
-/** Die Liste ist in die Einstellungen umgezogen. */
+/** The list moved to the settings. */
 export const load: PageServerLoad = ({ url }) => {
 	redirect(301, `/einstellungen/mitglieder${url.search}`);
 };

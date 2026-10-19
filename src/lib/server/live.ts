@@ -1,7 +1,7 @@
 /**
- * Live-Kanal für alle offenen Browser: wer wo gerade ist und dass sich etwas geändert hat.
- * Alles nur im Speicher dieses einen Prozesses.
- * ponytail: ein Prozess, ein Container; bei mehreren Instanzen bräuchte es Redis o.ä. dazwischen.
+ * Live channel for all open browsers: who is where, and that something changed.
+ * In-memory in this one process only.
+ * ponytail: one process, one container; multiple instances would need Redis or similar in between.
  */
 export type Presence = { client: string; userId: number; name: string; page: string; field: string | null; seen: number };
 export type LiveEvent = { kind: 'change'; page: string } | { kind: 'presence'; list: Presence[] };

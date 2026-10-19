@@ -2,7 +2,7 @@ import { expect, it } from 'vitest';
 import { createDb } from './db';
 import { getAllSettings, getSetting, setSetting } from './settings';
 
-it('liefert Defaults und speichert Änderungen', () => {
+it('returns defaults and persists changes', () => {
 	const db = createDb(':memory:');
 	expect(getSetting(db, 'ward_name')).toBe('Gemeinde');
 	setSetting(db, 'ward_name', 'Bern');

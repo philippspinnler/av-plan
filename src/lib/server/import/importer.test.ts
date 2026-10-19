@@ -61,7 +61,7 @@ beforeAll(async () => {
 afterAll(() => fs.rmSync(dir, { recursive: true, force: true }));
 
 describe('importWorkbooks', () => {
-	it('importiert Mitglieder mit Flags, Notizen und Zugehörigkeit', () => {
+	it('imports members with flags, notes and affiliation', () => {
 		const anna = findMemberByName(db, 'Anna Rey')!;
 		expect(anna.active).toBe(true);
 		expect(anna.noteTalk).toBe('gerne kurz');
@@ -73,7 +73,7 @@ describe('importWorkbooks', () => {
 		expect(daniel.calling).toBe('Hoherat');
 		expect(daniel.affiliation).toBeNull();
 	});
-	it('legt unbekannte Sprecher an und meldet sie', () => {
+	it('creates unknown speakers and reports them', () => {
 		const elder = findMemberByName(db, 'Elder Neuer')!;
 		expect(elder.affiliation).toBe('Missionar');
 		expect(elder.active).toBe(true);
@@ -82,13 +82,13 @@ describe('importWorkbooks', () => {
 		expect(report.unresolved).toEqual(expect.arrayContaining(['Elder Neuer', 'Unbekannt Neu']));
 		expect(listMembers(db)).toHaveLength(7);
 	});
-	it('importiert Lieder aus beiden Dateien mit Dauer', () => {
+	it('imports hymns from both files with duration', () => {
 		expect(listHymns(db).map((h) => h.number)).toEqual([33, 47, 58, 61, 1019]);
 		expect(getHymnByNumber(db, 47)?.durationSeconds).toBe(210);
 		expect(getHymnByNumber(db, 47)?.title).toBe('Herr und Gott der Himmelsheere');
 		expect(getHymnByNumber(db, 1019)?.book).toBe('neu');
 	});
-	it('importiert einen vergangenen Sonntag vollständig', () => {
+	it('imports a past Sunday completely', () => {
 		const m = loadMeetingFullByDate(db, '2026-08-30')!;
 		expect(m.meeting.kind).toBe('normal');
 		expect(m.meeting.theme).toBe('Schwächen');
@@ -110,18 +110,18 @@ describe('importWorkbooks', () => {
 		expect(m.meeting.musicNote).toContain('Dirigieren: Lea');
 		expect(m.meeting.musicNote).toContain('Mia');
 	});
-	it('setzt Status und Typ für künftige Sonntage', () => {
+	it('sets status and type for future Sundays', () => {
 		const f = loadMeetingFullByDate(db, '2026-10-11')!;
 		expect(f.meeting.kind).toBe('fastsonntag');
 		expect(f.meeting.specialNote).toBeNull();
 		expect(f.talks.map((t) => [t.member?.lastName, t.status])).toEqual([['Rey', 'angefragt'], ['Neu', 'offen']]);
 		expect(f.hymns.anfang.hymn?.number).toBe(1019);
-		// Fastsonntag: kein Zwischenlied, auch wenn die Quelle eines nennt ("PV singt")
+		// Fast Sunday: no intermediate hymn even if the source names one ("PV singt")
 		expect(f.hymns.zwischen).toEqual({ hymn: null, freeText: null });
 		expect(f.organist?.firstName).toBe('Vreni');
 		expect(loadMeetingFullByDate(db, '2026-10-04')!.meeting.kind).toBe('generalkonferenz');
 	});
-	it('legt Sonntage an, die nur in der Liederplanung stehen, und zählt', () => {
+	it('creates Sundays that exist only in the hymn planning, and counts them', () => {
 		const only = loadMeetingFullByDate(db, '2026-10-18')!;
 		expect(only.hymns.anfang.hymn?.number).toBe(47);
 		expect(only.meeting.theme).toBe('Nur Musik geplant');
@@ -129,7 +129,7 @@ describe('importWorkbooks', () => {
 		expect(report.hymns).toBe(5);
 		expect(report.members).toBe(5);
 	});
-	it('ist idempotent', async () => {
+	it('is idempotent', async () => {
 		const musicNoteBefore = loadMeetingFullByDate(db, '2026-10-18')!.meeting.musicNote;
 		const again = await importWorkbooks(db, path.join(dir, 'av.xlsx'), path.join(dir, 'lieder.xlsx'), { today: '2026-09-07' });
 		expect(again.members).toBe(0);

@@ -35,7 +35,7 @@ export function setStakeCallingPresides(db: Db, id: number, presides: boolean): 
 	db.update(stakeCallings).set({ presides }).where(eq(stakeCallings.id, id)).run();
 }
 
-/** Löscht eine Berufung; false, wenn sie noch bei Pfahlbeamten verwendet wird. */
+/** Deletes a calling; false if it is still used by stake officers. */
 export function deleteStakeCalling(db: Db, id: number): boolean {
 	const used = db.select({ id: members.id }).from(members).where(eq(members.stakeCallingId, id)).get();
 	if (used) return false;

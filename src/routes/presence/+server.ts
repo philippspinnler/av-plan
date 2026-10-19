@@ -2,7 +2,7 @@ import { error, json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { live } from '$lib/server/live';
 
-/** Browser meldet: ich (Verbindung c) bin auf Seite page, im Feld field. */
+/** Browser reports: I (connection c) am on page `page`, in field `field`. */
 export const POST: RequestHandler = async ({ locals, request }) => {
 	if (!locals.user) error(401, 'Bitte anmelden');
 	const body = (await request.json().catch(() => null)) as { client?: unknown; page?: unknown; field?: unknown } | null;

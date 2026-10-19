@@ -133,7 +133,7 @@ export function listMeetings(db: Db, from: string, to: string): MeetingFull[] {
 		.map((m) => assemble(db, m));
 }
 
-/** Datum des vorherigen und des nächsten vorhandenen Sonntags rund um `date`. */
+/** Dates of the previous and next existing Sunday around `date`. */
 export function adjacentMeetingDates(db: Db, date: string): { prev: string | null; next: string | null } {
 	const prev = db.select({ date: meetings.date }).from(meetings).where(lt(meetings.date, date)).orderBy(desc(meetings.date)).limit(1).get();
 	const next = db.select({ date: meetings.date }).from(meetings).where(gt(meetings.date, date)).orderBy(asc(meetings.date)).limit(1).get();
@@ -234,8 +234,8 @@ export function saveConductor(db: Db, meetingId: number, conductorMemberId: numb
 export type Section = 'program' | 'prayers' | 'music' | 'conductor';
 
 /**
- * Fingerabdruck je Formular-Abschnitt der Sonntagsseite. Das Formular schickt ihn beim Speichern
- * mit; weicht er vom aktuellen Stand ab, hat inzwischen jemand anderes diesen Abschnitt geändert.
+ * Fingerprint per form section of the Sunday page. The form sends it along when saving;
+ * if it differs from the current state, someone else changed that section in the meantime.
  */
 export function sectionVersions(full: MeetingFull): Record<Section, string> {
 	const hash = (x: unknown) => createHash('sha1').update(JSON.stringify(x)).digest('hex').slice(0, 12);
