@@ -68,10 +68,12 @@ export function youthPageItems(db: Db, today: string, opts = { big: 2, small: 3 
 	const small = events.slice(opts.big);
 	const last = events[events.length - 1]?.date ?? today;
 	for (const b of listBreaks(db, today)) {
-		if (b.kind === 'ferien' || b.fromDate > last) continue;
+		const date = b.fromDate < today ? today : b.fromDate;
+		const offLabel = b.label ?? YOUTH_KIND_LABELS[b.kind];
+		if (b.kind === 'ferien' || date > last || events.some((e) => e.date === date && e.status === 'off' && e.offLabel === offLabel)) continue;
 		small.push({
-			date: b.fromDate, weekday: 'other', ...labels(b.fromDate), kindLabel: YOUTH_KIND_LABELS[b.kind], status: 'off',
-			offLabel: b.label ?? YOUTH_KIND_LABELS[b.kind], topic: null, topicUrl: null, snack: null, joint: false, parts: []
+			date, weekday: 'other', ...labels(date), kindLabel: YOUTH_KIND_LABELS[b.kind], status: 'off',
+			offLabel, topic: null, topicUrl: null, snack: null, joint: false, parts: []
 		});
 	}
 	small.sort((a, b) => a.date.localeCompare(b.date));
@@ -80,7 +82,7 @@ export function youthPageItems(db: Db, today: string, opts = { big: 2, small: 3 
 
 /** Compact one-line description of an item for the "Danach" list. */
 export function compactText(i: YouthPageItem): string {
-	if (i.status === 'off') return `Kein JD/JM – ${i.offLabel}`;
+	if (i.status === 'off') return `${i.kindLabel} – ${i.offLabel}`;
 	if (i.status === 'open') return `${i.kindLabel} · noch nicht geplant`;
 	const join = (xs: (string | null)[]) => (xs.some(Boolean) ? [...new Set(xs.map((x) => x ?? '–'))].join(' / ') : null);
 	const parts = [

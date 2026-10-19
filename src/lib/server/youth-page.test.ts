@@ -25,12 +25,24 @@ describe('youth page items', () => {
 		db.insert(youthBreaks).values([
 			{ fromDate: '2026-10-30', toDate: '2026-10-30', label: 'Mini-MTC', kind: 'pfahl' },
 			{ fromDate: '2026-10-31', toDate: '2026-11-07', label: 'Herbstferien', kind: 'ferien' },
-			{ fromDate: '2026-10-21', toDate: '2026-10-21', label: 'Zu früh für gross', kind: 'tempel' }
+			{ fromDate: '2026-10-23', toDate: '2026-10-23', label: 'Tempeltaufen', kind: 'tempel' }
 		]).run();
 		const r = youthPageItems(db, '2026-10-20');
 		expect(dates(r.big)).toEqual(['2026-10-21', '2026-10-25']);
-		expect(r.small.map((i) => [i.date, i.weekday])).toEqual([['2026-10-21', 'other'], ['2026-10-28', 'wednesday'], ['2026-10-30', 'other'], ['2026-11-01', 'sunday'], ['2026-11-04', 'wednesday']]);
+		expect(r.small.map((i) => [i.date, i.weekday])).toEqual([['2026-10-23', 'other'], ['2026-10-28', 'wednesday'], ['2026-10-30', 'other'], ['2026-11-01', 'sunday'], ['2026-11-04', 'wednesday']]);
 		expect(r.small[2]).toMatchObject({ kindLabel: 'Pfahl-Aktivität', offLabel: 'Mini-MTC' });
+		expect(compactText(r.small[2])).toBe('Pfahl-Aktivität – Mini-MTC');
+	});
+	it('caps a running break at today', () => {
+		db.insert(youthBreaks).values({ fromDate: '2026-10-10', toDate: '2026-10-22', label: 'Tempelwoche', kind: 'tempel' }).run();
+		const r = youthPageItems(db, '2026-10-20');
+		expect(r.small[0]).toMatchObject({ date: '2026-10-20', weekday: 'other' });
+	});
+	it('skips a break row already shown as an off Wednesday', () => {
+		db.insert(youthBreaks).values({ fromDate: '2026-10-28', toDate: '2026-10-28', label: 'Mini-MTC', kind: 'pfahl' }).run();
+		const r = youthPageItems(db, '2026-10-20');
+		expect(r.small.filter((i) => i.date === '2026-10-28')).toHaveLength(1);
+		expect(r.small[0]).toMatchObject({ weekday: 'wednesday', offLabel: 'Mini-MTC' });
 	});
 	it('shortNames disambiguates duplicate first names', () => {
 		const a = createMember(db, { firstName: 'Mia', lastName: 'Koller' });
