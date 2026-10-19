@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { untrack } from 'svelte';
 	import { enhance } from '$app/forms';
 	import MemberSelect from '$lib/components/MemberSelect.svelte';
 	let { data, form } = $props();
@@ -22,6 +23,9 @@
 		];
 	});
 	const presentLabel = (p: boolean | null) => (p === true ? 'anwesend' : p === false ? 'abwesend' : '–');
+
+	/** Idea taken over per side; the side action plans it together with the saved text. */
+	let takenIdea = $state<Record<string, number | null>>({});
 
 	let results = $state<Record<string, { ok: boolean; error?: string }>>({});
 	let pending = $state(0);
@@ -51,16 +55,23 @@
 		submitNext();
 	}
 	function submitNext() {
-		const id = queue.shift();
-		if (id) (document.getElementById(id) as HTMLFormElement | null)?.requestSubmit();
-		else flush();
+		let id;
+		// A queued form can be gone after "gemeinsam" was toggled.
+		while ((id = queue.shift())) {
+			const f = document.getElementById(id) as HTMLFormElement | null;
+			if (f) return f.requestSubmit();
+		}
+		flush();
 	}
 	/** A form responded: keep the result, reload data, then the next form. */
 	function saved(key: string) {
 		pending++;
 		return async ({ result, update }: { result: { type: string; status?: number; data?: Record<string, unknown>; error?: { message?: string } }; update: (o: { reset: boolean }) => Promise<void> }) => {
 			pending--;
-			if (result.type === 'success') results[key] = { ok: true };
+			if (result.type === 'success') {
+				results[key] = { ok: true };
+				takenIdea[key] = null;
+			}
 			else if (result.type === 'failure') results[key] = { ok: false, error: String(result.data?.error ?? 'Fehler') };
 			else results[key] = { ok: false, error: result.error?.message ?? 'Fehler' };
 			if (result.status === 409) conflict = true;
@@ -68,19 +79,39 @@
 			submitNext();
 		};
 	}
-	/** Taking an idea marks it planned and puts its text into the activity field, which then autosaves. */
-	function takeIdea(side: Side) {
-		return async ({ result }: { result: { type: string; data?: Record<string, unknown>; error?: { message?: string } } }) => {
-			if (result.type !== 'success') {
-				results.idea = { ok: false, error: String(result.data?.error ?? result.error?.message ?? 'Fehler') };
-				return;
-			}
-			const field = document.getElementById(`${side}_text`) as HTMLInputElement | null;
-			if (!field) return;
-			field.value = String(result.data?.text ?? '');
-			touch(`${side}Form`);
-		};
+	function takeIdea(side: Side, idea: Idea) {
+		const field = document.getElementById(`${side}_text`) as HTMLInputElement | null;
+		if (!field || conflict) return;
+		field.value = idea.text;
+		takenIdea[side] = idea.id;
+		touch(`${side}Form`);
 	}
+	/**
+	 * Svelte 5 hydration drops the cached value of SSR-rendered inputs, so the first data reload
+	 * after page load writes the server value into every field, even unchanged ones. That would wipe
+	 * typing in forms that are not saved yet (and in the focused field); keep those values across every reload.
+	 */
+	type Field = HTMLInputElement | HTMLSelectElement;
+	let kept: [Field, string, boolean][] = [];
+	$effect.pre(() => {
+		void data;
+		kept = untrack(() => {
+			const fields = [...new Set([...queue, ...dirty])].flatMap((id) => [...((document.getElementById(id) as HTMLFormElement | null)?.elements ?? [])]);
+			const focused = document.activeElement;
+			if (focused instanceof HTMLInputElement && focused.form) fields.push(focused);
+			return fields
+				.filter((el): el is Field => (el instanceof HTMLInputElement && el.type !== 'hidden') || el instanceof HTMLSelectElement)
+				.map((el) => [el, el.value, el instanceof HTMLInputElement && el.checked]);
+		});
+	});
+	$effect(() => {
+		void data;
+		for (const [el, value, checked] of kept) {
+			el.value = value;
+			if (el instanceof HTMLInputElement) el.checked = checked;
+		}
+		kept = [];
+	});
 	/** Field changes land here (fields attach to their form via form="…"). */
 	function onFieldChange(e: Event) {
 		const formId = (e.target as HTMLInputElement | null)?.form?.id;
@@ -127,11 +158,7 @@
 							{#each s.ideas as i (i.id)}
 								<li>
 									<span title={i.note ? `${i.text} – ${i.note}` : i.text}>{i.text}</span>
-									<form method="POST" action="?/idea" use:enhance={() => takeIdea(s.side)}>
-										<input type="hidden" name="ideaId" value={i.id} />
-										<input type="hidden" name="side" value={s.side} />
-										<button class="btn btn-small" type="submit" title={i.note ? `${i.text} – ${i.note}` : i.text}>übernehmen</button>
-									</form>
+									<button class="btn btn-small" type="button" title={i.note ? `${i.text} – ${i.note}` : i.text} onclick={() => takeIdea(s.side, i)}>übernehmen</button>
 								</li>
 							{/each}
 						</ul>
@@ -184,7 +211,7 @@
 	{/if}
 	{#each sections as s (s.side)}
 		{#if s.canEdit}
-			<form id="{s.side}Form" method="POST" action="?/{s.side}" use:enhance={() => saved(s.side)}><input type="hidden" name="version" value={s.version} /></form>
+			<form id="{s.side}Form" method="POST" action="?/{s.side}" use:enhance={() => saved(s.side)}><input type="hidden" name="version" value={s.version} /><input type="hidden" name="ideaId" value={takenIdea[s.side] ?? ''} /></form>
 		{/if}
 	{/each}
 

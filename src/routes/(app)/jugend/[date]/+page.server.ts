@@ -1,8 +1,8 @@
 import { error, fail, type ActionFailure } from '@sveltejs/kit';
 import type { Action, Actions, PageServerLoad } from './$types';
 import { formatDateLong, isSunday, todayIso } from '$lib/dates';
-import { YOUTH_LEADER_GROUPS, YOUTH_PART_SIDES, type Member, type Role, type YouthPartSide } from '$lib/server/db/schema';
-import { int, optInt, optStr, str } from '$lib/server/forms';
+import { YOUTH_LEADER_GROUPS, type Member, type Role, type YouthPartSide } from '$lib/server/db/schema';
+import { optInt, optStr, str } from '$lib/server/forms';
 import { displayName } from '$lib/server/members';
 import { can, requireRole } from '$lib/server/permissions';
 import { memberOptions } from '$lib/server/picker';
@@ -58,6 +58,9 @@ function partAction(side: YouthPartSide): Action {
 			leaderGroup,
 			thoughtMemberId: optInt(fd, 'thought')
 		});
+		// An idea taken over into the text is planned together with it; foreign or closed ideas are ignored.
+		const idea = openIdeasFor(locals.db, side).find((i) => i.id === optInt(fd, 'ideaId'));
+		if (idea) planIdea(locals.db, idea.id, full.event.id);
 		return { saved: side };
 	};
 }
@@ -150,18 +153,5 @@ export const actions: Actions = {
 			});
 		saveYouthAdults(locals.db, full.event.id, entries);
 		return { saved: 'adults' };
-	},
-	idea: async ({ request, locals, params }) => {
-		const fd = await request.formData();
-		const side = YOUTH_PART_SIDES.find((s) => s === str(fd, 'side'));
-		if (!side) return fail(400, { error: 'Ungültige Seite.' });
-		requireSide(locals.user, side);
-		checkDate(params.date);
-		const full = loadYouthEvent(locals.db, params.date);
-		if (!full) error(404, 'Termin nicht gefunden');
-		const idea = openIdeasFor(locals.db, side).find((i) => i.id === int(fd, 'ideaId'));
-		if (!idea) return fail(400, { error: 'Diese Idee ist nicht mehr offen.' });
-		planIdea(locals.db, idea.id, full.event.id);
-		return { text: idea.text };
 	}
 };

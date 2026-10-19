@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { createDb } from '$lib/server/db';
 import type { Role } from '$lib/server/db/schema';
+import { createUser } from '$lib/server/auth';
+import { listIdeas, createIdea } from '$lib/server/youth-ideas';
 import { ensureYouthEvents, loadYouthEvent, saveYouthCommon, youthSectionVersions } from '$lib/server/youth';
 import { actions } from './+page.server';
 
@@ -46,5 +48,22 @@ describe('youth event actions', () => {
 		const result = await call('common', locals, { version, kind: 'aktivitaet', details: 'Treffpunkt Kirche' });
 		expect(result).toEqual({ saved: 'common' });
 		expect(loadYouthEvent(db, WED)!.event.details).toBe('Treffpunkt Kirche');
+	});
+
+	it('plans only open ideas of the saved side', async () => {
+		const { db, locals } = setup('jd_leitung');
+		const user = await createUser(db, { email: 'ida@example.org', name: 'Ida Idee', role: 'admin', password: 'geheim123' });
+		const jmIdea = createIdea(db, { text: 'Grillen', side: 'jm', note: null, createdBy: user.id });
+		const jdIdea = createIdea(db, { text: 'Bowling', side: 'jd', note: null, createdBy: user.id });
+		const versions = () => youthSectionVersions(loadYouthEvent(db, WED)!);
+		const planned = () => listIdeas(db, { open: false }).map((i) => i.id);
+
+		const both = await call('both', locals, { version: versions().both, text: 'Grillen', ideaId: String(jmIdea.id) });
+		expect(both).toMatchObject({ status: 409 });
+		await call('jd', locals, { version: versions().jd, text: 'Grillen', ideaId: String(jmIdea.id) });
+		expect(planned()).toEqual([]);
+
+		await call('jd', locals, { version: versions().jd, text: 'Bowling', ideaId: String(jdIdea.id) });
+		expect(planned()).toEqual([jdIdea.id]);
 	});
 });
