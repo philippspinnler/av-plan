@@ -6,6 +6,7 @@
 	import HymnSelect from '$lib/components/HymnSelect.svelte';
 	import Icon from '$lib/components/Icon.svelte';
 	import MemberSelect from '$lib/components/MemberSelect.svelte';
+	import { trackUnsaved } from '$lib/unsaved-fields';
 	let { data, form } = $props();
 
 	let announcements = $state<string[]>([]);
@@ -124,9 +125,13 @@
 	/** A form responded: keep the result, reload data, then the next form. */
 	function saved(key: string) {
 		pending++;
+		const sent = changedFields.sending(`${key}Form`);
 		return async ({ result, update }: { result: { type: string; status?: number; data?: Record<string, unknown>; error?: { message?: string } }; update: (o: { reset: boolean }) => Promise<void> }) => {
 			pending--;
-			if (result.type === 'success') results[key] = { ok: true };
+			if (result.type === 'success') {
+				results[key] = { ok: true };
+				changedFields.saved(sent);
+			}
 			else if (result.type === 'failure') results[key] = { ok: false, error: String(result.data?.error ?? 'Fehler') };
 			else results[key] = { ok: false, error: result.error?.message ?? 'Fehler' };
 			if (result.status === 409) conflict = true;
@@ -134,8 +139,19 @@
 			submitNext();
 		};
 	}
+	const changedFields = trackUnsaved();
+	let kept: ReturnType<typeof changedFields.snapshot> = [];
+	$effect.pre(() => {
+		void data;
+		kept = changedFields.snapshot();
+	});
+	$effect(() => {
+		void data;
+		changedFields.restore(kept);
+	});
 	/** Field changes land here (fields attach to their form via form="…"). */
 	function onFieldChange(e: Event) {
+		changedFields.mark(e.target);
 		const formId = (e.target as HTMLInputElement | null)?.form?.id;
 		if (formId) touch(formId);
 	}
@@ -223,7 +239,7 @@
 	</div>
 {:else}
 	<!-- svelte-ignore a11y_no_static_element_interactions -->
-	<div class="has-savebar" onchange={onFieldChange} onkeydown={onFieldKey}>
+	<div class="has-savebar" onchange={onFieldChange} oninput={(e) => changedFields.mark(e.target)} onkeydown={onFieldKey}>
 		<div class="section-title">
 			<div>
 				<span class="kind-tag">{data.kinds.find((k) => k.value === data.meeting.kind)?.label}</span>
