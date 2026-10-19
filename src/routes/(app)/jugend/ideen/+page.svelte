@@ -25,7 +25,7 @@
 
 <div class="section table-wrap">
 	<table class="table stack">
-		<thead><tr><th>Idee</th><th>Für</th><th>Notiz</th><th>Von</th><th></th></tr></thead>
+		<thead><tr><th>Idee</th><th>Für</th><th>Notiz</th><th>Von</th><th>Seit</th><th></th></tr></thead>
 		<tbody>
 			{#each data.open as i (i.id)}
 				<tr>
@@ -33,6 +33,7 @@
 					<td data-label="Für">{SIDES[i.side]}</td>
 					<td data-label={i.note ? 'Notiz' : null}>{i.note ?? ''}</td>
 					<td data-label="Von">{i.createdByName}</td>
+					<td data-label="Seit">{formatDateShort(i.createdAt.slice(0, 10))}</td>
 					<td>
 						<form method="POST" action="?/dismiss" use:enhance>
 							<input type="hidden" name="id" value={i.id} />
@@ -41,7 +42,7 @@
 					</td>
 				</tr>
 			{:else}
-				<tr><td colspan="5">Keine offenen Ideen.</td></tr>
+				<tr><td colspan="6">Keine offenen Ideen.</td></tr>
 			{/each}
 		</tbody>
 	</table>
