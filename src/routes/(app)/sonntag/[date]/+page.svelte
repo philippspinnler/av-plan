@@ -239,7 +239,7 @@
 	</div>
 {:else}
 	<!-- svelte-ignore a11y_no_static_element_interactions -->
-	<div class="has-savebar" onchange={onFieldChange} oninput={(e) => changedFields.mark(e.target)} onkeydown={onFieldKey}>
+	<div class="has-savebar" onchange={onFieldChange} oninput={(e) => changedFields.mark(e.target)} onfocusin={(e) => changedFields.focus(e.target)} onfocusout={(e) => changedFields.release(e.target, pending > 0 || dirty.size > 0)} onkeydown={onFieldKey}>
 		<div class="section-title">
 			<div>
 				<span class="kind-tag">{data.kinds.find((k) => k.value === data.meeting.kind)?.label}</span>
