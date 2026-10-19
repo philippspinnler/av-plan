@@ -18,7 +18,7 @@ Planung der Abendmahlsversammlung: Programm, Sprecher, Gebete, Lieder und Leitun
 
 Einstellungen → Berufungen: Bischofschaft, JM-Berater, JD-Beraterin, JD-Präsidentschaft. Einstellungen → Jugendliche: Seite (JD/JM) und Gruppe/Kollegium je Person; Quelle ist die Mitgliederliste.
 
-Menü "Jugend": Die Terminliste zeigt Sonntage und Mittwoche, 6 Monate im Voraus. Die Terminseite hat die Reiter Allgemein / JD / JM (bzw. Gemeinsam / Erwachsene) und speichert automatisch. Der Ideen-Topf sammelt Ideen, die beim Ausfüllen per "übernehmen" in einen Termin wandern. Unter Ausfälle & Pfahltermine werden Zeiträume erfasst: Ferien gelten nur für Mittwoche; Pfahl- und Tempeltermine erscheinen auf der Jugendseite.
+Menü "Jugend": Die Terminliste zeigt Sonntage und Mittwoche, 6 Monate im Voraus. Die Terminseite hat die Abschnitte Allgemein / JD / JM (bzw. Gemeinsam / Erwachsene) und speichert automatisch. Der Ideen-Topf sammelt Ideen, die beim Ausfüllen per "übernehmen" in einen Termin wandern. Unter Ausfälle & Pfahltermine werden Zeiträume erfasst: Ferien gelten nur für Mittwoche; Pfahl- und Tempeltermine erscheinen auf der Jugendseite.
 
 Der Sonntag folgt der Abendmahlsversammlung: keine Klasse bei General-/Pfahlkonferenz, Ostern und am Sonntag vor Weihnachten.
 
@@ -48,7 +48,7 @@ docker compose up -d
 
 ## Import Jugend aus Airtable
 
-Zuerst unter Einstellungen die Jugendlichen und die Berufungen (Bischofschaft, JD/JM-Leitung) erfassen, denn die Airtable kennt nur Vornamen. Dann die Tabellen "JD/JM Programm" und "Sonntagsklassen" als CSV exportieren (Grid-Ansicht, Download CSV) und bei gestopptem Container auf dem Host importieren:
+Zuerst unter Einstellungen die Jugendlichen und die Berufungen (Bischofschaft, JD/JM-Leitung) erfassen, denn die Airtable kennt nur Vornamen. Dann die Tabellen "JD/JM Programm" und "Sonntagsklassen" als CSV exportieren (Grid-Ansicht, Download CSV) und bei gestopptem Container auf dem Host importieren. Vorher `data/app.db` sichern.
 
 ```bash
 docker compose stop
@@ -56,7 +56,7 @@ DATABASE_PATH=data/app.db npm run import:jugend -- import/aktivitaeten.csv impor
 docker compose up -d
 ```
 
-Nicht auflösbare Vornamen werden als Hinweis ausgegeben und im Feld "Details" des Termins vermerkt. Ein erneuter Import überschreibt die Termine desselben Datums.
+Nicht auflösbare Vornamen werden als Hinweis ausgegeben; die von Jugendlichen zusätzlich im Feld "Details" des Termins vermerkt, die von Erwachsenen nicht. Ein erneuter Import überschreibt die Termine desselben Datums.
 
 ## Entwicklung
 
