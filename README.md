@@ -11,6 +11,18 @@ Planung der Abendmahlsversammlung: Programm, Sprecher, Gebete, Lieder und Leitun
 | Gebete | Anfangs- und Schlussgebet eintragen, "Fragen" für Gebete |
 | Musik | Lieder, Orgel/Klavier, Dirigieren, Liederbuch |
 | Dirigent/in | nur Dirigieren |
+| JM-Berater | JM-Termine und Sonntagsklasse JM, Ideen, Ausfälle |
+| JD-Leitung | dasselbe für JD (die Bischofschaft bearbeitet nur JM) |
+
+## Jugend (JD/JM)
+
+Einstellungen → Berufungen: Bischofschaft, JM-Berater, JD-Beraterin, JD-Präsidentschaft. Einstellungen → Jugendliche: Seite (JD/JM) und Gruppe/Kollegium je Person; Quelle ist die Mitgliederliste.
+
+Menü "Jugend": Die Terminliste zeigt Sonntage und Mittwoche, 6 Monate im Voraus. Die Terminseite hat die Reiter Allgemein / JD / JM (bzw. Gemeinsam / Erwachsene) und speichert automatisch. Der Ideen-Topf sammelt Ideen, die beim Ausfüllen per "übernehmen" in einen Termin wandern. Unter Ausfälle & Pfahltermine werden Zeiträume erfasst: Ferien gelten nur für Mittwoche; Pfahl- und Tempeltermine erscheinen auf der Jugendseite.
+
+Der Sonntag folgt der Abendmahlsversammlung: keine Klasse bei General-/Pfahlkonferenz, Ostern und am Sonntag vor Weihnachten.
+
+Die Jugendseite ist ohne Login erreichbar. Link unter Einstellungen → Allgemein erzeugen und kopieren; es erscheinen nur Vornamen. "Neu erzeugen" macht den alten Link ungültig. **Der Text in "Details" eines Ausfalls erscheint als Begründung auf der Jugendseite – dort keine Erwachsenen-Interna eintragen.** Zum Datenimport siehe [Import Jugend aus Airtable](#import-jugend-aus-airtable).
 
 ## Betrieb
 
