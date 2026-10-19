@@ -191,6 +191,7 @@
 		</div>
 	</div>
 	{#if form?.error}<div class="error">{form.error}</div>{/if}
+	{#if data.offNotice}<p class="hint">{data.isSunday ? 'Keine Klasse' : 'Kein JD/JM'}: {data.offNotice}</p>{/if}
 	{#if data.breakHint}<p class="hint">Liegt in: {data.breakHint}</p>{/if}
 
 	{#if data.canCommon}

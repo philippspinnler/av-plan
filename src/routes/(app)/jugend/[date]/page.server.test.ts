@@ -4,7 +4,8 @@ import type { Role } from '$lib/server/db/schema';
 import { createUser } from '$lib/server/auth';
 import { listIdeas, createIdea } from '$lib/server/youth-ideas';
 import { ensureYouthEvents, loadYouthEvent, saveYouthCommon, youthSectionVersions } from '$lib/server/youth';
-import { actions } from './+page.server';
+import { createMeeting, saveGeneral } from '$lib/server/meetings';
+import { actions, load } from './+page.server';
 
 const WED = '2026-10-21';
 
@@ -65,5 +66,14 @@ describe('youth event actions', () => {
 
 		await call('jd', locals, { version: versions().jd, text: 'Bowling', ideaId: String(jdIdea.id) });
 		expect(planned()).toEqual([jdIdea.id]);
+	});
+
+	it('treats a Sunday without class as off', () => {
+		const { db, locals } = setup('admin');
+		const m = createMeeting(db, '2026-10-25');
+		saveGeneral(db, m.id, { kind: 'generalkonferenz' } as Parameters<typeof saveGeneral>[2]);
+		const data = load({ locals, params: { date: '2026-10-25' } } as never) as { off: boolean; offNotice: string | null };
+		expect(data.off).toBe(true);
+		expect(data.offNotice).toBe('Generalkonferenz');
 	});
 });

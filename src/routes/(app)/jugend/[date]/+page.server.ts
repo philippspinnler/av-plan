@@ -102,7 +102,9 @@ export const load: PageServerLoad = ({ locals, params }) => {
 		canJd: can(role, 'youth.jd'),
 		canJm: can(role, 'youth.jm'),
 		kinds: kindsFor(date).map((k) => ({ value: k, label: YOUTH_KIND_LABELS[k] })),
-		off: OFF_KINDS.includes(full.event.kind),
+		// A break only hints on a Wednesday; the event stays editable.
+		off: full.status === 'off' && (OFF_KINDS.includes(full.event.kind) || !full.break),
+		offNotice: full.meetingKind && full.status === 'off' ? full.offLabel : null,
 		jdOptions: options('jd'),
 		jmOptions: options('jm'),
 		adults: adultMembers.map((m) => ({ id: m.id, name: displayName(m), present: present.get(m.id) ?? null })),
