@@ -42,6 +42,7 @@
 			<a href="/" class:active={isActive('/')}>Sonntage</a>
 			{#if data.canHymns}<a href="/lieder" class:active={isActive('/lieder')}>Lieder</a>{/if}
 			{#if data.canAsk}<a href="/fragen" class:active={isActive('/fragen') || isActive('/mitglieder')}>Fragen</a>{/if}
+			{#if data.canYouth}<a href="/jugend" class:active={isActive('/jugend')}>Jugend</a>{/if}
 			{#if role === 'admin'}
 				<a href="/einstellungen" class:active={isActive('/einstellungen')}>Einstellungen</a>
 			{/if}
