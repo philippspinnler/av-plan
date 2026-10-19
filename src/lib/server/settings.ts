@@ -4,6 +4,7 @@ import { settings } from './db/schema';
 
 export const SETTING_DEFAULTS = {
 	ward_name: 'Gemeinde',
+	youth_page_token: '',
 	bishopric_member_ids: '[]',
 	bishopric: '[]'
 } as const;

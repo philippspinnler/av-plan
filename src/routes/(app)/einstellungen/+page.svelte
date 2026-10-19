@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
+	import { page } from '$app/state';
 	let { data, form } = $props();
 	function submitOnChange(e: Event) {
 		(e.currentTarget as HTMLInputElement | HTMLSelectElement).form?.requestSubmit();
@@ -15,6 +16,25 @@
 	<p class="hint">Legt alle noch fehlenden Sonntage der nächsten 12 Monate an. Bestehende Sonntage bleiben unverändert.</p>
 	<form method="POST" action="?/ensureSundays" use:enhance>
 		<button class="btn btn-primary" type="submit">Sonntage für 12 Monate anlegen</button>
+	</form>
+</div>
+
+<div class="section">
+	<h2>Jugendseite</h2>
+	<p class="muted">Öffentliche Seite ohne Anmeldung mit den nächsten Terminen der Jugend. Wer den Link hat, kann sie sehen; mit «Neu erzeugen» wird der alte Link ungültig.</p>
+	{#if data.settings.youth_page_token}
+		{@const link = `${page.url.origin}/j/${data.settings.youth_page_token}`}
+		<div class="field"><input type="text" readonly value={link} aria-label="Link zur Jugendseite" onfocus={(e) => e.currentTarget.select()} /></div>
+	{:else}
+		<p>Link: noch nicht erzeugt</p>
+	{/if}
+	<form method="POST" action="?/youthToken" use:enhance>
+		<div class="actions">
+			{#if data.settings.youth_page_token}
+				<button class="btn" type="button" onclick={() => navigator.clipboard.writeText(`${page.url.origin}/j/${data.settings.youth_page_token}`)}>Link kopieren</button>
+			{/if}
+			<button class="btn" type="submit">{data.settings.youth_page_token ? 'Neu erzeugen' : 'Link erzeugen'}</button>
+		</div>
 	</form>
 </div>
 

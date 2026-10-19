@@ -32,7 +32,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 		return resolve(event);
 	}
 	if (path === '/setup') redirect(303, '/');
-	const isPublic = PUBLIC.has(path) || path.startsWith('/einladung/');
+	const isPublic = PUBLIC.has(path) || path.startsWith('/einladung/') || path.startsWith('/j/');
 	if (!event.locals.user && !isPublic) {
 		redirect(303, `/login?next=${encodeURIComponent(path)}`);
 	}

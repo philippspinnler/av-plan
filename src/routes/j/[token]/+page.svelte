@@ -1,0 +1,83 @@
+<script lang="ts">
+	let { data } = $props();
+</script>
+
+<svelte:head>
+	<title>JD / JM {data.ward}</title>
+	<meta name="robots" content="noindex" />
+</svelte:head>
+
+<main>
+	<h1>JD / JM {data.ward}</h1>
+	<p class="ward">Sonntagsklasse und Mittwochaktivität</p>
+
+	{#each data.big as ev (ev.date)}
+		<div class="ev big">
+			<div class="when">{ev.weekdayLabel}</div>
+			<div class="date">{ev.dateLabel}</div>
+			<span class="kind" class:off={ev.status === 'off'} class:joint={ev.joint && ev.status !== 'off'}>{ev.kindLabel}</span>
+			{#if ev.status === 'off'}
+				<p class="what">{ev.offLabel}</p>
+			{:else if ev.status === 'open'}
+				<p class="muted">noch nicht geplant</p>
+			{:else}
+				{#if ev.weekday === 'sunday'}
+					{#if ev.topic}
+						<p class="topic">{#if ev.topicUrl}<a href={ev.topicUrl} rel="noopener noreferrer">{ev.topic}</a>{:else}{ev.topic}{/if}</p>
+					{:else if ev.topicUrl}
+						<p class="topic"><a href={ev.topicUrl} rel="noopener noreferrer">Unterlage</a></p>
+					{/if}
+				{/if}
+				<div class="grp" class:single={ev.joint}>
+					{#each ev.parts as p (p.side)}
+						<div class="g">
+							{#if p.label}<h4>{p.label}</h4>{/if}
+							{#if p.text && ev.weekday !== 'sunday'}<p class="what">{p.text}</p>{/if}
+							<p class="who">
+								{#if p.leaderName}Leitung: {p.leaderName}<br />{/if}
+								{#if p.thoughtName}Gedanke: {p.thoughtName}{/if}
+							</p>
+						</div>
+					{/each}
+				</div>
+				{#if ev.snack}<p class="meta">Snack: {ev.snack}</p>{/if}
+			{/if}
+		</div>
+	{/each}
+
+	{#if data.small.length}
+		<div class="ev compact">
+			<div class="when">Danach</div>
+			{#each data.small as ev (ev.date + ev.weekday)}
+				<div class="row"><span class="d">{ev.shortDate}</span><span class="t" class:muted={ev.status !== 'planned'}>{ev.text}</span></div>
+			{/each}
+		</div>
+	{/if}
+</main>
+
+<style>
+	:global(body) { background: #f4f3ef; }
+	main { max-width: 440px; margin: 0 auto; padding: 14px; font-family: -apple-system, system-ui, sans-serif; color: #1a1a1a; }
+	h1 { font-size: 20px; margin: 4px 0 2px; }
+	.ward { color: #777; font-size: 12px; margin: 0 0 12px; }
+	.ev { background: #fff; border-radius: 12px; padding: 12px 14px; margin-bottom: 10px; box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+	.ev.big { padding: 16px; }
+	.when { font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: #1f5f8b; font-weight: 700; }
+	.date { font-size: 22px; font-weight: 700; margin: 2px 0 8px; }
+	.kind { display: inline-block; font-size: 11px; background: #e3eef5; color: #1f5f8b; border-radius: 999px; padding: 2px 8px; margin-bottom: 8px; }
+	.kind.off { background: #f2e3d5; color: #8a4b12; }
+	.kind.joint { background: #e0f2e4; color: #1e6b33; }
+	.grp { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+	.grp.single { grid-template-columns: 1fr; }
+	.g h4 { margin: 0 0 3px; font-size: 12px; color: #777; text-transform: uppercase; letter-spacing: .04em; }
+	.what { font-weight: 600; font-size: 15px; margin: 0 0 4px; }
+	.who { font-size: 13px; color: #444; margin: 0; line-height: 1.4; }
+	.topic { font-weight: 600; font-size: 15px; margin: 0 0 8px; }
+	.topic a { color: #1f5f8b; }
+	.meta { font-size: 13px; color: #444; margin: 8px 0 0; padding-top: 8px; border-top: 1px dotted #ccc; }
+	.compact .row { display: flex; gap: 10px; align-items: baseline; font-size: 13px; padding: 4px 0; border-top: 1px dotted #e4e4e4; }
+	.compact .when + .row { border-top: 0; }
+	.compact .d { flex: 0 0 92px; font-weight: 700; }
+	.compact .t { flex: 1; color: #333; }
+	.muted { color: #888; }
+</style>
