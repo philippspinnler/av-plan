@@ -91,33 +91,71 @@
 	}
 
 	/**
-	 * Speichert die Formulare nacheinander, nicht gleichzeitig. Bei parallelen Anfragen konnte das
-	 * Neuladen der Daten des einen Formulars vor dem Schreiben des anderen laufen und so frisch
-	 * eingegebene Werte im Browser mit alten Daten überschreiben; beim nächsten Speichern wären sie
-	 * dann tatsächlich verloren gegangen.
+	 * Automatisches Speichern: jede Änderung merkt ihr Formular als "ungespeichert" vor; kurz darauf
+	 * werden die vorgemerkten Formulare nacheinander abgeschickt, nie gleichzeitig. Bei parallelen
+	 * Anfragen konnte das Neuladen der Daten des einen Formulars vor dem Schreiben des anderen laufen
+	 * und so frisch eingegebene Werte im Browser mit alten Daten überschreiben. Läuft gerade ein
+	 * Speichern, wartet die nächste Runde, bis es fertig ist (sonst trüge sie eine veraltete Version).
 	 */
 	let queue: string[] = [];
+	const dirty = new Set<string>();
+	let unsaved = $state(false);
+	let conflict = $state(false);
+	let timer: ReturnType<typeof setTimeout> | undefined;
+	function touch(formId: string) {
+		if (data.missing || conflict) return;
+		dirty.add(formId);
+		unsaved = true;
+		clearTimeout(timer);
+		timer = setTimeout(flush, 400);
+	}
+	function flush() {
+		if (pending > 0 || dirty.size === 0) return;
+		queue = [...dirty];
+		dirty.clear();
+		unsaved = false;
+		results = {};
+		submitNext();
+	}
 	function submitNext() {
 		const id = queue.shift();
 		if (id) (document.getElementById(id) as HTMLFormElement | null)?.requestSubmit();
+		else flush();
 	}
-	function saveAll() {
-		if (data.missing) return;
-		results = {};
-		queue = [];
-		if (data.showProgram) queue.push('programForm');
-		else if (data.canPrayers) queue.push('prayersForm');
-		if (data.canMusic) queue.push('musicForm');
-		else if (data.canConductor) queue.push('conductorForm');
-		submitNext();
+	/** Ein Formular hat geantwortet: Ergebnis merken, Daten neu laden, nächstes Formular. */
+	function saved(key: string) {
+		pending++;
+		return async ({ result, update }: { result: { type: string; status?: number; data?: Record<string, unknown>; error?: { message?: string } }; update: (o: { reset: boolean }) => Promise<void> }) => {
+			pending--;
+			if (result.type === 'success') results[key] = { ok: true };
+			else if (result.type === 'failure') results[key] = { ok: false, error: String(result.data?.error ?? 'Fehler') };
+			else results[key] = { ok: false, error: result.error?.message ?? 'Fehler' };
+			if (result.status === 409) conflict = true;
+			await update({ reset: false });
+			submitNext();
+		};
+	}
+	/** Änderungen an Feldern landen hier (Felder hängen per form="…" an ihrem Formular). */
+	function onFieldChange(e: Event) {
+		const formId = (e.target as HTMLInputElement | null)?.form?.id;
+		if (formId) touch(formId);
+	}
+	/** Enter in einem Textfeld speichert, statt das Formular ungebremst abzuschicken. */
+	function onFieldKey(e: KeyboardEvent) {
+		const el = e.target as HTMLInputElement | null;
+		if (e.key === 'Enter' && el?.tagName === 'INPUT' && el.form) {
+			e.preventDefault();
+			touch(el.form.id);
+		}
 	}
 
 	const saveStatus = $derived.by(() => {
 		const entries = Object.values(results);
 		const errors = entries.filter((r) => !r.ok).map((r) => r.error ?? 'Fehler');
 		if (errors.length) return { kind: 'error' as const, text: errors.join(' · ') };
+		if (pending > 0 || unsaved) return { kind: 'hint' as const, text: 'Speichern …' };
 		if (entries.length && entries.every((r) => r.ok)) return { kind: 'ok' as const, text: 'Gespeichert' };
-		return { kind: 'hint' as const, text: 'Änderungen werden erst mit Speichern übernommen' };
+		return { kind: 'hint' as const, text: 'Änderungen werden automatisch gespeichert' };
 	});
 </script>
 
@@ -185,7 +223,8 @@
 		{/if}
 	</div>
 {:else}
-	<div class="has-savebar">
+	<!-- svelte-ignore a11y_no_static_element_interactions -->
+	<div class="has-savebar" onchange={onFieldChange} onkeydown={onFieldKey}>
 		<div class="section-title">
 			<div>
 				<span class="kind-tag">{data.kinds.find((k) => k.value === data.meeting.kind)?.label}</span>
@@ -215,63 +254,31 @@
 				id="programForm"
 				method="POST"
 				action="?/program"
-				use:enhance={() => {
-					pending++;
-					return async ({ result, update }) => {
-						pending--;
-						results.program = result.type === 'success' ? { ok: true } : { ok: false, error: result.type === 'failure' ? String(result.data?.error ?? 'Fehler') : 'Fehler' };
-						await update({ reset: false });
-						submitNext();
-					};
-				}}
-			></form>
+				use:enhance={() => saved('program')}
+			><input type="hidden" name="version" value={data.versions.program} /></form>
 		{/if}
 		{#if !data.showProgram && data.canPrayers}
 			<form
 				id="prayersForm"
 				method="POST"
 				action="?/prayers"
-				use:enhance={() => {
-					pending++;
-					return async ({ result, update }) => {
-						pending--;
-						results.prayers = result.type === 'success' ? { ok: true } : { ok: false, error: result.type === 'failure' ? String(result.data?.error ?? 'Fehler') : 'Fehler' };
-						await update({ reset: false });
-						submitNext();
-					};
-				}}
-			></form>
+				use:enhance={() => saved('prayers')}
+			><input type="hidden" name="version" value={data.versions.prayers} /></form>
 		{/if}
 		{#if data.canMusic}
 			<form
 				id="musicForm"
 				method="POST"
 				action="?/music"
-				use:enhance={() => {
-					pending++;
-					return async ({ result, update }) => {
-						pending--;
-						results.music = result.type === 'success' ? { ok: true } : { ok: false, error: result.type === 'failure' ? String(result.data?.error ?? 'Fehler') : 'Fehler' };
-						await update({ reset: false });
-						submitNext();
-					};
-				}}
-			></form>
+				use:enhance={() => saved('music')}
+			><input type="hidden" name="version" value={data.versions.music} /></form>
 		{:else if data.canConductor}
 			<form
 				id="conductorForm"
 				method="POST"
 				action="?/conductor"
-				use:enhance={() => {
-					pending++;
-					return async ({ result, update }) => {
-						pending--;
-						results.conductor = result.type === 'success' ? { ok: true } : { ok: false, error: result.type === 'failure' ? String(result.data?.error ?? 'Fehler') : 'Fehler' };
-						await update({ reset: false });
-						submitNext();
-					};
-				}}
-			></form>
+				use:enhance={() => saved('conductor')}
+			><input type="hidden" name="version" value={data.versions.conductor} /></form>
 		{/if}
 
 		<!-- Allgemein -->
@@ -354,7 +361,7 @@
 								/>
 							</div>
 						</div>
-						<p class="hint">Automatisch: Gast mit Vorsitz, sonst Bischof, sonst 1. oder 2. Ratgeber, je nach Abwesenheit. Wird beim Speichern neu berechnet.</p>
+						<p class="hint">Automatisch: Gast mit Vorsitz, sonst Bischof, sonst 1. oder 2. Ratgeber, je nach Abwesenheit. Wird nach jeder Änderung neu berechnet.</p>
 					</div>
 					<div class="section">
 						<h2>Bekanntmachungen</h2>
@@ -362,9 +369,9 @@
 							{#each announcements as a, i}
 								<li>
 									<input type="text" name="announcement" form="programForm" bind:value={announcements[i]} placeholder="Text der Bekanntmachung" />
-									<button class="btn btn-small" type="button" onclick={() => move(announcements, i, -1)} aria-label="nach oben">↑</button>
-									<button class="btn btn-small" type="button" onclick={() => move(announcements, i, 1)} aria-label="nach unten">↓</button>
-									<button class="btn btn-small btn-danger" type="button" onclick={() => announcements.splice(i, 1)} aria-label="entfernen">✕</button>
+									<button class="btn btn-small" type="button" onclick={() => { move(announcements, i, -1); touch('programForm'); }} aria-label="nach oben">↑</button>
+									<button class="btn btn-small" type="button" onclick={() => { move(announcements, i, 1); touch('programForm'); }} aria-label="nach unten">↓</button>
+									<button class="btn btn-small btn-danger" type="button" onclick={() => { announcements.splice(i, 1); touch('programForm'); }} aria-label="entfernen">✕</button>
 								</li>
 							{/each}
 						</ul>
@@ -385,7 +392,7 @@
 										<li class="calling-row">
 											{@render personSelect('release_person', releases[i], `release_person_${i}`)}
 											<input type="text" name="release_calling" form="programForm" bind:value={releases[i].calling} placeholder="Amt" />
-											<button class="btn btn-small btn-danger" type="button" onclick={() => releases.splice(i, 1)} aria-label="entfernen">✕</button>
+											<button class="btn btn-small btn-danger" type="button" onclick={() => { releases.splice(i, 1); touch('programForm'); }} aria-label="entfernen">✕</button>
 										</li>
 									{/each}
 								</ul>
@@ -398,7 +405,7 @@
 										<li class="calling-row">
 											{@render personSelect('sustain_person', sustainings[i], `sustain_person_${i}`)}
 											<input type="text" name="sustain_calling" form="programForm" bind:value={sustainings[i].calling} placeholder="Amt" />
-											<button class="btn btn-small btn-danger" type="button" onclick={() => sustainings.splice(i, 1)} aria-label="entfernen">✕</button>
+											<button class="btn btn-small btn-danger" type="button" onclick={() => { sustainings.splice(i, 1); touch('programForm'); }} aria-label="entfernen">✕</button>
 										</li>
 									{/each}
 								</ul>
@@ -479,6 +486,6 @@
 
 	<div class="savebar no-print">
 		<span class="savebar-status" class:err={saveStatus.kind === 'error'}>{saveStatus.text}</span>
-		<button class="btn btn-primary" type="button" disabled={pending > 0} onclick={saveAll}>Speichern</button>
+		{#if conflict}<button class="btn btn-primary" type="button" onclick={() => location.reload()}>Seite neu laden</button>{/if}
 	</div>
 {/if}

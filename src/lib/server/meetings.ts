@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import { and, asc, desc, eq, gt, gte, inArray, lt, lte } from 'drizzle-orm';
 import { addMonths, isSunday, sundaysBetween } from '../dates';
 import type { Db } from './db';
@@ -228,4 +229,29 @@ export function saveMusic(
 
 export function saveConductor(db: Db, meetingId: number, conductorMemberId: number | null): void {
 	db.update(meetings).set({ conductorMemberId, updatedAt: nowIso() }).where(eq(meetings.id, meetingId)).run();
+}
+
+export type Section = 'program' | 'prayers' | 'music' | 'conductor';
+
+/**
+ * Fingerabdruck je Formular-Abschnitt der Sonntagsseite. Das Formular schickt ihn beim Speichern
+ * mit; weicht er vom aktuellen Stand ab, hat inzwischen jemand anderes diesen Abschnitt geändert.
+ */
+export function sectionVersions(full: MeetingFull): Record<Section, string> {
+	const hash = (x: unknown) => createHash('sha1').update(JSON.stringify(x)).digest('hex').slice(0, 12);
+	const m = full.meeting;
+	const prayers = full.prayers.map((p) => [p.position, p.member?.id ?? null, p.status]);
+	const music = [Object.values(full.hymns).map((h) => [h.hymn?.number ?? null, h.freeText]), m.organistMemberId, m.conductorMemberId, m.musicNote];
+	return {
+		program: hash([
+			m.kind, m.theme, m.specialNote, m.presidingMemberId, m.absences, m.guestMemberId, m.chairMemberId, m.stakeChanges,
+			prayers,
+			full.talks.map((t) => [t.position, t.member?.id ?? null, t.topic, t.durationMinutes, t.status, t.note]),
+			full.announcements,
+			full.callings
+		]),
+		prayers: hash(prayers),
+		music: hash(music),
+		conductor: hash(m.conductorMemberId)
+	};
 }

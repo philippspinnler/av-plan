@@ -16,6 +16,7 @@
 	let open = $state(false);
 	let active = $state(0);
 	let root: HTMLDivElement;
+	let hidden: HTMLInputElement;
 	let syncedValue = $state<string | undefined>(undefined);
 
 	$effect(() => {
@@ -39,6 +40,7 @@
 
 	function choose(label: string) {
 		selected = label;
+		queueMicrotask(() => hidden.dispatchEvent(new Event('change', { bubbles: true })));
 		query = '';
 		open = false;
 	}
@@ -73,7 +75,7 @@
 </script>
 
 <div class="combo" bind:this={root} onfocusout={onFocusOut}>
-	<input type="hidden" {name} {form} value={selected} />
+	<input type="hidden" {name} {form} bind:this={hidden} value={selected} />
 	<input
 		{id}
 		type="text"

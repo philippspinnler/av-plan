@@ -1,4 +1,4 @@
-import { error, fail } from '@sveltejs/kit';
+import { error, fail, type ActionFailure } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 import { formatDateLong, isSunday, todayIso } from '$lib/dates';
 import { leadingInt } from '$lib/hymn-input';
@@ -9,7 +9,7 @@ import { displayName, listMembers } from '$lib/server/members';
 import { listStakeCallings } from '$lib/server/stake-callings';
 import {
 	KIND_LABELS, SLOT_LABELS, createMeeting, getMeetingByDate, hasProgram, loadMeetingFullByDate,
-	saveAnnouncements, saveCallings, saveConductor, saveGeneral, saveMusic, savePrayers, saveTalks, type TalkInput
+	saveAnnouncements, saveCallings, saveConductor, saveGeneral, saveMusic, savePrayers, saveTalks, sectionVersions, type Section, type TalkInput
 } from '$lib/server/meetings';
 import { can, requireRole } from '$lib/server/permissions';
 import { chairFor, formatAbsences, getBishopric, parseAbsences } from '$lib/server/bishopric';
@@ -24,11 +24,15 @@ function checkDate(date: string) {
 	if (!DATE.test(date) || !isSunday(date)) error(404, 'Kein gültiges Sonntagsdatum');
 }
 
-function meetingIdFor(locals: App.Locals, date: string): number {
+const CONFLICT = 'Jemand anderes hat diesen Sonntag inzwischen geändert. Bitte die Seite neu laden, deine letzte Änderung geht dabei verloren.';
+
+/** Sonntag laden und prüfen, dass das Formular noch den aktuellen Stand seines Abschnitts hat. */
+function meetingIdFor(locals: App.Locals, date: string, section: Section, fd: FormData): number | ActionFailure<{ error: string }> {
 	checkDate(date);
-	const m = getMeetingByDate(locals.db, date);
-	if (!m) error(404, 'Sonntag nicht gefunden');
-	return m.id;
+	const full = loadMeetingFullByDate(locals.db, date);
+	if (!full) error(404, 'Sonntag nicht gefunden');
+	if (str(fd, 'version') !== sectionVersions(full)[section]) return fail(409, { error: CONFLICT });
+	return full.meeting.id;
 }
 
 export const load: PageServerLoad = ({ locals, params }) => {
@@ -114,6 +118,7 @@ export const load: PageServerLoad = ({ locals, params }) => {
 				: {})
 		},
 		hasProgram: hasProgram(full.meeting.kind),
+		versions: sectionVersions(full),
 		open,
 		fastLike,
 		kinds: MEETING_KINDS.map((k) => ({ value: k, label: KIND_LABELS[k] })),
@@ -179,8 +184,9 @@ export const actions: Actions = {
 	},
 	program: async ({ request, locals, params }) => {
 		requireRole(locals.user, 'meeting.program');
-		const id = meetingIdFor(locals, params.date);
 		const fd = await request.formData();
+		const id = meetingIdFor(locals, params.date, 'program', fd);
+		if (typeof id !== 'number') return id;
 		const kind = str(fd, 'kind');
 		if (!isKind(kind)) return fail(400, { error: 'Ungültiger Typ.' });
 
@@ -228,8 +234,9 @@ export const actions: Actions = {
 	},
 	prayers: async ({ request, locals, params }) => {
 		requireRole(locals.user, 'meeting.prayers');
-		const id = meetingIdFor(locals, params.date);
 		const fd = await request.formData();
+		const id = meetingIdFor(locals, params.date, 'prayers', fd);
+		if (typeof id !== 'number') return id;
 		savePrayers(
 			locals.db,
 			id,
@@ -239,8 +246,9 @@ export const actions: Actions = {
 	},
 	music: async ({ request, locals, params }) => {
 		requireRole(locals.user, 'meeting.music');
-		const id = meetingIdFor(locals, params.date);
 		const fd = await request.formData();
+		const id = meetingIdFor(locals, params.date, 'music', fd);
+		if (typeof id !== 'number') return id;
 		const hymns = {} as Record<HymnSlot, { hymnNumber: number | null; freeText: string | null }>;
 		for (const slot of HYMN_SLOTS) {
 			const text = str(fd, `hymn_${slot}`);
@@ -261,8 +269,9 @@ export const actions: Actions = {
 	},
 	conductor: async ({ request, locals, params }) => {
 		requireRole(locals.user, 'meeting.conductor');
-		const id = meetingIdFor(locals, params.date);
 		const fd = await request.formData();
+		const id = meetingIdFor(locals, params.date, 'conductor', fd);
+		if (typeof id !== 'number') return id;
 		saveConductor(locals.db, id, optInt(fd, 'conductor'));
 		return { saved: 'conductor' };
 	}

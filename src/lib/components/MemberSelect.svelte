@@ -31,6 +31,7 @@
 	let open = $state(false);
 	let active = $state(0);
 	let root: HTMLDivElement;
+	let hidden: HTMLInputElement;
 	let syncedValue = $state<number | null | undefined>(undefined);
 
 	// Wenn die Seite einen anderen Sonntag lädt, den gewählten Wert nachziehen.
@@ -54,6 +55,7 @@
 
 	function choose(o: Option | null) {
 		selected = o?.id ?? null;
+		queueMicrotask(() => hidden.dispatchEvent(new Event('change', { bubbles: true })));
 		query = '';
 		open = false;
 	}
@@ -88,7 +90,7 @@
 </script>
 
 <div class="combo" bind:this={root} onfocusout={onFocusOut}>
-	<input type="hidden" {name} {form} value={serialize(selected)} />
+	<input type="hidden" {name} {form} bind:this={hidden} value={serialize(selected)} />
 	<input
 		{id}
 		type="text"

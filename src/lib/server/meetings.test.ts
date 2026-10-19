@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import { createDb, type Db } from './db';
 import { createHymn } from './hymns';
 import { createMember } from './members';
-import { adjacentMeetingDates, createMeeting, ensureSundays, getMeetingByDate, hasProgram, listMeetings, loadMeetingFullByDate, saveAnnouncements, saveCallings, saveConductor, saveGeneral, saveMusic, savePrayers, saveTalks } from './meetings';
+import { adjacentMeetingDates, createMeeting, ensureSundays, getMeetingByDate, hasProgram, listMeetings, loadMeetingFullByDate, saveAnnouncements, saveCallings, saveConductor, saveGeneral, saveMusic, savePrayers, saveTalks, sectionVersions } from './meetings';
 
 let db: Db;
 beforeEach(() => {
@@ -120,5 +120,33 @@ describe('adjacentMeetingDates', () => {
 		expect(adjacentMeetingDates(db, '2026-09-13')).toEqual({ prev: '2026-09-06', next: '2026-09-27' });
 		expect(adjacentMeetingDates(db, '2026-09-06')).toEqual({ prev: null, next: '2026-09-13' });
 		expect(adjacentMeetingDates(db, '2026-09-27')).toEqual({ prev: '2026-09-13', next: null });
+	});
+});
+
+describe('sectionVersions', () => {
+	it('ändert sich nur für den Abschnitt, der bearbeitet wurde', () => {
+		const m = createMeeting(db, '2026-09-13');
+		const anna = createMember(db, { firstName: 'Anna', lastName: 'Rey' });
+		createHymn(db, { number: 202, title: 'Ich bin ein Kind von Gott' });
+		const v0 = sectionVersions(loadMeetingFullByDate(db, '2026-09-13')!);
+		expect(sectionVersions(loadMeetingFullByDate(db, '2026-09-13')!)).toEqual(v0);
+
+		saveTalks(db, m.id, [{ position: 1, memberId: anna.id, topic: null, durationMinutes: null, status: 'offen', note: null }]);
+		const v1 = sectionVersions(loadMeetingFullByDate(db, '2026-09-13')!);
+		expect(v1.program).not.toBe(v0.program);
+		expect(v1.music).toBe(v0.music);
+		expect(v1.prayers).toBe(v0.prayers);
+
+		savePrayers(db, m.id, [{ position: 1, memberId: anna.id, status: 'zugesagt' }]);
+		const v2 = sectionVersions(loadMeetingFullByDate(db, '2026-09-13')!);
+		expect(v2.prayers).not.toBe(v1.prayers);
+		expect(v2.program).not.toBe(v1.program);
+		expect(v2.music).toBe(v1.music);
+
+		saveConductor(db, m.id, anna.id);
+		const v3 = sectionVersions(loadMeetingFullByDate(db, '2026-09-13')!);
+		expect(v3.conductor).not.toBe(v2.conductor);
+		expect(v3.music).not.toBe(v2.music);
+		expect(v3.program).toBe(v2.program);
 	});
 });
