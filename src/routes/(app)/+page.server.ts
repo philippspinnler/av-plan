@@ -1,3 +1,4 @@
+import { redirect } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 import { formatDateLong, todayIso } from '$lib/dates';
 import { adjacentMeetingDates, listMeetings, loadMeetingFullByDate } from '$lib/server/meetings';
@@ -8,6 +9,7 @@ export const load: PageServerLoad = ({ locals, url }) => {
 	const today = todayIso();
 	const role = locals.user!.role;
 	const showProgram = can(role, 'program.view');
+	if (!showProgram && can(role, 'youth.view')) redirect(303, '/jugend');
 	const showPrayers = can(role, 'meeting.prayers');
 	/** Role "Gebete": prayers only, no topics, hymns or music. */
 	const showHymns = can(role, 'hymns.view');
