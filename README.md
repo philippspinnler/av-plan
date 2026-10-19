@@ -34,6 +34,18 @@ DATABASE_PATH=data/app.db npm run import -- import/av-programm.xlsx import/liede
 docker compose up -d
 ```
 
+## Import Jugend aus Airtable
+
+Zuerst unter Einstellungen die Jugendlichen und die Berufungen (Bischofschaft, JD/JM-Leitung) erfassen, denn die Airtable kennt nur Vornamen. Dann die Tabellen "JD/JM Programm" und "Sonntagsklassen" als CSV exportieren (Grid-Ansicht, Download CSV) und bei gestopptem Container auf dem Host importieren:
+
+```bash
+docker compose stop
+DATABASE_PATH=data/app.db npm run import:jugend -- import/aktivitaeten.csv import/klassen.csv
+docker compose up -d
+```
+
+Nicht auflösbare Vornamen werden als Hinweis ausgegeben und im Feld "Details" des Termins vermerkt. Ein erneuter Import überschreibt die Termine desselben Datums.
+
 ## Entwicklung
 
 ```bash
