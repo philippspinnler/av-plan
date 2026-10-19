@@ -19,23 +19,6 @@
 </div>
 
 <div class="section">
-	<h2>Bischofschaft</h2>
-	<p class="hint">Leitung und Abwesenheiten beziehen sich auf diese drei Personen. Vorsitz: Bischof, sonst 1., sonst 2. Ratgeber.</p>
-	<div class="grid-3">
-		{#each data.bishopric as b (b.role)}
-			<form method="POST" action="?/bishopRole" use:enhance class="field">
-				<input type="hidden" name="role" value={b.role} />
-				<label for="role-{b.role}">{b.label}</label>
-				<select id="role-{b.role}" name="member" onchange={submitOnChange}>
-					<option value="">– niemand –</option>
-					{#each data.candidates as c}<option value={c.id} selected={c.id === b.memberId}>{c.label}</option>{/each}
-				</select>
-			</form>
-		{/each}
-	</div>
-</div>
-
-<div class="section">
 	<h2>Berufungen der Pfahlbeamten</h2>
 	<p class="hint">Berufungen für Pfahlbeamte, angezeigt in Klammern hinter dem Namen. Gäste mit Häkchen "Vorsitz" übernehmen den Vorsitz.</p>
 	<ul class="row-list">

@@ -5,6 +5,8 @@
 		{ href: '/einstellungen', label: 'Allgemein' },
 		{ href: '/einstellungen/mitglieder', label: 'Mitglieder' },
 		{ href: '/einstellungen/pfahlbeamte', label: 'Pfahlbeamte' },
+		{ href: '/einstellungen/berufungen', label: 'Berufungen' },
+		{ href: '/einstellungen/jugendliche', label: 'Jugendliche' },
 		{ href: '/einstellungen/benutzer', label: 'Benutzer' }
 	];
 	const isActive = (href: string) => (href === '/einstellungen' ? page.url.pathname === href : page.url.pathname.startsWith(href));
