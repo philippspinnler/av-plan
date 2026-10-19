@@ -1,7 +1,32 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import { page } from '$app/state';
 	import Icon from '$lib/components/Icon.svelte';
+	import { connectLive, live } from '$lib/live.svelte';
 	let { data, children } = $props();
+
+	// Live-Kanal: Änderungen anderer sofort sehen, Anwesenheit melden und anzeigen.
+	let conn: ReturnType<typeof connectLive> | undefined;
+	onMount(() => {
+		conn = connectLive(() => page.url.pathname);
+		return conn.disconnect;
+	});
+	$effect(() => {
+		page.url.pathname;
+		conn?.pageChanged();
+	});
+	const othersHere = $derived([...new Set(live.others.filter((o) => o.page === page.url.pathname && o.userId !== data.user?.id).map((o) => o.name))]);
+	/** Markiert das Feld (bzw. seinen .field-Rahmen), in dem jemand anderes gerade ist; CSS zeigt Rahmen und Namen. */
+	$effect(() => {
+		const marked: Element[] = [];
+		for (const o of live.others) {
+			if (o.page !== page.url.pathname || o.userId === data.user?.id || !o.field) continue;
+			const el = document.getElementById(o.field);
+			const box = el?.closest('.field') ?? el;
+			if (box) { box.setAttribute('data-live-user', o.name); marked.push(box); }
+		}
+		return () => marked.forEach((b) => b.removeAttribute('data-live-user'));
+	});
 	const isActive = (href: string) => (href === '/' ? page.url.pathname === '/' : page.url.pathname.startsWith(href));
 	const role = $derived(data.user?.role);
 	const accountRole = $derived(data.accountRole);
@@ -47,5 +72,8 @@
 	</div>
 {/if}
 <main class="container">
+	{#if othersHere.length}
+		<p class="live-bar no-print" aria-live="polite"><span class="live-dot" aria-hidden="true"></span>{othersHere.join(', ')} {othersHere.length === 1 ? 'ist' : 'sind'} auch auf dieser Seite</p>
+	{/if}
 	{@render children()}
 </main>

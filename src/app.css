@@ -182,3 +182,10 @@ textarea { min-height: 5rem; }
 	.col-day { width: auto; }
 	.combo-list { max-height: 14rem; }
 }
+
+/* Live: wer sonst noch hier ist, und in welchem Feld */
+.live-bar { display: flex; align-items: center; gap: 0.4rem; margin: 0 0 0.75rem; color: var(--muted); font-size: 0.9rem; }
+.live-dot { width: 0.6rem; height: 0.6rem; border-radius: 50%; background: #2a9d4b; }
+[data-live-user] { position: relative; }
+[data-live-user] input, [data-live-user] select, [data-live-user] textarea { outline: 2px solid #e0962e; outline-offset: 1px; }
+[data-live-user]::after { content: attr(data-live-user); position: absolute; top: -0.55rem; right: 0.3rem; background: #e0962e; color: #fff; font-size: 0.7rem; line-height: 1.1rem; padding: 0 0.4rem; border-radius: 4px; pointer-events: none; z-index: 2; }

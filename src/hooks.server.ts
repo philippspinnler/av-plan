@@ -3,6 +3,7 @@ import { getDb } from '$lib/server/db';
 import { userCount, validateSession } from '$lib/server/auth';
 import { SESSION_COOKIE, clearSessionCookie, setSessionCookie } from '$lib/server/cookies';
 import { ROLE_VIEW_COOKIE, effectiveRole } from '$lib/server/role-view';
+import { live } from '$lib/server/live';
 
 const PUBLIC = new Set(['/login', '/setup', '/health']);
 
@@ -35,7 +36,10 @@ export const handle: Handle = async ({ event, resolve }) => {
 	if (!event.locals.user && !isPublic) {
 		redirect(303, `/login?next=${encodeURIComponent(path)}`);
 	}
-	return resolve(event);
+	const response = await resolve(event);
+	// Jeder erfolgreiche POST ändert Daten (Formular-Aktionen): alle offenen Browser laden nach.
+	if (event.request.method === 'POST' && response.status < 400 && path !== '/presence') live.changed(path);
+	return response;
 };
 
 export const handleError: HandleServerError = ({ error, status }) => {
