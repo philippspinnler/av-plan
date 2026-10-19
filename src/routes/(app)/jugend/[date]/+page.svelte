@@ -1,8 +1,11 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
+	import { invalidateAll } from '$app/navigation';
 	import MemberSelect from '$lib/components/MemberSelect.svelte';
 	import { trackUnsaved } from '$lib/unsaved-fields';
 	let { data, form } = $props();
+	/** Cleared by a later successful save, which skips `applyAction` (see `saved`). */
+	let formError = $derived(form?.error);
 
 	type Side = 'jd' | 'jm' | 'both';
 	type Option = { value: string; label: string };
@@ -75,11 +78,14 @@
 				results[key] = { ok: true };
 				takenIdea[key] = null;
 				changedFields.saved(sent);
+				formError = undefined;
 			}
 			else if (result.type === 'failure') results[key] = { ok: false, error: String(result.data?.error ?? 'Fehler') };
 			else results[key] = { ok: false, error: result.error?.message ?? 'Fehler' };
 			if (result.status === 409) conflict = true;
-			await update({ reset: false });
+			// update() would also run applyAction, whose focus reset blurs the field the user is typing in.
+			if (result.type === 'success') await invalidateAll();
+			else await update({ reset: false });
 			submitNext();
 		};
 	}
@@ -192,7 +198,7 @@
 			<h2>{data.dateLabel}</h2>
 		</div>
 	</div>
-	{#if form?.error}<div class="error">{form.error}</div>{/if}
+	{#if formError}<div class="error">{formError}</div>{/if}
 	{#if data.offNotice}<p class="hint">{data.isSunday ? 'Keine Klasse' : 'Kein JD/JM'}: {data.offNotice}</p>{/if}
 	{#if data.breakHint}<p class="hint">Liegt in: {data.breakHint}</p>{/if}
 

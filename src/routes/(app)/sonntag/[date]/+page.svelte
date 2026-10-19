@@ -1,13 +1,15 @@
 <script lang="ts">
 	import { untrack } from 'svelte';
 	import { enhance } from '$app/forms';
-	import { replaceState } from '$app/navigation';
+	import { invalidateAll, replaceState } from '$app/navigation';
 	import { page } from '$app/state';
 	import HymnSelect from '$lib/components/HymnSelect.svelte';
 	import Icon from '$lib/components/Icon.svelte';
 	import MemberSelect from '$lib/components/MemberSelect.svelte';
 	import { trackUnsaved } from '$lib/unsaved-fields';
 	let { data, form } = $props();
+	/** Cleared by a later successful save, which skips `applyAction` (see `saved`). */
+	let formError = $derived(form?.error);
 
 	let announcements = $state<string[]>([]);
 	type CallingRow = { person: string; personName: string; calling: string };
@@ -131,11 +133,14 @@
 			if (result.type === 'success') {
 				results[key] = { ok: true };
 				changedFields.saved(sent);
+				formError = undefined;
 			}
 			else if (result.type === 'failure') results[key] = { ok: false, error: String(result.data?.error ?? 'Fehler') };
 			else results[key] = { ok: false, error: result.error?.message ?? 'Fehler' };
 			if (result.status === 409) conflict = true;
-			await update({ reset: false });
+			// update() would also run applyAction, whose focus reset blurs the field the user is typing in.
+			if (result.type === 'success') await invalidateAll();
+			else await update({ reset: false });
 			submitNext();
 		};
 	}
@@ -252,7 +257,7 @@
 				</div>
 			{/if}
 		</div>
-		{#if form?.error}<div class="error">{form.error}</div>{/if}
+		{#if formError}<div class="error">{formError}</div>{/if}
 
 		{#if tabs.length > 1}
 			<nav class="subnav tabs" aria-label="Bereiche">
