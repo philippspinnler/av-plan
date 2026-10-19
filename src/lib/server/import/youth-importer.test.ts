@@ -33,7 +33,7 @@ describe('importYouthCsv', () => {
 		const r = importYouthCsv(db, activities, classes);
 		expect(r.events).toBe(6);
 		const a = loadYouthEvent(db, '2026-10-14')!;
-		expect(a.event).toMatchObject({ kind: 'aktivitaet', joint: false, details: 'Treffpunkt, Kirche\nAbwesende Erw.: Widmer', topic: 'Glaube', snack: 'Znüni' });
+		expect(a.event).toMatchObject({ kind: 'aktivitaet', joint: false, details: 'Treffpunkt, Kirche', topic: 'Glaube', snack: 'Znüni' });
 		expect(a.parts.map((p) => [p.side, p.text])).toEqual([['jd', 'Spiele'], ['jm', 'Fussball']]);
 		const j = loadYouthEvent(db, '2026-10-21')!;
 		expect(j.event.joint).toBe(true);
@@ -57,6 +57,13 @@ describe('importYouthCsv', () => {
 			"2026-11-04: Leitung JD 'Urs' nicht gefunden",
 			"2026-10-14: Abwesende Erw. 'Widmer' nicht gefunden"
 		]));
+	});
+
+	it('reads a missing column as empty and warns once', () => {
+		const csv = ACT_HEAD.replace(',Leitung JM:', '') + '\n10/14/2026,Aktivitäten Pratteln JD AP,,,,Spiele,Mia,Fussball,,,';
+		const r = importYouthCsv(db, csv, classes);
+		expect(r.warnings.filter((w) => w.includes('Leitung JM'))).toEqual(["Spalte 'Leitung JM' fehlt in den Aktivitäten"]);
+		expect(loadYouthEvent(db, '2026-10-14')!.parts.map((p) => p.leader?.firstName ?? null)).toEqual(['Mia', null]);
 	});
 
 	it('turns a Friday stake row into a break', () => {

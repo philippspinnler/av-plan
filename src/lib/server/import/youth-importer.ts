@@ -15,7 +15,8 @@ export function parseCsv(text: string): string[][] {
 	let cur = '';
 	let quoted = false;
 	const endRow = () => { row.push(cur); cur = ''; if (row.some((c) => c.trim())) rows.push(row); row = []; };
-	for (let i = text.replace(/^﻿/, '').length ? 0 : 0, t = text.replace(/^﻿/, ''); i < t.length; i++) {
+	const t = text.replace(/^﻿/, '');
+	for (let i = 0; i < t.length; i++) {
 		const ch = t[i];
 		if (quoted) {
 			if (ch === '"' && t[i + 1] === '"') { cur += '"'; i++; }
@@ -31,11 +32,17 @@ export function parseCsv(text: string): string[][] {
 }
 
 const norm = (h: string) => h.trim().replace(/:$/, '').trim().toLowerCase();
-function records(csv: string): Record<string, string>[] {
+const ACT_COLUMNS = ['Datum', 'Art der Aktivität', 'Details', 'Geistiger Gedanke / Klasse', 'Thema', 'Aktivität JD', 'Leitung JD', 'Aktivität JM', 'Leitung JM', 'Anwesende Erw.', 'Abwesende Erw.', 'Snack'];
+const CLS_COLUMNS = ['Datum', 'Details', 'Thema', 'Geistiger Gedanke / Klasse', 'Anwesende Erw.', 'Abwesende Erw.', 'Leitung JM', 'Leitung JD'];
+
+/** Rows keyed by normalized header; missing expected columns read as '' after one warning. */
+function records(csv: string, columns: string[], source: string, warn: (w: string) => void): Record<string, string>[] {
 	const [head, ...rows] = parseCsv(csv);
 	if (!head) return [];
 	const keys = head.map(norm);
-	return rows.map((r) => Object.fromEntries(keys.map((k, i) => [k, (r[i] ?? '').trim()])));
+	const missing = columns.filter((c) => !keys.includes(norm(c)));
+	for (const c of missing) warn(`Spalte '${c}' fehlt in ${source}`);
+	return rows.map((r) => Object.fromEntries([...missing.map((c) => [norm(c), '']), ...keys.map((k, i) => [k, (r[i] ?? '').trim()])]));
 }
 
 function isoDate(s: string): string | null {
@@ -58,6 +65,10 @@ const JM_GROUPS: Record<string, string> = { 'priester kollegium': 'priester', 'l
 const JD_GROUPS: Record<string, string> = { 'jd der hoffnung': 'hoffnung', 'jd des glaubens': 'glauben', 'jd des lichts': 'licht', leitung: 'leitung' };
 
 export function importYouthCsv(db: Db, activitiesCsv: string, classesCsv: string, opts: { log?: (s: string) => void } = {}): YouthImportReport {
+	return db.transaction(() => importAll(db, activitiesCsv, classesCsv, opts));
+}
+
+function importAll(db: Db, activitiesCsv: string, classesCsv: string, opts: { log?: (s: string) => void }): YouthImportReport {
 	const report: YouthImportReport = { events: 0, breaks: 0, warnings: [] };
 	const warn = (w: string) => { report.warnings.push(w); opts.log?.(`Hinweis: ${w}`); };
 	const youth: Record<YouthSide, Member[]> = { jd: listYouth(db, 'jd').map((y) => y.member), jm: listYouth(db, 'jm').map((y) => y.member) };
@@ -81,11 +92,12 @@ export function importYouthCsv(db: Db, activitiesCsv: string, classesCsv: string
 		}
 		return out;
 	};
-	const adultEntries = (date: string, r: Record<string, string>, lost: string[]) => {
+	const adultEntries = (date: string, r: Record<string, string>) => {
 		const entries: { memberId: number; present: boolean }[] = [];
 		for (const [field, present] of [['Anwesende Erw.', true], ['Abwesende Erw.', false]] as const) {
 			for (const name of r[norm(field)].split(',')) {
-				const m = resolve(date, field, name.trim(), adults, lost);
+				// Unresolved adults only warn: `details` can become a public off reason.
+				const m = resolve(date, field, name.trim(), adults, []);
 				if (m) entries.push({ memberId: m.id, present });
 			}
 		}
@@ -102,7 +114,7 @@ export function importYouthCsv(db: Db, activitiesCsv: string, classesCsv: string
 		dates.add(date);
 	};
 
-	for (const r of records(activitiesCsv)) {
+	for (const r of records(activitiesCsv, ACT_COLUMNS, 'den Aktivitäten', warn)) {
 		const date = isoDate(r['datum']);
 		if (!date) { warn(`Ungültiges Datum '${r['datum']}' in den Aktivitäten`); continue; }
 		const label = r['art der aktivität'];
@@ -129,10 +141,10 @@ export function importYouthCsv(db: Db, activitiesCsv: string, classesCsv: string
 		const jd = part('jd');
 		const jm = part('jm');
 		const both = { text: [jd.text, jm.text].filter(Boolean).join('\n') || null, leaderMemberId: jd.leaderMemberId ?? jm.leaderMemberId, leaderGroup: null, thoughtMemberId: jd.thoughtMemberId ?? jm.thoughtMemberId };
-		store(date, { ...spec, details: r['details'], topic: r['thema'], snack: r['snack'] }, spec.joint ? { both } : { jd, jm }, adultEntries(date, r, lost), lost);
+		store(date, { ...spec, details: r['details'], topic: r['thema'], snack: r['snack'] }, spec.joint ? { both } : { jd, jm }, adultEntries(date, r), lost);
 	}
 
-	for (const r of records(classesCsv)) {
+	for (const r of records(classesCsv, CLS_COLUMNS, 'den Sonntagsklassen', warn)) {
 		const date = isoDate(r['datum']);
 		if (!date) { warn(`Ungültiges Datum '${r['datum']}' in den Sonntagsklassen`); continue; }
 		if (!isSunday(date)) { warn(`${date}: kein Sonntag, Zeile übersprungen`); continue; }
@@ -144,7 +156,7 @@ export function importYouthCsv(db: Db, activitiesCsv: string, classesCsv: string
 			return map[raw.toLowerCase()] ?? null;
 		};
 		const part = (side: YouthSide, map: Record<string, string>) => ({ text: null, leaderMemberId: null, leaderGroup: group(side, map), thoughtMemberId: th[side]?.id ?? null });
-		store(date, { kind: 'klasse', joint: false, details: r['details'], topic: r['thema'], snack: '' }, { jd: part('jd', JD_GROUPS), jm: part('jm', JM_GROUPS) }, adultEntries(date, r, lost), lost);
+		store(date, { kind: 'klasse', joint: false, details: r['details'], topic: r['thema'], snack: '' }, { jd: part('jd', JD_GROUPS), jm: part('jm', JM_GROUPS) }, adultEntries(date, r), lost);
 	}
 
 	report.events = dates.size;
