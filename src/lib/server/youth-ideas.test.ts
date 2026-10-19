@@ -34,4 +34,13 @@ describe('youth ideas', () => {
 		expect(closed.map((i) => i.text).sort()).toEqual(['A', 'B']);
 		expect(closed[0].createdByName).toBe('Anna Beispiel');
 	});
+	it('planIdea on a dismissed idea makes it planned only', () => {
+		const a = idea('A', 'jd');
+		const ev = db.insert(youthEvents).values({ date: '2026-11-04' }).returning().get();
+		dismissIdea(db, a.id);
+		planIdea(db, a.id, ev.id);
+		const [r] = listIdeas(db, { open: false });
+		expect(r.plannedEventId).toBe(ev.id);
+		expect(r.dismissedAt).toBeNull();
+	});
 });

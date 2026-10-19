@@ -23,7 +23,7 @@ export function dismissIdea(db: Db, id: number) {
 }
 
 export function planIdea(db: Db, id: number, eventId: number) {
-	db.update(youthIdeas).set({ plannedEventId: eventId }).where(eq(youthIdeas.id, id)).run();
+	db.update(youthIdeas).set({ plannedEventId: eventId, dismissedAt: null }).where(eq(youthIdeas.id, id)).run();
 }
 
 export function openIdeasFor(db: Db, side: YouthPartSide): YouthIdea[] {

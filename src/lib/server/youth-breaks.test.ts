@@ -27,6 +27,10 @@ describe('youth breaks', () => {
 	it('createBreak rejects reversed range', () => {
 		expect(() => createBreak(db, { fromDate: '2026-03-02', toDate: '2026-03-01', label: 'x', kind: 'pfahl' })).toThrow();
 	});
+	it('createBreak rejects malformed dates', () => {
+		for (const [fromDate, toDate] of [['abc', '2026-03-01'], ['2026-03-01', '2026-02-30'], ['2026-3-1', '2026-03-02']])
+			expect(() => createBreak(db, { fromDate, toDate, label: null, kind: 'pfahl' })).toThrow('Ungültiges Datum');
+	});
 	it('createBreak and deleteBreak round-trip', () => {
 		const b = createBreak(db, { fromDate: '2026-11-04', toDate: '2026-11-04', label: 'Pfahlkonferenz', kind: 'pfahl' });
 		expect(listBreaks(db, '2026-11-01').map((x) => x.id)).toContain(b.id);
