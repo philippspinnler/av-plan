@@ -3,11 +3,12 @@
 	import Icon from '$lib/components/Icon.svelte';
 	let { data } = $props();
 	const T = $derived(data.texts);
-	/** Ohne Änderungen entfällt der zweite Abschnitt; das Abendmahlslied rückt in den ersten. */
-	const hasChanges = $derived(!data.hasProgram ? false : data.releases.length > 0 || data.sustainings.length > 0 || data.stakeChanges);
-	const partNo = $derived((n: number) => (hasChanges || n < 2 ? n : n - 1));
 	/** Vollbild fürs iPad: nur das Blatt, ohne Leiste und Rahmen. Per Link mit ?vollbild=1 direkt erreichbar. */
 	let fullscreen = $state(page.url.searchParams.get('vollbild') === '1');
+	const hasChanges = $derived(!data.hasProgram ? false : data.releases.length > 0 || data.sustainings.length > 0 || data.stakeChanges);
+	/** Auf Papier steht der Abschnitt Entlassungen/Berufungen immer (zum Nachtragen von Hand); im Vollbild nur, wenn es welche gibt. */
+	const showChanges = $derived(hasChanges || !fullscreen);
+	const partNo = $derived((n: number) => (showChanges || n < 2 ? n : n - 1));
 </script>
 
 <svelte:window onkeydown={(e) => { if (e.key === 'Escape') fullscreen = false; }} />
@@ -51,29 +52,28 @@
 			<section>
 				<div class="row"><span class="k">Anfangslied</span><span>{data.hymns.anfang}</span></div>
 				<div class="row"><span class="k">Anfangsgebet</span><span>{data.prayers.opening}</span></div>
-				{#if !hasChanges}
-					<div class="row print-only"><span class="k">Entlassungen / Berufungen</span><span></span></div>
-					<div class="row"><span class="k">Abendmahlslied</span><span>{data.hymns.abendmahl}</span></div>
-				{/if}
+				{#if !showChanges}<div class="row"><span class="k">Abendmahlslied</span><span>{data.hymns.abendmahl}</span></div>{/if}
 			</section>
 		</div>
 
-		{#if hasChanges}
+		{#if showChanges}
 		<div class="part">
 			<span class="part-no" aria-hidden="true">2</span>
-			{#if data.releases.length}
+			{#if data.releases.length || !fullscreen}
 				<section class="boxed">
 					<h2>Entlassungen</h2>
 					<p class="intro">{T.releaseIntro}</p>
 					<ul>{#each data.releases as r}<li><strong>{r.personName}</strong>{#if r.calling}{' – '}{r.calling}{/if}</li>{/each}</ul>
+					<div class="row print-only"></div><div class="row print-only"></div>
 					<p class="intro">{T.releaseVote}</p>
 				</section>
 			{/if}
-			{#if data.sustainings.length}
+			{#if data.sustainings.length || !fullscreen}
 				<section class="boxed">
 					<h2>Berufungen</h2>
 					<p class="intro">{T.sustainIntro}</p>
 					<ul>{#each data.sustainings as s}<li><strong>{s.personName}</strong>{#if s.calling}{' – '}{s.calling}{/if}</li>{/each}</ul>
+					<div class="row print-only"></div><div class="row print-only"></div>
 					<p class="intro">{T.sustainVote}</p>
 					<p class="intro">{T.sustainOpposed}</p>
 				</section>
