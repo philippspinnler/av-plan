@@ -44,11 +44,17 @@
 				<h2>Bekanntmachungen</h2>
 				{#if data.announcements.length === 0}<div class="row muted">keine</div>{/if}
 				{#each data.announcements as a}<div class="row"><span class="box">□</span><span>{a}</span></div>{/each}
+				<!-- Leerzeilen zum Nachtragen von Hand, nur auf Papier (nicht im Vollbild am Tablet). -->
+				<div class="row print-only"><span class="box">□</span><span></span></div>
+				<div class="row print-only"><span class="box">□</span><span></span></div>
 			</section>
 			<section>
 				<div class="row"><span class="k">Anfangslied</span><span>{data.hymns.anfang}</span></div>
 				<div class="row"><span class="k">Anfangsgebet</span><span>{data.prayers.opening}</span></div>
-				{#if !hasChanges}<div class="row"><span class="k">Abendmahlslied</span><span>{data.hymns.abendmahl}</span></div>{/if}
+				{#if !hasChanges}
+					<div class="row print-only"><span class="k">Entlassungen / Berufungen</span><span></span></div>
+					<div class="row"><span class="k">Abendmahlslied</span><span>{data.hymns.abendmahl}</span></div>
+				{/if}
 			</section>
 		</div>
 
@@ -95,6 +101,7 @@
 					{#each data.program as p}
 						<div class="row"><span class="k">{p.label}</span><span class="d">{p.detail}</span><span class="t">{p.time}</span></div>
 					{/each}
+					<div class="row print-only"><span class="k"></span><span class="d"></span></div>
 				{/if}
 			</section>
 		</div>
@@ -139,6 +146,8 @@
 	@media (max-width: 220mm) { .sheet { width: 100%; min-height: auto; padding: 6mm; } }
 	.sheet.fullscreen { width: 100%; max-width: 1100px; min-height: 100vh; margin: 0 auto; padding: 8mm 10mm; box-shadow: none; font-size: clamp(12pt, 1.6vw, 15pt); }
 	.sheet.fullscreen .row .k { flex-basis: 64mm; }
+	.sheet.fullscreen .print-only { display: none; }
+	.print-only { min-height: 5.5mm; }
 	:global(body:has(.sheet.fullscreen)) { background: #fff; }
 	.close-fs { position: fixed; top: 0.5rem; right: 0.5rem; z-index: 10; opacity: 0.6; }
 	.close-fs:hover { opacity: 1; }

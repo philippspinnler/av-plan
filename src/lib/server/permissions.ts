@@ -15,6 +15,8 @@ export type Action =
 	| 'members.stats'
 	| 'ask.talks'
 	| 'ask.prayers'
+	| 'notes.talk'
+	| 'notes.prayer'
 	| 'users.manage'
 	| 'settings.edit';
 
@@ -32,6 +34,8 @@ const MATRIX: Record<Action, Role[]> = {
 	'members.stats': ['admin', 'bischofschaft'],
 	'ask.talks': ['admin', 'bischofschaft'],
 	'ask.prayers': ['admin', 'bischofschaft', 'gebete'],
+	'notes.talk': ['admin', 'bischofschaft'],
+	'notes.prayer': ['admin', 'bischofschaft', 'gebete'],
 	'users.manage': ['admin'],
 	'settings.edit': ['admin']
 };

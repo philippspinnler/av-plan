@@ -3,7 +3,7 @@ import { can, requireRole, roleLabel } from './permissions';
 
 const ACTIONS = [
 	'program.view', 'meeting.program', 'meeting.prayers', 'meeting.music', 'meeting.conductor', 'meetings.create',
-	'hymns.view', 'hymns.edit', 'members.create', 'members.edit', 'members.stats', 'ask.talks', 'ask.prayers', 'users.manage', 'settings.edit'
+	'hymns.view', 'hymns.edit', 'members.create', 'members.edit', 'members.stats', 'ask.talks', 'ask.prayers', 'notes.talk', 'notes.prayer', 'users.manage', 'settings.edit'
 ] as const;
 
 describe('can', () => {
@@ -20,6 +20,8 @@ describe('can', () => {
 		expect(can('bischofschaft', 'members.stats')).toBe(true);
 		expect(can('bischofschaft', 'members.create')).toBe(false);
 		expect(can('bischofschaft', 'members.edit')).toBe(false);
+		expect(can('bischofschaft', 'notes.talk')).toBe(true);
+		expect(can('bischofschaft', 'notes.prayer')).toBe(true);
 		expect(can('bischofschaft', 'users.manage')).toBe(false);
 		expect(can('bischofschaft', 'settings.edit')).toBe(false);
 	});
@@ -27,6 +29,9 @@ describe('can', () => {
 		expect(can('gebete', 'meeting.prayers')).toBe(true);
 		expect(can('gebete', 'ask.prayers')).toBe(true);
 		expect(can('gebete', 'ask.talks')).toBe(false);
+		expect(can('gebete', 'notes.prayer')).toBe(true);
+		expect(can('gebete', 'notes.talk')).toBe(false);
+		expect(can('musik', 'notes.prayer')).toBe(false);
 		expect(can('gebete', 'program.view')).toBe(false);
 		expect(can('gebete', 'meeting.program')).toBe(false);
 		expect(can('gebete', 'meeting.music')).toBe(false);
