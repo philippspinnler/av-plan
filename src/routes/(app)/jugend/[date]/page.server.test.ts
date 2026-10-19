@@ -51,6 +51,13 @@ describe('youth event actions', () => {
 		expect(loadYouthEvent(db, WED)!.event.details).toBe('Treffpunkt Kirche');
 	});
 
+	it('makes "Gemeinsam mit Basel" joint', async () => {
+		const { db, locals } = setup('jd_leitung');
+		const version = youthSectionVersions(loadYouthEvent(db, WED)!).common;
+		await call('common', locals, { version, kind: 'basel' });
+		expect(loadYouthEvent(db, WED)!.event).toMatchObject({ kind: 'basel', joint: true });
+	});
+
 	it('plans only open ideas of the saved side', async () => {
 		const { db, locals } = setup('jd_leitung');
 		const user = await createUser(db, { email: 'ida@example.org', name: 'Ida Idee', role: 'admin', password: 'geheim123' });

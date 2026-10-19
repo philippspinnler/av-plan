@@ -9,6 +9,8 @@
 	type Idea = { id: number; text: string; note: string | null };
 
 	const ev = $derived(data.full.event);
+	/** Follows the select before it is saved; "Gemeinsam mit Basel" is always joint. */
+	let kind = $derived(ev.kind);
 	const kindLabel = $derived(data.kinds.find((k) => k.value === ev.kind)?.label ?? ev.kind);
 	const part = (side: Side) => data.full.parts.find((p) => p.side === side);
 	const canBoth = $derived(data.canJd || data.canJm);
@@ -210,7 +212,7 @@
 			<div class="field">
 				<label for="kind">Art</label>
 				{#if data.canCommon}
-					<select id="kind" name="kind" form="commonForm">{#each data.kinds as k}<option value={k.value} selected={k.value === ev.kind}>{k.label}</option>{/each}</select>
+					<select id="kind" name="kind" form="commonForm" onchange={(e) => (kind = e.currentTarget.value as typeof kind)}>{#each data.kinds as k}<option value={k.value} selected={k.value === ev.kind}>{k.label}</option>{/each}</select>
 				{:else}
 					<p>{kindLabel}</p>
 				{/if}
@@ -218,7 +220,7 @@
 			<div class="field">
 				<span class="label">JD und JM</span>
 				{#if data.canCommon}
-					<label class="check"><input type="checkbox" name="joint" value="1" form="commonForm" checked={ev.joint} /> gemeinsam</label>
+					<label class="check"><input type="checkbox" name="joint" value="1" form="commonForm" checked={ev.joint || kind === 'basel'} disabled={kind === 'basel'} /> gemeinsam</label>
 				{:else}
 					<p>{ev.joint ? 'gemeinsam' : 'getrennt'}</p>
 				{/if}

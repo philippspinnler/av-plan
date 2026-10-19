@@ -130,7 +130,7 @@ export const actions: Actions = {
 		if (topicUrl && !/^https?:\/\//i.test(topicUrl)) return fail(400, { error: 'Der Link muss mit http:// oder https:// beginnen.' });
 		saveYouthCommon(locals.db, full.event.id, {
 			kind,
-			joint: fd.get('joint') === '1',
+			joint: kind === 'basel' || fd.get('joint') === '1',
 			details: optStr(fd, 'details'),
 			topic: optStr(fd, 'topic'),
 			topicUrl,
