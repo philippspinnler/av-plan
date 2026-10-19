@@ -151,7 +151,7 @@ export function saveYouthCommon(db: Db, eventId: number, input: YouthCommonInput
 		const parts = tx.select().from(youthEventParts).where(eq(youthEventParts.eventId, eventId)).all();
 		const bySide = (s: YouthPartSide) => parts.find((p) => p.side === s);
 		tx.delete(youthEventParts).where(eq(youthEventParts.eventId, eventId)).run();
-		const row = (side: YouthPartSide, p: Omit<YouthPartInput, never>) =>
+		const row = (side: YouthPartSide, p: YouthPartInput) =>
 			tx.insert(youthEventParts).values({ eventId, side, text: p.text, leaderMemberId: p.leaderMemberId, leaderGroup: p.leaderGroup, thoughtMemberId: p.thoughtMemberId }).run();
 		if (input.joint) {
 			const jd = bySide('jd');
