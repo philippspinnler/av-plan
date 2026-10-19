@@ -51,6 +51,11 @@ describe('youth event actions', () => {
 		expect(loadYouthEvent(db, WED)!.event.details).toBe('Treffpunkt Kirche');
 	});
 
+	it('rejects a non-calendar date', () => {
+		const { locals } = setup('admin');
+		expect(() => load({ locals, params: { date: '2026-06-31' } } as never)).toThrow(expect.objectContaining({ status: 404 }));
+	});
+
 	it('makes "Gemeinsam mit Basel" joint', async () => {
 		const { db, locals } = setup('jd_leitung');
 		const version = youthSectionVersions(loadYouthEvent(db, WED)!).common;

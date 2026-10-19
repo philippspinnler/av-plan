@@ -1,6 +1,6 @@
 import { error, fail, type ActionFailure } from '@sveltejs/kit';
 import type { Action, Actions, PageServerLoad } from './$types';
-import { formatDateLong, isSunday, todayIso } from '$lib/dates';
+import { formatDateLong, isSunday, parseIso, todayIso, toIso } from '$lib/dates';
 import { YOUTH_LEADER_GROUPS, type Member, type Role, type YouthPartSide } from '$lib/server/db/schema';
 import { optInt, optStr, str } from '$lib/server/forms';
 import { displayName } from '$lib/server/members';
@@ -17,7 +17,7 @@ const DATE = /^\d{4}-\d{2}-\d{2}$/;
 const CONFLICT = 'Jemand anderes hat diesen Termin inzwischen geändert. Bitte die Seite neu laden, deine letzte Änderung geht dabei verloren.';
 
 function checkDate(date: string) {
-	if (!DATE.test(date) || !(isSunday(date) || isWednesday(date))) error(404, 'Kein gültiger Jugendtermin');
+	if (!DATE.test(date) || toIso(parseIso(date)) !== date || !(isSunday(date) || isWednesday(date))) error(404, 'Kein gültiger Jugendtermin');
 }
 
 function canSide(role: Role, side: YouthPartSide): boolean {
