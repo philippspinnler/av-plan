@@ -76,9 +76,9 @@ describe('youth events', () => {
 		ensureYouthEvents(db, '2026-10-19', 1);
 		const e = load('2026-10-21');
 		saveYouthPart(db, e.event.id, 'jd', { ...none, text: 'Film' });
-		saveYouthPart(db, e.event.id, 'jm', { ...none, text: 'Kart' });
+		saveYouthPart(db, e.event.id, 'jm', { ...none, text: 'Kart', leaderGroup: 'leitung' });
 		common(e, { joint: true });
-		expect(load('2026-10-21').parts.map((p) => [p.side, p.text])).toEqual([['both', 'Film\nKart']]);
+		expect(load('2026-10-21').parts.map((p) => [p.side, p.text, p.leaderGroup])).toEqual([['both', 'Film\nKart', 'leitung']]);
 		common(e, { joint: false });
 		expect(load('2026-10-21').parts.map((p) => [p.side, p.text])).toEqual([['jd', 'Film\nKart'], ['jm', 'Film\nKart']]);
 	});

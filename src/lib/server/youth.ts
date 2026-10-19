@@ -158,10 +158,11 @@ export function saveYouthCommon(db: Db, eventId: number, input: YouthCommonInput
 			const jd = bySide('jd');
 			const jm = bySide('jm');
 			if (!jd && !jm) return;
-			const src = jd ?? jm!;
 			row('both', {
 				text: [jd?.text, jm?.text].filter(Boolean).join('\n') || null,
-				leaderMemberId: src.leaderMemberId, leaderGroup: src.leaderGroup, thoughtMemberId: src.thoughtMemberId
+				leaderMemberId: jd?.leaderMemberId ?? jm?.leaderMemberId ?? null,
+				leaderGroup: jd?.leaderGroup ?? jm?.leaderGroup ?? null,
+				thoughtMemberId: jd?.thoughtMemberId ?? jm?.thoughtMemberId ?? null
 			});
 		} else {
 			const both = bySide('both');
