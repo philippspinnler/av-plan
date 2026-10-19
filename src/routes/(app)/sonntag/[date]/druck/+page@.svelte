@@ -43,7 +43,7 @@
 			<span class="part-no" aria-hidden="true">1</span>
 			<section>
 				<h2>Bekanntmachungen</h2>
-				{#if data.announcements.length === 0}<div class="row muted">keine</div>{/if}
+				{#if data.announcements.length === 0 && fullscreen}<div class="row muted">keine</div>{/if}
 				{#each data.announcements as a}<div class="row"><span class="box">□</span><span>{a}</span></div>{/each}
 				<!-- Leerzeilen zum Nachtragen von Hand, nur auf Papier (nicht im Vollbild am Tablet). -->
 				<div class="row print-only"><span class="box">□</span><span></span></div>
