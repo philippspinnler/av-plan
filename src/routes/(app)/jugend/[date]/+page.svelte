@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { untrack } from 'svelte';
 	import { enhance } from '$app/forms';
 	import MemberSelect from '$lib/components/MemberSelect.svelte';
+	import { trackUnsaved } from '$lib/unsaved-fields';
 	let { data, form } = $props();
 
 	type Side = 'jd' | 'jm' | 'both';
@@ -66,11 +66,13 @@
 	/** A form responded: keep the result, reload data, then the next form. */
 	function saved(key: string) {
 		pending++;
+		const sent = changedFields.sending(`${key}Form`);
 		return async ({ result, update }: { result: { type: string; status?: number; data?: Record<string, unknown>; error?: { message?: string } }; update: (o: { reset: boolean }) => Promise<void> }) => {
 			pending--;
 			if (result.type === 'success') {
 				results[key] = { ok: true };
 				takenIdea[key] = null;
+				changedFields.saved(sent);
 			}
 			else if (result.type === 'failure') results[key] = { ok: false, error: String(result.data?.error ?? 'Fehler') };
 			else results[key] = { ok: false, error: result.error?.message ?? 'Fehler' };
@@ -83,37 +85,23 @@
 		const field = document.getElementById(`${side}_text`) as HTMLInputElement | null;
 		if (!field || conflict) return;
 		field.value = idea.text;
+		changedFields.mark(field);
 		takenIdea[side] = idea.id;
 		touch(`${side}Form`);
 	}
-	/**
-	 * Svelte 5 hydration drops the cached value of SSR-rendered inputs, so the first data reload
-	 * after page load writes the server value into every field, even unchanged ones. That would wipe
-	 * typing in forms that are not saved yet (and in the focused field); keep those values across every reload.
-	 */
-	type Field = HTMLInputElement | HTMLSelectElement;
-	let kept: [Field, string, boolean][] = [];
+	const changedFields = trackUnsaved();
+	let kept: ReturnType<typeof changedFields.snapshot> = [];
 	$effect.pre(() => {
 		void data;
-		kept = untrack(() => {
-			const fields = [...new Set([...queue, ...dirty])].flatMap((id) => [...((document.getElementById(id) as HTMLFormElement | null)?.elements ?? [])]);
-			const focused = document.activeElement;
-			if (focused instanceof HTMLInputElement && focused.form) fields.push(focused);
-			return fields
-				.filter((el): el is Field => (el instanceof HTMLInputElement && el.type !== 'hidden') || el instanceof HTMLSelectElement)
-				.map((el) => [el, el.value, el instanceof HTMLInputElement && el.checked]);
-		});
+		kept = changedFields.snapshot();
 	});
 	$effect(() => {
 		void data;
-		for (const [el, value, checked] of kept) {
-			el.value = value;
-			if (el instanceof HTMLInputElement) el.checked = checked;
-		}
-		kept = [];
+		changedFields.restore(kept);
 	});
 	/** Field changes land here (fields attach to their form via form="…"). */
 	function onFieldChange(e: Event) {
+		changedFields.mark(e.target);
 		const formId = (e.target as HTMLInputElement | null)?.form?.id;
 		if (formId) touch(formId);
 	}
@@ -195,7 +183,7 @@
 <p class="no-print"><a href="/jugend">← Termine</a></p>
 
 <!-- svelte-ignore a11y_no_static_element_interactions -->
-<div class="has-savebar" onchange={onFieldChange} onkeydown={onFieldKey}>
+<div class="has-savebar" onchange={onFieldChange} oninput={(e) => changedFields.mark(e.target)} onkeydown={onFieldKey}>
 	<div class="section-title">
 		<div>
 			<span class="kind-tag">{kindLabel}</span>
