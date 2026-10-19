@@ -15,7 +15,7 @@ const activities = [
 	'10/21/2026,JD/AP Pratteln gemeinsam,,"JD: Mia, JM: Urs",,"Kochen\nund backen",Lea,,Reto,,,',
 	'10/23/2026,Pfahl-Aktivität,"Pfahlball",,,,,,,,,',
 	'10/28/2026,Keine Aktivität,Schulferien,,,,,,,,,',
-	'11/04/2026,Gemeinsam mit Basel,,"JD: Urs",,,Urs,,,,,'
+	'11/04/2026,Gemeinsam mit Basel,,"JD: Vreni",,,Vreni,,,,,'
 ].join('\n');
 const classes = [CLS_HEAD, '10/18/2026,,,"JD: Mia,JM: Urs",Vreni,,Priester Kollegium,JD des Glaubens', '10/25/2026,,,,,,Leitung,Leitung'].join('\n');
 
@@ -51,10 +51,10 @@ describe('importYouthCsv', () => {
 		const b = loadYouthEvent(db, '2026-11-04')!;
 		expect(b.event.kind).toBe('basel');
 		expect(b.event.joint).toBe(true);
-		expect(b.event.details).toBe('Geistiger Gedanke JD: Urs\nLeitung JD: Urs');
+		expect(b.event.details).toBe('Geistiger Gedanke JD: Vreni\nLeitung JD: Vreni');
 		expect(r.warnings).toEqual(expect.arrayContaining([
-			"2026-11-04: Geistiger Gedanke JD 'Urs' nicht gefunden",
-			"2026-11-04: Leitung JD 'Urs' nicht gefunden",
+			"2026-11-04: Geistiger Gedanke JD 'Vreni' nicht gefunden",
+			"2026-11-04: Leitung JD 'Vreni' nicht gefunden",
 			"2026-10-14: Abwesende Erw. 'Widmer' nicht gefunden"
 		]));
 	});
