@@ -102,7 +102,8 @@ function assemble(db: Db, from: string, to: string, rows: YouthEvent[]): YouthEv
 		const adults = adultRows.filter((a) => a.eventId === event.id).flatMap((a) => (people.has(a.memberId) ? [{ member: people.get(a.memberId)!, present: a.present }] : []));
 		const meetingKind = weekday === 'sunday' ? (meetingKinds.get(date) ?? null) : null;
 		const brk = weekday === 'wednesday' ? breakFor(breaks, date) : null;
-		const planned = parts.some(hasContent);
+		// A Sunday topic or a special Wednesday kind (Fireside, Basel, …) is a plan of its own.
+		const planned = parts.some(hasContent) || (weekday === 'sunday' && !!event.topic) || (event.kind !== defaultKind(date) && !OFF_KINDS.includes(event.kind));
 		const isOpen = event.kind === defaultKind(date) && !planned;
 
 		let status: YouthEventFull['status'] = planned ? 'planned' : 'open';

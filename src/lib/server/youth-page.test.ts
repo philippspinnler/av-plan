@@ -3,7 +3,7 @@ import { createDb, type Db } from './db';
 import { youthBreaks } from './db/schema';
 import { createMeeting, saveGeneral } from './meetings';
 import { createMember } from './members';
-import { ensureYouthEvents, listYouthEvents, saveYouthPart } from './youth';
+import { ensureYouthEvents, listYouthEvents, loadYouthEvent, saveYouthCommon, saveYouthPart } from './youth';
 import { compactText, newYouthPageToken, shortNames, youthPageItems } from './youth-page';
 import { setYouth } from './youth-people';
 
@@ -60,6 +60,14 @@ describe('youth page items', () => {
 		expect(compactText(big[0])).toBe('Aktivität · noch nicht geplant');
 		expect(compactText(big[1])).toBe('Kein JD/JM – Generalkonferenz');
 	});
+	it('shows a special Wednesday kind without parts as planned', () => {
+		ensureYouthEvents(db, '2026-10-21', 0);
+		const id = loadYouthEvent(db, '2026-10-21')!.event.id;
+		saveYouthCommon(db, id, { kind: 'basel', joint: true, details: null, topic: null, topicUrl: null, snack: null });
+		const { big } = youthPageItems(db, '2026-10-20');
+		expect(compactText(big[0])).toBe('Gemeinsam mit Basel');
+	});
+
 	it('shows first names only and hides people who are not youth', () => {
 		const lea = createMember(db, { firstName: 'Lea', lastName: 'Rey' });
 		const adult = createMember(db, { firstName: 'Urs', lastName: 'Bischof' });

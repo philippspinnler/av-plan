@@ -66,6 +66,12 @@ describe('youth events', () => {
 		expect(e.break?.label).toBe('Herbstferien');
 		expect(load('2026-10-25').break).toBeNull();
 	});
+	it('a Sunday topic or a special Wednesday kind counts as planned', () => {
+		ensureYouthEvents(db, '2026-10-19', 1);
+		common(load('2026-10-25'), { topic: 'Glaube' });
+		common(load('2026-10-21'), { kind: 'fireside' });
+		expect([load('2026-10-25').status, load('2026-10-21').status]).toEqual(['planned', 'planned']);
+	});
 	it('toggling joint merges and splits parts', () => {
 		ensureYouthEvents(db, '2026-10-19', 1);
 		const e = load('2026-10-21');

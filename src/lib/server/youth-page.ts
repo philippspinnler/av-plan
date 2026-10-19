@@ -48,7 +48,7 @@ function labels(date: string) {
 function toItem(e: YouthEventFull, names: Map<number, string>): YouthPageItem {
 	const date = e.event.date;
 	const name = (m: Member | null) => (m ? (names.get(m.id) ?? null) : null);
-	const kindLabel = e.status === 'off' ? 'Kein JD/JM' : e.event.joint ? 'Gemeinsam' : YOUTH_KIND_LABELS[e.event.kind];
+	const kindLabel = e.status === 'off' ? 'Kein JD/JM' : e.event.joint && e.event.kind !== 'basel' ? 'Gemeinsam' : YOUTH_KIND_LABELS[e.event.kind];
 	return {
 		date, weekday: e.weekday, ...labels(date), kindLabel, status: e.status, offLabel: e.offLabel,
 		topic: e.event.topic, topicUrl: e.event.topicUrl, snack: e.event.snack, joint: e.event.joint,
