@@ -2,7 +2,7 @@ import { error, fail } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 import { todayIso } from '$lib/dates';
 import { optStr } from '$lib/server/forms';
-import { askTables } from '$lib/server/fragen';
+import { askTables } from '$lib/server/ask';
 import { getMember, updateMember } from '$lib/server/members';
 import { can, requireRole } from '$lib/server/permissions';
 

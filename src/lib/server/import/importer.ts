@@ -7,7 +7,7 @@ import { createHymn, getHymnByNumber, updateHymn } from '../hymns';
 import { createMember, listMembers, matchByFirstName, matchMember, stakeFromAffiliation, updateMember } from '../members';
 import { ensureStakeCalling } from '../stake-callings';
 import { createMeeting, getMeetingByDate, loadMeetingFullByDate, saveGeneral, saveMusic, savePrayers, saveTalks, type TalkInput } from '../meetings';
-import { cellDateIso, cellNumber, cellSeconds, cellText, isIgnoredToken, parseSpezial, parseTalk } from './parse';
+import { cellDateIso, cellNumber, cellSeconds, cellText, isIgnoredToken, parseSpecial, parseTalk } from './parse';
 
 export interface ImportReport { members: number; hymns: number; meetings: number; unresolved: string[]; warnings: string[] }
 type Row = ExcelJS.Row;
@@ -146,7 +146,7 @@ function importProgram(db: Db, ws: ExcelJS.Worksheet | undefined, resolver: Memb
 		if (!isSunday(date)) { report.warnings.push(`Programm Zeile ${n}: ${date} ist kein Sonntag`); return; }
 		const isPast = date <= today;
 		const id = ensureMeeting(db, date, report);
-		const spezial = parseSpezial(txt(row, 4));
+		const spezial = parseSpecial(txt(row, 4));
 		saveGeneral(db, id, {
 			kind: spezial.kind,
 			theme: txt(row, 3) || null,
@@ -177,7 +177,7 @@ function importProgram(db: Db, ws: ExcelJS.Worksheet | undefined, resolver: Memb
 	});
 }
 
-function importLiederAv(db: Db, ws: ExcelJS.Worksheet | undefined, resolver: MemberResolver, report: ImportReport): void {
+function importHymnPlanning(db: Db, ws: ExcelJS.Worksheet | undefined, resolver: MemberResolver, report: ImportReport): void {
 	if (!ws) { report.warnings.push('Blatt Lieder AV fehlt'); return; }
 	ws.eachRow((row, n) => {
 		if (n < 3) return;
@@ -191,7 +191,7 @@ function importLiederAv(db: Db, ws: ExcelJS.Worksheet | undefined, resolver: Mem
 			ensureMeeting(db, date, report);
 			full = loadMeetingFullByDate(db, date)!;
 		}
-		const spezial = parseSpezial(txt(row, 2));
+		const spezial = parseSpecial(txt(row, 2));
 		const theme = txt(row, 3) || null;
 		if ((full.meeting.kind === 'normal' && spezial.kind !== 'normal') || (!full.meeting.theme && theme) || (!full.meeting.specialNote && spezial.note)) {
 			saveGeneral(db, full.meeting.id, {
@@ -243,7 +243,7 @@ export async function importWorkbooks(
 	log('Programm …');
 	importProgram(db, av.getWorksheet('Programm'), resolver, opts.today, report);
 	log('Liederplanung …');
-	importLiederAv(db, lp.getWorksheet('Lieder AV'), resolver, report);
+	importHymnPlanning(db, lp.getWorksheet('Lieder AV'), resolver, report);
 	report.unresolved = [...new Set(report.unresolved)].sort((a, b) => a.localeCompare(b, 'de'));
 	return report;
 }

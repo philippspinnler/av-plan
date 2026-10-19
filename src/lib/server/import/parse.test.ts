@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { cellDateIso, cellNumber, cellSeconds, cellText, isIgnoredToken, parseSpezial, parseTalk } from './parse';
+import { cellDateIso, cellNumber, cellSeconds, cellText, isIgnoredToken, parseSpecial, parseTalk } from './parse';
 
 describe('Zellen', () => {
 	it('cellText', () => {
@@ -36,25 +36,25 @@ describe('Zellen', () => {
 	});
 });
 
-describe('parseSpezial', () => {
+describe('parseSpecial', () => {
 	it('erkennt Typen und behält den Rest als Notiz', () => {
-		expect(parseSpezial('')).toEqual({ kind: 'normal', note: null });
-		expect(parseSpezial('Fastsonntag')).toEqual({ kind: 'fastsonntag', note: null });
-		expect(parseSpezial('Fastsonntag?')).toEqual({ kind: 'fastsonntag', note: null });
-		expect(parseSpezial('Faststonntag')).toEqual({ kind: 'fastsonntag', note: null });
-		expect(parseSpezial('Fastsonntag, Kindersegnung Koller')).toEqual({ kind: 'fastsonntag', note: 'Kindersegnung Koller' });
-		expect(parseSpezial('Generalkonferenz/Fastsonntag')).toEqual({ kind: 'generalkonferenz', note: 'Fastsonntag' });
-		expect(parseSpezial('Pfahlkonferenz')).toEqual({ kind: 'pfahlkonferenz', note: null });
-		expect(parseSpezial('Gemeindekonferenz')).toEqual({ kind: 'gemeindekonferenz', note: null });
-		expect(parseSpezial('Weihnachten / nur AV')).toEqual({ kind: 'weihnachten', note: 'nur AV' });
-		expect(parseSpezial('Ostern')).toEqual({ kind: 'ostern', note: null });
-		expect(parseSpezial('DKA')).toEqual({ kind: 'dka', note: null });
-		expect(parseSpezial('FHV, Kindersegnung')).toEqual({ kind: 'fhv', note: 'Kindersegnung' });
-		expect(parseSpezial('ÄK')).toEqual({ kind: 'aek', note: null });
-		expect(parseSpezial('JD')).toEqual({ kind: 'jd', note: null });
-		expect(parseSpezial('Fastsonntag, JM')).toEqual({ kind: 'jm', note: 'Fastsonntag' });
-		expect(parseSpezial('Objdekt')).toEqual({ kind: 'normal', note: 'Objdekt' });
-		expect(parseSpezial('Weihnachtsversammlung')).toEqual({ kind: 'weihnachten', note: null });
+		expect(parseSpecial('')).toEqual({ kind: 'normal', note: null });
+		expect(parseSpecial('Fastsonntag')).toEqual({ kind: 'fastsonntag', note: null });
+		expect(parseSpecial('Fastsonntag?')).toEqual({ kind: 'fastsonntag', note: null });
+		expect(parseSpecial('Faststonntag')).toEqual({ kind: 'fastsonntag', note: null });
+		expect(parseSpecial('Fastsonntag, Kindersegnung Koller')).toEqual({ kind: 'fastsonntag', note: 'Kindersegnung Koller' });
+		expect(parseSpecial('Generalkonferenz/Fastsonntag')).toEqual({ kind: 'generalkonferenz', note: 'Fastsonntag' });
+		expect(parseSpecial('Pfahlkonferenz')).toEqual({ kind: 'pfahlkonferenz', note: null });
+		expect(parseSpecial('Gemeindekonferenz')).toEqual({ kind: 'gemeindekonferenz', note: null });
+		expect(parseSpecial('Weihnachten / nur AV')).toEqual({ kind: 'weihnachten', note: 'nur AV' });
+		expect(parseSpecial('Ostern')).toEqual({ kind: 'ostern', note: null });
+		expect(parseSpecial('DKA')).toEqual({ kind: 'dka', note: null });
+		expect(parseSpecial('FHV, Kindersegnung')).toEqual({ kind: 'fhv', note: 'Kindersegnung' });
+		expect(parseSpecial('ÄK')).toEqual({ kind: 'aek', note: null });
+		expect(parseSpecial('JD')).toEqual({ kind: 'jd', note: null });
+		expect(parseSpecial('Fastsonntag, JM')).toEqual({ kind: 'jm', note: 'Fastsonntag' });
+		expect(parseSpecial('Objdekt')).toEqual({ kind: 'normal', note: 'Objdekt' });
+		expect(parseSpecial('Weihnachtsversammlung')).toEqual({ kind: 'weihnachten', note: null });
 	});
 });
 

@@ -28,9 +28,9 @@ async function writeFixtures(dir: string) {
 	pr.addRow([null, d(2026, 10, 4), null, 'Generalkonferenz']);
 	pr.addRow([null, d(2026, 10, 11), 'Gebet', 'Fastsonntag?', null, 'Urs', null, null, null, null, null, null, 'Anna Rey', 'Confirm', 'Unbekannt Neu', 'Einladen']);
 	pr.addRow([null, 'kein Datum']);
-	const avLieder = av.addWorksheet('Lieder');
-	avLieder.addRow([33, ' Hört, ihr Geschöpfe all, frohlockt!']);
-	avLieder.addRow([47, ' Herr und Gott der Himmelsheere']);
+	const avHymns = av.addWorksheet('Lieder');
+	avHymns.addRow([33, ' Hört, ihr Geschöpfe all, frohlockt!']);
+	avHymns.addRow([47, ' Herr und Gott der Himmelsheere']);
 	await av.xlsx.writeFile(path.join(dir, 'av.xlsx'));
 
 	const lp = new ExcelJS.Workbook();

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { createDb } from './db';
-import { askTables } from './fragen';
+import { askTables } from './ask';
 import { createMember } from './members';
 import { createMeeting, savePrayers, saveTalks } from './meetings';
 import { ensureStakeCalling } from './stake-callings';

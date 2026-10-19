@@ -202,12 +202,12 @@ export function saveMusic(
 	}
 ): { unknownNumbers: number[] } {
 	const meeting = db.select().from(meetings).where(eq(meetings.id, meetingId)).get();
-	const isFastsonntag = !!meeting && isFastLike(meeting.kind);
+	const isFastSunday = !!meeting && isFastLike(meeting.kind);
 	const unknownNumbers: number[] = [];
 	db.transaction((tx) => {
 		tx.delete(meetingHymns).where(eq(meetingHymns.meetingId, meetingId)).run();
 		for (const slot of HYMN_SLOTS) {
-			if (slot === 'zwischen' && isFastsonntag) continue;
+			if (slot === 'zwischen' && isFastSunday) continue;
 			const { hymnNumber, freeText } = input.hymns[slot];
 			let hymnId: number | null = null;
 			if (hymnNumber !== null) {

@@ -71,7 +71,7 @@ const KIND_KEYWORDS: [MeetingKind, string][] = [
 	['fastsonntag', 'faststonntag']
 ];
 
-export function parseSpezial(text: string): { kind: MeetingKind; note: string | null } {
+export function parseSpecial(text: string): { kind: MeetingKind; note: string | null } {
 	const lower = text.toLowerCase();
 	let kind: MeetingKind = 'normal';
 	let note = text;
