@@ -20,11 +20,13 @@ export function trackUnsaved() {
 	const changed = new Set<Field>();
 	/** Version of each form when its first unsaved field was marked. */
 	const baseVersion = new Map<string, string>();
+	/** Forms saved whose reload has not arrived yet: their hidden version is still the old one. */
+	const rebase = new Set<string>();
 	let focused: { el: Field; value: string; wasMarked: boolean } | null = null;
 
 	const remember = (el: Field) => {
 		const v = versionInput(el.form);
-		if (el.form && v && !baseVersion.has(el.form.id)) baseVersion.set(el.form.id, v.value);
+		if (el.form && v && !baseVersion.has(el.form.id) && !rebase.has(el.form.id)) baseVersion.set(el.form.id, v.value);
 	};
 	return {
 		mark(el: EventTarget | null) {
@@ -56,6 +58,7 @@ export function trackUnsaved() {
 			}
 			// ponytail: fields still marked are re-based on the version after this save's reload; a third save landing in between goes unnoticed.
 			baseVersion.delete(sent.formId);
+			rebase.add(sent.formId);
 		},
 		snapshot(): Snapshot {
 			for (const el of changed) if (!el.isConnected) changed.delete(el);
@@ -63,7 +66,10 @@ export function trackUnsaved() {
 			return take(changed);
 		},
 		restore(snap: Snapshot) {
+			const fresh = [...rebase];
+			rebase.clear();
 			for (const [el, value, checked] of snap) {
+				if (el.form && fresh.includes(el.form.id)) baseVersion.delete(el.form.id);
 				el.value = value;
 				if (el instanceof HTMLInputElement) el.checked = checked;
 				remember(el);

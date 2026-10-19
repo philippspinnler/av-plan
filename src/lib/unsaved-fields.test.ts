@@ -64,4 +64,19 @@ describe('trackUnsaved', () => {
 		reload(t, form, field, { value: 'Mein', version: 'v2' });
 		expect([field.value, form.versionField.value]).toEqual(['Mein mehr', 'v2']);
 	});
+
+	it('takes the fresh version for a field marked between an own save and its reload', () => {
+		const t = trackUnsaved();
+		const form = fakeForm('f', 'v1');
+		const details = new FakeInput('Alt', form) as unknown as HTMLInputElement;
+		const snack = new FakeInput('', form) as unknown as HTMLInputElement;
+		details.value = 'Neu';
+		t.mark(details);
+		const sent = t.sending('f');
+		t.saved(sent);
+		snack.value = 'Chi';
+		t.mark(snack);
+		reload(t, form, details, { value: 'Neu', version: 'v2' });
+		expect([snack.value, form.versionField.value]).toEqual(['Chi', 'v2']);
+	});
 });
