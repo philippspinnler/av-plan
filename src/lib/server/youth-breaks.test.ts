@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { createDb, type Db } from './db';
 import { youthBreaks } from './db/schema';
-import { breakFor, listBreaks } from './youth-breaks';
+import { breakFor, createBreak, deleteBreak, listBreaks } from './youth-breaks';
 
 let db: Db;
 beforeEach(() => {
@@ -23,5 +23,14 @@ describe('youth breaks', () => {
 		expect(breakFor(all, '2026-10-14')?.label).toBe('Herbstferien');
 		expect(breakFor(all, '2027-01-03')?.label).toBe('Weihnachtsferien');
 		expect(breakFor(all, '2026-10-17')).toBeNull();
+	});
+	it('createBreak rejects reversed range', () => {
+		expect(() => createBreak(db, { fromDate: '2026-03-02', toDate: '2026-03-01', label: 'x', kind: 'pfahl' })).toThrow();
+	});
+	it('createBreak and deleteBreak round-trip', () => {
+		const b = createBreak(db, { fromDate: '2026-11-04', toDate: '2026-11-04', label: 'Pfahlkonferenz', kind: 'pfahl' });
+		expect(listBreaks(db, '2026-11-01').map((x) => x.id)).toContain(b.id);
+		deleteBreak(db, b.id);
+		expect(listBreaks(db, '2026-11-01').map((x) => x.id)).not.toContain(b.id);
 	});
 });
