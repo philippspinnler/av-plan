@@ -7,7 +7,9 @@
 		{ value: 'bischofschaft', label: 'Bischofschaft' },
 		{ value: 'musik', label: 'Musik' },
 		{ value: 'gebete', label: 'Gebete' },
-		{ value: 'dirigent', label: 'Dirigent/in' }
+		{ value: 'dirigent', label: 'Dirigent/in' },
+		{ value: 'jm_berater', label: 'JM-Berater' },
+		{ value: 'jd_leitung', label: 'JD-Leitung' }
 	];
 	let copied = $state(false);
 	const invited = $derived(form?.invited);

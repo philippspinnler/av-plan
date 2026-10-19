@@ -18,7 +18,11 @@ export type Action =
 	| 'notes.talk'
 	| 'notes.prayer'
 	| 'users.manage'
-	| 'settings.edit';
+	| 'settings.edit'
+	| 'youth.view'
+	| 'youth.jm'
+	| 'youth.jd'
+	| 'youth.common';
 
 const MATRIX: Record<Action, Role[]> = {
 	'program.view': ['admin', 'bischofschaft'],
@@ -37,7 +41,11 @@ const MATRIX: Record<Action, Role[]> = {
 	'notes.talk': ['admin', 'bischofschaft'],
 	'notes.prayer': ['admin', 'bischofschaft', 'gebete'],
 	'users.manage': ['admin'],
-	'settings.edit': ['admin']
+	'settings.edit': ['admin'],
+	'youth.view': ['admin', 'bischofschaft', 'jm_berater', 'jd_leitung'],
+	'youth.jm': ['admin', 'bischofschaft', 'jm_berater'],
+	'youth.jd': ['admin', 'jd_leitung'],
+	'youth.common': ['admin', 'bischofschaft', 'jm_berater', 'jd_leitung']
 };
 
 export function can(role: Role, action: Action): boolean {
@@ -50,5 +58,5 @@ export function requireRole(user: { role: Role } | null | undefined, action: Act
 }
 
 export function roleLabel(role: Role): string {
-	return { admin: 'Admin', bischofschaft: 'Bischofschaft', gebete: 'Gebete', musik: 'Musik', dirigent: 'Dirigent/in' }[role];
+	return { admin: 'Admin', bischofschaft: 'Bischofschaft', gebete: 'Gebete', musik: 'Musik', dirigent: 'Dirigent/in', jm_berater: 'JM-Berater', jd_leitung: 'JD-Leitung' }[role];
 }

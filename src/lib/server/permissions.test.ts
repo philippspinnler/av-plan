@@ -3,10 +3,23 @@ import { can, requireRole, roleLabel } from './permissions';
 
 const ACTIONS = [
 	'program.view', 'meeting.program', 'meeting.prayers', 'meeting.music', 'meeting.conductor', 'meetings.create',
-	'hymns.view', 'hymns.edit', 'members.create', 'members.edit', 'members.stats', 'ask.talks', 'ask.prayers', 'notes.talk', 'notes.prayer', 'users.manage', 'settings.edit'
+	'hymns.view', 'hymns.edit', 'members.create', 'members.edit', 'members.stats', 'ask.talks', 'ask.prayers', 'notes.talk', 'notes.prayer', 'users.manage', 'settings.edit',
+	'youth.view', 'youth.jm', 'youth.jd', 'youth.common'
 ] as const;
 
 describe('can', () => {
+	it('youth: bishopric edits JM only, JD-Leitung edits JD only, both see everything', () => {
+		for (const r of ['admin', 'bischofschaft', 'jm_berater', 'jd_leitung'] as const) expect(can(r, 'youth.view')).toBe(true);
+		expect(can('bischofschaft', 'youth.jm')).toBe(true);
+		expect(can('bischofschaft', 'youth.jd')).toBe(false);
+		expect(can('jm_berater', 'youth.jd')).toBe(false);
+		expect(can('jd_leitung', 'youth.jd')).toBe(true);
+		expect(can('jd_leitung', 'youth.jm')).toBe(false);
+		expect(can('jd_leitung', 'youth.common')).toBe(true);
+		expect(can('gebete', 'youth.view')).toBe(false);
+		expect(can('musik', 'youth.common')).toBe(false);
+		expect(roleLabel('jd_leitung')).toBe('JD-Leitung');
+	});
 	it('admin may do everything', () => {
 		for (const a of ACTIONS) expect(can('admin', a)).toBe(true);
 	});

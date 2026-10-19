@@ -1,7 +1,7 @@
 import { sql } from 'drizzle-orm';
 import { integer, sqliteTable, text, uniqueIndex } from 'drizzle-orm/sqlite-core';
 
-export const ROLES = ['admin', 'bischofschaft', 'gebete', 'musik', 'dirigent'] as const;
+export const ROLES = ['admin', 'bischofschaft', 'gebete', 'musik', 'dirigent', 'jm_berater', 'jd_leitung'] as const;
 export type Role = (typeof ROLES)[number];
 export const MEETING_KINDS = ['normal', 'fastsonntag', 'dka', 'fhv', 'aek', 'jd', 'jm', 'ostern', 'weihnachten', 'gemeindekonferenz', 'generalkonferenz', 'pfahlkonferenz', 'keine'] as const;
 /** Sundays without fixed speakers and without intermediate hymn (behave like a fast Sunday). */
@@ -18,6 +18,24 @@ export const CALLING_KINDS = ['entlassung', 'berufung'] as const;
 export const MEMBER_KINDS = ['gemeinde', 'pfahl'] as const;
 export type MemberKind = (typeof MEMBER_KINDS)[number];
 export type CallingKind = (typeof CALLING_KINDS)[number];
+
+export const YOUTH_SIDES = ['jd', 'jm'] as const;
+export type YouthSide = (typeof YOUTH_SIDES)[number];
+export const YOUTH_GROUPS: Record<YouthSide, readonly string[]> = {
+	jd: ['hoffnung', 'glauben', 'licht'],
+	jm: ['diakone', 'lehrer', 'priester']
+};
+export const YOUTH_LEADER_GROUPS: Record<YouthSide, readonly string[]> = {
+	jd: [...YOUTH_GROUPS.jd, 'leitung'],
+	jm: [...YOUTH_GROUPS.jm, 'leitung']
+};
+export const YOUTH_LEADER_ROLES = ['jm_berater', 'jd_beraterin', 'jd_praesidentin', 'jd_ratgeberin1', 'jd_ratgeberin2'] as const;
+export type YouthLeaderRole = (typeof YOUTH_LEADER_ROLES)[number];
+export const YOUTH_EVENT_KINDS = ['klasse', 'erwachsene', 'aktivitaet', 'basel', 'fireside', 'uebertragung', 'pfahl', 'tempel', 'ferien', 'keine'] as const;
+export type YouthEventKind = (typeof YOUTH_EVENT_KINDS)[number];
+export const YOUTH_PART_SIDES = ['jd', 'jm', 'both'] as const;
+export type YouthPartSide = (typeof YOUTH_PART_SIDES)[number];
+export const YOUTH_BREAK_KINDS = ['ferien', 'pfahl', 'tempel'] as const;
 
 const now = sql`(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))`;
 const timestamps = {
@@ -173,6 +191,75 @@ export const settings = sqliteTable('settings', {
 	value: text('value').notNull()
 });
 
+export const youth = sqliteTable('youth', {
+	id: integer('id').primaryKey({ autoIncrement: true }),
+	memberId: integer('member_id').notNull().unique().references(() => members.id, { onDelete: 'cascade' }),
+	side: text('side', { enum: YOUTH_SIDES }).notNull(),
+	group: text('group').notNull()
+});
+
+export const youthLeaders = sqliteTable('youth_leaders', {
+	id: integer('id').primaryKey({ autoIncrement: true }),
+	memberId: integer('member_id').notNull().references(() => members.id, { onDelete: 'cascade' }),
+	role: text('role', { enum: YOUTH_LEADER_ROLES }).notNull()
+});
+
+export const youthEvents = sqliteTable('youth_events', {
+	id: integer('id').primaryKey({ autoIncrement: true }),
+	date: text('date').notNull().unique(),
+	kind: text('kind', { enum: YOUTH_EVENT_KINDS }).notNull().default('aktivitaet'),
+	joint: integer('joint', { mode: 'boolean' }).notNull().default(false),
+	details: text('details'),
+	topic: text('topic'),
+	topicUrl: text('topic_url'),
+	snack: text('snack'),
+	...timestamps
+});
+
+export const youthEventParts = sqliteTable(
+	'youth_event_parts',
+	{
+		id: integer('id').primaryKey({ autoIncrement: true }),
+		eventId: integer('event_id').notNull().references(() => youthEvents.id, { onDelete: 'cascade' }),
+		side: text('side', { enum: YOUTH_SIDES }).notNull(),
+		text: text('text'),
+		leaderMemberId: integer('leader_member_id').references(() => members.id),
+		leaderGroup: text('leader_group'),
+		thoughtMemberId: integer('thought_member_id').references(() => members.id)
+	},
+	(t) => [uniqueIndex('youth_event_parts_side').on(t.eventId, t.side)]
+);
+
+export const youthEventAdults = sqliteTable(
+	'youth_event_adults',
+	{
+		id: integer('id').primaryKey({ autoIncrement: true }),
+		eventId: integer('event_id').notNull().references(() => youthEvents.id, { onDelete: 'cascade' }),
+		memberId: integer('member_id').notNull().references(() => members.id, { onDelete: 'cascade' }),
+		present: integer('present', { mode: 'boolean' }).notNull().default(false)
+	},
+	(t) => [uniqueIndex('youth_event_adults_member').on(t.eventId, t.memberId)]
+);
+
+export const youthIdeas = sqliteTable('youth_ideas', {
+	id: integer('id').primaryKey({ autoIncrement: true }),
+	text: text('text').notNull(),
+	side: text('side', { enum: YOUTH_PART_SIDES }).notNull(),
+	note: text('note'),
+	createdBy: integer('created_by').references(() => users.id),
+	createdAt: text('created_at').notNull().default(now),
+	plannedEventId: integer('planned_event_id').references(() => youthEvents.id, { onDelete: 'set null' }),
+	dismissedAt: text('dismissed_at')
+});
+
+export const youthBreaks = sqliteTable('youth_breaks', {
+	id: integer('id').primaryKey({ autoIncrement: true }),
+	fromDate: text('from_date').notNull(),
+	toDate: text('to_date').notNull(),
+	label: text('label'),
+	kind: text('kind', { enum: YOUTH_BREAK_KINDS }).notNull()
+});
+
 export type User = typeof users.$inferSelect;
 export type MemberRow = typeof members.$inferSelect;
 export type Member = MemberRow & { calling: string | null };
@@ -180,3 +267,7 @@ export type StakeCalling = typeof stakeCallings.$inferSelect;
 export type Hymn = typeof hymns.$inferSelect;
 export type Meeting = typeof meetings.$inferSelect;
 export type Invite = typeof invites.$inferSelect;
+export type YouthEvent = typeof youthEvents.$inferSelect;
+export type YouthEventPart = typeof youthEventParts.$inferSelect;
+export type YouthIdea = typeof youthIdeas.$inferSelect;
+export type YouthBreak = typeof youthBreaks.$inferSelect;

@@ -30,7 +30,7 @@
 	const isActive = (href: string) => (href === '/' ? page.url.pathname === '/' : page.url.pathname.startsWith(href));
 	const role = $derived(data.user?.role);
 	const accountRole = $derived(data.accountRole);
-	const ROLE_LABELS: Record<string, string> = { admin: 'Admin', bischofschaft: 'Bischofschaft', gebete: 'Gebete', musik: 'Musik', dirigent: 'Dirigent/in' };
+	const ROLE_LABELS: Record<string, string> = { admin: 'Admin', bischofschaft: 'Bischofschaft', gebete: 'Gebete', musik: 'Musik', dirigent: 'Dirigent/in', jm_berater: 'JM-Berater', jd_leitung: 'JD-Leitung' };
 	function submitOnChange(e: Event) {
 		(e.currentTarget as HTMLSelectElement).form?.requestSubmit();
 	}
