@@ -195,7 +195,7 @@ export const youth = sqliteTable('youth', {
 	id: integer('id').primaryKey({ autoIncrement: true }),
 	memberId: integer('member_id').notNull().unique().references(() => members.id, { onDelete: 'cascade' }),
 	side: text('side', { enum: YOUTH_SIDES }).notNull(),
-	group: text('group').notNull()
+	group: text('group')
 });
 
 export const youthLeaders = sqliteTable('youth_leaders', {

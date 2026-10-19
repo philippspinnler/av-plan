@@ -1142,7 +1142,7 @@
           "name": "group",
           "type": "text",
           "primaryKey": false,
-          "notNull": true,
+          "notNull": false,
           "autoincrement": false
         }
       },
