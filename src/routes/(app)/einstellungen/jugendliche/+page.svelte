@@ -3,7 +3,7 @@
 	import MemberSelect from '$lib/components/MemberSelect.svelte';
 	let { data, form } = $props();
 	let newSide = $state<'jd' | 'jm'>('jd');
-	const submitOnChange = (e: Event) => (e.currentTarget as HTMLFormElement).requestSubmit();
+	const submitOnChange = (e: Event) => (e.currentTarget as HTMLSelectElement).form?.requestSubmit();
 </script>
 
 {#if form?.error}<div class="error">{form.error}</div>{/if}
@@ -11,35 +11,36 @@
 
 <div class="section">
 	<h2>Jugendliche</h2>
-	<table>
-		<thead><tr><th>Name</th><th>Seite</th><th>Gruppe</th><th></th></tr></thead>
-		<tbody>
-			{#each data.youth as y (y.memberId)}
-				<tr>
-					<td>{y.name}</td>
-					<td colspan="2">
-						<form method="POST" action="?/set" use:enhance onchange={submitOnChange} class="actions" style="margin: 0">
-							<input type="hidden" name="memberId" value={y.memberId} />
-							<select name="side" aria-label="Seite">
+	<!-- Forms live outside the table; the row's fields attach via form="…". -->
+	{#each data.youth as y (y.memberId)}
+		<form id="set-{y.memberId}" method="POST" action="?/set" use:enhance><input type="hidden" name="memberId" value={y.memberId} /></form>
+		<form id="remove-{y.memberId}" method="POST" action="?/remove" use:enhance><input type="hidden" name="memberId" value={y.memberId} /></form>
+	{/each}
+	<div class="table-wrap">
+		<table class="table stack youth-table">
+			<thead><tr><th>Name</th><th>Seite</th><th>Gruppe</th><th></th></tr></thead>
+			<tbody>
+				{#each data.youth as y (y.memberId)}
+					<tr>
+						<td class="td-main">{y.name}</td>
+						<td data-label="Seite">
+							<select name="side" aria-label="Seite" form="set-{y.memberId}" onchange={submitOnChange}>
 								<option value="jd" selected={y.side === 'jd'}>JD</option>
 								<option value="jm" selected={y.side === 'jm'}>JM</option>
 							</select>
-							<select name="group" aria-label="Gruppe">
+						</td>
+						<td data-label="Gruppe">
+							<select name="group" aria-label="Gruppe" form="set-{y.memberId}" onchange={submitOnChange}>
 								<option value="" selected={y.group === null}>–</option>
 								{#each data.groups[y.side] as g}<option value={g.id} selected={y.group === g.id}>{g.label}</option>{/each}
 							</select>
-						</form>
-					</td>
-					<td>
-						<form method="POST" action="?/remove" use:enhance>
-							<input type="hidden" name="memberId" value={y.memberId} />
-							<button class="btn btn-small" type="submit">entfernen</button>
-						</form>
-					</td>
-				</tr>
-			{/each}
-		</tbody>
-	</table>
+						</td>
+						<td class="td-actions"><button class="btn btn-small" type="submit" form="remove-{y.memberId}">entfernen</button></td>
+					</tr>
+				{/each}
+			</tbody>
+		</table>
+	</div>
 </div>
 
 <div class="section">
@@ -66,3 +67,8 @@
 		<button class="btn btn-primary" type="submit">Hinzufügen</button>
 	</form>
 </div>
+
+<style>
+	.youth-table select { min-width: 9rem; }
+	.youth-table .td-actions { text-align: right; }
+</style>
