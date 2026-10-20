@@ -1,5 +1,5 @@
 import { asc, eq, gte } from 'drizzle-orm';
-import { toIso, parseIso } from '$lib/dates';
+import { addDays, toIso, parseIso } from '$lib/dates';
 import type { Db } from './db';
 import { youthBreaks, type YouthBreak } from './db/schema';
 
@@ -8,8 +8,10 @@ export function listBreaks(db: Db, from?: string): YouthBreak[] {
 	return (from ? q.where(gte(youthBreaks.toDate, from)) : q).orderBy(asc(youthBreaks.fromDate)).all();
 }
 
-export function breakFor(breaks: YouthBreak[], date: string): YouthBreak | null {
-	return breaks.find((b) => b.fromDate <= date && date <= b.toDate) ?? null;
+/** Holidays cancel the Wednesdays inside them; a stake/temple/youth event up to the Saturday after a Wednesday cancels that Wednesday. */
+export function breakFor(breaks: YouthBreak[], wednesday: string): YouthBreak | null {
+	const saturday = addDays(wednesday, 3);
+	return breaks.find((b) => (b.kind === 'ferien' ? b.fromDate <= wednesday && wednesday <= b.toDate : b.fromDate <= saturday && wednesday <= b.toDate)) ?? null;
 }
 
 export const YOUTH_BREAK_KIND_LABELS: Record<YouthBreak['kind'], string> = { ferien: 'Ferien', pfahl: 'Pfahl-Aktivität', tempel: 'Tempel', supersamstag: 'Supersamstag', tanzabend: 'Tanzabend' };

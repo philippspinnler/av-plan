@@ -24,6 +24,15 @@ describe('youth breaks', () => {
 		expect(breakFor(all, '2027-01-03')?.label).toBe('Weihnachtsferien');
 		expect(breakFor(all, '2026-10-17')).toBeNull();
 	});
+	it('a Saturday event cancels the Wednesday of its week, holidays only the Wednesdays inside them', () => {
+		const sat = createBreak(db, { fromDate: '2026-11-14', toDate: '2026-11-14', label: null, kind: 'tanzabend' });
+		const all = listBreaks(db);
+		expect(breakFor(all, '2026-11-11')?.id).toBe(sat.id);
+		expect(breakFor(all, '2026-11-04')).toBeNull();
+		expect(breakFor(all, '2026-11-18')).toBeNull();
+		// Holidays starting on the Saturday leave that week's Wednesday untouched.
+		expect(breakFor(all, '2026-12-16')).toBeNull();
+	});
 	it('createBreak rejects reversed range', () => {
 		expect(() => createBreak(db, { fromDate: '2026-03-02', toDate: '2026-03-01', label: 'x', kind: 'pfahl' })).toThrow();
 	});
