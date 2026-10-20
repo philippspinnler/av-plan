@@ -42,9 +42,9 @@
 	<div class="inner">
 		<div class="nav-links">
 			{#if !data.youthOnly}<a href="/" class:active={isActive('/')}>Sonntage</a>{/if}
+			{#if data.canYouth}<a href="/jugend" class:active={isActive('/jugend')}>Jugend</a>{/if}
 			{#if data.canHymns}<a href="/lieder" class:active={isActive('/lieder')}>Lieder</a>{/if}
 			{#if data.canAsk}<a href="/fragen" class:active={isActive('/fragen')}>Anfragen</a>{/if}
-			{#if data.canYouth}<a href="/jugend" class:active={isActive('/jugend')}>Jugend</a>{/if}
 			{#if role === 'admin'}
 				<a href="/einstellungen/mitglieder" class:active={isActive('/einstellungen')}>Einstellungen</a>
 			{/if}
