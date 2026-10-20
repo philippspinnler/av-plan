@@ -8,7 +8,7 @@ import { hymnLabel, listHymns } from '$lib/server/hymns';
 import { displayName, listMembers } from '$lib/server/members';
 import { listStakeCallings } from '$lib/server/stake-callings';
 import {
-	KIND_LABELS, SLOT_LABELS, createMeeting, getMeetingByDate, hasProgram, loadMeetingFullByDate,
+	KIND_LABELS, SLOT_LABELS, STATUS_LABELS, createMeeting, getMeetingByDate, hasProgram, loadMeetingFullByDate,
 	saveAnnouncements, saveCallings, saveConductor, saveGeneral, saveMusic, savePrayers, saveTalks, sectionVersions, type Section, type TalkInput
 } from '$lib/server/meetings';
 import { can, requireRole } from '$lib/server/permissions';
@@ -121,7 +121,7 @@ export const load: PageServerLoad = ({ locals, params }) => {
 		open,
 		fastLike,
 		kinds: MEETING_KINDS.map((k) => ({ value: k, label: KIND_LABELS[k] })),
-		statuses: STATUSES.map((s) => ({ value: s, label: { offen: 'Offen', angefragt: 'Angefragt', zugesagt: 'Zugesagt' }[s] })),
+		statuses: STATUSES.map((s) => ({ value: s, label: STATUS_LABELS[s] })),
 		organistName: full.organist ? displayName(full.organist) : null,
 		conductorName: full.conductor ? displayName(full.conductor) : null,
 		presidingOptions: showProgram ? memberOptions(presidingPool, activity, 'plain', today, full.meeting.presidingMemberId) : [],

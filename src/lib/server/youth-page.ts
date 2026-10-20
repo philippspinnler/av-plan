@@ -1,5 +1,5 @@
 import { randomBytes } from 'node:crypto';
-import { addDays, parseIso } from '../dates';
+import { addDays, MONTHS_LONG, MONTHS_SHORT, parseIso, WEEKDAYS, WEEKDAYS_LONG } from '../dates';
 import type { Db } from './db';
 import type { Member, YouthPartSide } from './db/schema';
 import { listYouthEvents, YOUTH_KIND_LABELS, type YouthEventFull } from './youth';
@@ -22,10 +22,6 @@ export interface YouthPageItem {
 	parts: { side: YouthPartSide; label: 'Junge Damen' | 'Junge Männer' | null; text: string | null; details: string | null; leaderName: string | null; thoughtName: string | null; teacherName: string | null }[];
 }
 
-const DAYS_LONG = ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag'];
-const DAYS_SHORT = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
-const MONTHS_LONG = ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'];
-const MONTHS_SHORT = ['Jan.', 'Feb.', 'März', 'Apr.', 'Mai', 'Juni', 'Juli', 'Aug.', 'Sept.', 'Okt.', 'Nov.', 'Dez.'];
 const SIDE_LABELS = { jd: 'Junge Damen', jm: 'Junge Männer', both: null } as const;
 
 export const newYouthPageToken = () => randomBytes(18).toString('base64url');
@@ -39,9 +35,9 @@ export function shortNames(youth: Member[]): Map<number, string> {
 function labels(date: string) {
 	const d = parseIso(date);
 	return {
-		weekdayLabel: DAYS_LONG[d.getUTCDay()],
+		weekdayLabel: WEEKDAYS_LONG[d.getUTCDay()],
 		dateLabel: `${d.getUTCDate()}. ${MONTHS_LONG[d.getUTCMonth()]}`,
-		shortDate: `${DAYS_SHORT[d.getUTCDay()]} ${d.getUTCDate()}. ${MONTHS_SHORT[d.getUTCMonth()]}`
+		shortDate: `${WEEKDAYS[d.getUTCDay()]} ${d.getUTCDate()}. ${MONTHS_SHORT[d.getUTCMonth()]}`
 	};
 }
 

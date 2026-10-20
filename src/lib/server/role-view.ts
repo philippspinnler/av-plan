@@ -2,7 +2,7 @@ import { ROLES, type Role } from './db/schema';
 
 export const ROLE_VIEW_COOKIE = 'role_view';
 
-function isRole(value: string): value is Role {
+export function isRole(value: string): value is Role {
 	return (ROLES as readonly string[]).includes(value);
 }
 

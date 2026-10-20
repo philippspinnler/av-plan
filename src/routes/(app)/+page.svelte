@@ -1,9 +1,8 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import { monthLabel } from '$lib/dates';
 	import Icon from '$lib/components/Icon.svelte';
 	let { data } = $props();
-	const MONTHS = ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'];
-	const monthLabel = (date: string) => `${MONTHS[Number(date.slice(5, 7)) - 1]} ${date.slice(0, 4)}`;
 	const dayLabel = (date: string) => `${Number(date.slice(8, 10))}.`;
 	/** Open items of the box, each linking to the tab where it is resolved. */
 	const tabFor = (item: string) =>

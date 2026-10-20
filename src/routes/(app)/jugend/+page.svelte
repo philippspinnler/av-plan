@@ -1,8 +1,7 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import { monthLabel } from '$lib/dates';
 	let { data } = $props();
-	const MONTHS = ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'];
-	const monthLabel = (date: string) => `${MONTHS[Number(date.slice(5, 7)) - 1]} ${date.slice(0, 4)}`;
 	const groups = $derived(
 		data.rows.reduce<{ label: string; items: typeof data.rows }[]>((acc, r) => {
 			const label = monthLabel(r.date);

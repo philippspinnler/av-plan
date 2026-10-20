@@ -1,10 +1,10 @@
 import { fail } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 import { createInvite, deleteInvite, findUserByEmail, listOpenInvites, listUsers, setUserActive, updateUserRole } from '$lib/server/auth';
-import { ROLES, type Role } from '$lib/server/db/schema';
 import { int, str } from '$lib/server/forms';
 import { inviteText } from '$lib/server/invite-text';
 import { requireRole } from '$lib/server/permissions';
+import { isRole } from '$lib/server/role-view';
 
 export const load: PageServerLoad = ({ locals }) => {
 	requireRole(locals.user, 'users.manage');
@@ -13,8 +13,6 @@ export const load: PageServerLoad = ({ locals }) => {
 		invites: listOpenInvites(locals.db).map((i) => ({ id: i.id, name: i.name, email: i.email, role: i.role, expiresAt: i.expiresAt, token: i.token }))
 	};
 };
-
-const isRole = (r: string): r is Role => (ROLES as readonly string[]).includes(r);
 
 export const actions: Actions = {
 	invite: async ({ request, locals, url }) => {

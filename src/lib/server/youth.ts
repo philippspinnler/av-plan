@@ -1,13 +1,11 @@
-import { createHash } from 'node:crypto';
 import { and, asc, eq, gte, inArray, lte } from 'drizzle-orm';
 import { addDays, addMonths, isSunday, parseIso } from '../dates';
 import type { Db } from './db';
 import {
-	meetings, members, youthEventAdults, youthEventParts, youthEvents,
+	meetings, youthEventAdults, youthEventParts, youthEvents,
 	YOUTH_PART_SIDES, type Member, type MeetingKind, type YouthBreak, type YouthEvent, type YouthEventKind, type YouthPartSide
 } from './db/schema';
-import { memberQuery } from './members';
-import { hasProgram, KIND_LABELS } from './meetings';
+import { hasProgram, KIND_LABELS, membersById, versionHash } from './meetings';
 import { breakFor, listBreaks } from './youth-breaks';
 
 export const YOUTH_KIND_LABELS: Record<YouthEventKind, string> = {
@@ -73,10 +71,7 @@ function assemble(db: Db, from: string, to: string, rows: YouthEvent[]): YouthEv
 	const ids = rows.map((r) => r.id);
 	const partRows = ids.length ? db.select().from(youthEventParts).where(inArray(youthEventParts.eventId, ids)).all() : [];
 	const adultRows = ids.length ? db.select().from(youthEventAdults).where(inArray(youthEventAdults.eventId, ids)).orderBy(asc(youthEventAdults.id)).all() : [];
-	const memberIds = [...new Set([...partRows.flatMap((p) => [p.leaderMemberId, p.thoughtMemberId, p.teacherMemberId]), ...adultRows.map((a) => a.memberId)].filter((x): x is number => x !== null))];
-	const people = new Map<number, Member>(
-		memberIds.length ? memberQuery(db, inArray(members.id, memberIds)).all().map((m) => [m.id, m]) : []
-	);
+	const people = membersById(db, [...partRows.flatMap((p) => [p.leaderMemberId, p.thoughtMemberId, p.teacherMemberId]), ...adultRows.map((a) => a.memberId)]);
 	const pick = (id: number | null) => (id === null ? null : (people.get(id) ?? null));
 	const meetingKinds = new Map(db.select({ date: meetings.date, kind: meetings.kind }).from(meetings).where(and(gte(meetings.date, from), lte(meetings.date, to))).all().map((m) => [m.date, m.kind]));
 	const breaks = listBreaks(db, from);
@@ -192,17 +187,16 @@ export function saveYouthAdults(db: Db, eventId: number, entries: { memberId: nu
 }
 
 export function youthSectionVersions(full: YouthEventFull): Record<'common' | 'jd' | 'jm' | 'both' | 'adults', string> {
-	const hash = (x: unknown) => createHash('sha1').update(JSON.stringify(x)).digest('hex').slice(0, 12);
 	const e = full.event;
 	const part = (side: YouthPartSide) => {
 		const p = full.parts.find((x) => x.side === side);
-		return hash(p ? [p.text, p.details, p.leader?.id ?? null, p.leaderGroup, p.thought?.id ?? null, p.teacher?.id ?? null] : null);
+		return versionHash(p ? [p.text, p.details, p.leader?.id ?? null, p.leaderGroup, p.thought?.id ?? null, p.teacher?.id ?? null] : null);
 	};
 	return {
-		common: hash([e.kind, e.joint, e.details, e.topic, e.topicUrl, e.snack]),
+		common: versionHash([e.kind, e.joint, e.details, e.topic, e.topicUrl, e.snack]),
 		jd: part('jd'),
 		jm: part('jm'),
 		both: part('both'),
-		adults: hash(full.adults.map((a) => [a.member.id, a.present]))
+		adults: versionHash(full.adults.map((a) => [a.member.id, a.present]))
 	};
 }

@@ -1,9 +1,6 @@
 import { error, redirect, type RequestHandler } from '@sveltejs/kit';
-import { ROLES, type Role } from '$lib/server/db/schema';
 import { str } from '$lib/server/forms';
-import { ROLE_VIEW_COOKIE } from '$lib/server/role-view';
-
-const isRole = (r: string): r is Role => (ROLES as readonly string[]).includes(r);
+import { ROLE_VIEW_COOKIE, isRole } from '$lib/server/role-view';
 
 function sameOriginPath(referer: string | null, origin: string): string {
 	if (!referer) return '/';

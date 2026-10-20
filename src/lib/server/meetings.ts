@@ -72,7 +72,9 @@ export function ensureSundays(db: Db, fromIso: string, months = 12): number {
 	return db.insert(meetings).values(wanted.map((date) => ({ date }))).onConflictDoNothing().run().changes;
 }
 
-function membersById(db: Db, ids: (number | null | undefined)[]): Map<number, Member> {
+export const versionHash = (x: unknown) => createHash('sha1').update(JSON.stringify(x)).digest('hex').slice(0, 12);
+
+export function membersById(db: Db, ids: (number | null | undefined)[]): Map<number, Member> {
 	const wanted = [...new Set(ids.filter((x): x is number => typeof x === 'number'))];
 	const map = new Map<number, Member>();
 	if (wanted.length === 0) return map;
@@ -222,20 +224,19 @@ export type Section = 'program' | 'prayers' | 'music' | 'conductor';
  * if it differs from the current state, someone else changed that section in the meantime.
  */
 export function sectionVersions(full: MeetingFull): Record<Section, string> {
-	const hash = (x: unknown) => createHash('sha1').update(JSON.stringify(x)).digest('hex').slice(0, 12);
 	const m = full.meeting;
 	const prayers = full.prayers.map((p) => [p.position, p.member?.id ?? null, p.status]);
 	const music = [Object.values(full.hymns).map((h) => [h.hymn?.number ?? null, h.freeText]), m.organistMemberId, m.conductorMemberId, m.musicNote];
 	return {
-		program: hash([
+		program: versionHash([
 			m.kind, m.theme, m.specialNote, m.presidingMemberId, m.absences, m.guestMemberId, m.chairMemberId, m.stakeChanges,
 			prayers,
 			full.talks.map((t) => [t.position, t.member?.id ?? null, t.topic, t.durationMinutes, t.status, t.note]),
 			full.announcements,
 			full.callings
 		]),
-		prayers: hash(prayers),
-		music: hash(music),
-		conductor: hash(m.conductorMemberId)
+		prayers: versionHash(prayers),
+		music: versionHash(music),
+		conductor: versionHash(m.conductorMemberId)
 	};
 }

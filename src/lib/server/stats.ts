@@ -1,10 +1,10 @@
 import { desc, eq, inArray } from 'drizzle-orm';
 import { addDays, weeksBetween } from '../dates';
 import type { Db } from './db';
-import { FAST_LIKE_KINDS, isFastLike, meetingHymns, meetingPrayers, meetingTalks, meetings, type HymnSlot, type MeetingKind } from './db/schema';
-import type { MeetingFull } from './meetings';
+import { FAST_LIKE_KINDS, MEETING_KINDS, isFastLike, meetingHymns, meetingPrayers, meetingTalks, meetings, type HymnSlot, type MeetingKind } from './db/schema';
+import { SLOT_LABELS, hasProgram, type MeetingFull } from './meetings';
 
-const COUNTED: MeetingKind[] = ['normal', ...FAST_LIKE_KINDS, 'ostern', 'weihnachten', 'gemeindekonferenz'];
+const COUNTED = MEETING_KINDS.filter(hasProgram);
 const RATED: MeetingKind[] = ['normal', ...FAST_LIKE_KINDS, 'ostern', 'weihnachten'];
 
 export function isRated(kind: MeetingKind): boolean {
@@ -113,10 +113,9 @@ export function readiness(m: MeetingFull): { program: string[]; music: string[] 
 		const confirmed = m.talks.filter((t) => t.member && t.status === 'zugesagt').length;
 		if (confirmed < 2) program.push(`Ansprachen (${confirmed} von 2 zugesagt)`);
 	}
-	const slotNames = { anfang: 'Anfangslied', abendmahl: 'Abendmahlslied', schluss: 'Schlusslied' } as const;
 	for (const slot of ['anfang', 'abendmahl', 'schluss'] as const) {
 		const h = m.hymns[slot];
-		if (!h.hymn && !h.freeText) music.push(slotNames[slot]);
+		if (!h.hymn && !h.freeText) music.push(SLOT_LABELS[slot]);
 	}
 	if (!m.organist) music.push('Orgel');
 	if (!m.conductor) music.push('Dirigieren');
