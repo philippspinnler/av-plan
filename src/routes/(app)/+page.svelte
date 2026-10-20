@@ -40,6 +40,14 @@
 			{#if data.nav.next}<a class="btn btn-small" href="/?datum={data.nav.next}" aria-label="Nächster Sonntag">›</a>{:else}<span class="btn btn-small" aria-disabled="true">›</span>{/if}
 		</div>
 	</div>
+	{#if data.youth}
+		{@const av = !data.next.hasProgram ? { state: 'off', text: data.next.kindLabel } : openItems.length ? { state: 'todo', text: `offen: ${openItems.map((o) => o.label).join(', ')}` } : { state: 'ok', text: 'alles geplant' }}
+		<div class="tiles">
+			<a class="tile {av.state}" href="/sonntag/{data.next.date}"><span class="tile-title">Abendmahlsversammlung</span><span class="tile-date">{data.next.date.slice(8, 10)}.{data.next.date.slice(5, 7)}.{data.next.date.slice(0, 4)}</span><span class="tile-text">{av.text}</span></a>
+			<a class="tile {data.youth.klasse.state}" href="/jugend/{data.youth.klasse.date}"><span class="tile-title">JM-Klasse</span><span class="tile-date">{data.youth.klasse.dateLabel}</span><span class="tile-text">{data.youth.klasse.text}</span></a>
+			<a class="tile {data.youth.aktivitaet.state}" href="/jugend/{data.youth.aktivitaet.date}"><span class="tile-title">JM-Aktivität</span><span class="tile-date">{data.youth.aktivitaet.dateLabel}</span><span class="tile-text">{data.youth.aktivitaet.text}</span></a>
+		</div>
+	{/if}
 	<div class="card big-card" class:has-open={openItems.length > 0}>
 		{#if openItems.length}
 			<div class="todo-strip">

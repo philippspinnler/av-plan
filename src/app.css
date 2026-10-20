@@ -189,3 +189,16 @@ textarea { min-height: 5rem; }
 [data-live-user] { position: relative; }
 [data-live-user] input, [data-live-user] select, [data-live-user] textarea { outline: 2px solid #e0962e; outline-offset: 1px; }
 [data-live-user]::after { content: attr(data-live-user); position: absolute; top: -0.55rem; right: 0.3rem; background: #e0962e; color: #fff; font-size: 0.7rem; line-height: 1.1rem; padding: 0 0.4rem; border-radius: 4px; pointer-events: none; z-index: 2; }
+
+/* Status tiles above the upcoming Sunday: green = planned, red = open items, grey = nothing takes place */
+.tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; margin-bottom: 1rem; }
+.tile { display: flex; flex-direction: column; gap: 0.15rem; padding: 0.7rem 0.9rem; border-radius: var(--radius); text-decoration: none; color: inherit; border: 1px solid var(--line); background: var(--surface); }
+.tile.ok { background: #e3f3e8; border-color: #b7dfc4; }
+.tile.todo { background: #fee4e2; border-color: #f4b8b2; }
+.tile.off { background: #f1f1ee; color: var(--muted); }
+.tile-title { font-weight: 700; }
+.tile-date { font-size: 0.85rem; color: var(--muted); }
+.tile-text { font-size: 0.9rem; }
+.tile.ok .tile-text { color: var(--ok); font-weight: 600; }
+.tile.todo .tile-text { color: var(--danger); font-weight: 600; }
+@media (max-width: 640px) { .tiles { grid-template-columns: 1fr; } }
