@@ -168,8 +168,9 @@ function importAll(db: Db, activitiesCsv: string, classesCsv: string | null, opt
 			if (raw && !map[raw.toLowerCase()]) warn(`${date}: Leitung ${side.toUpperCase()} '${raw}' unbekannt`);
 			return map[raw.toLowerCase()] ?? null;
 		};
-		const part = (side: YouthSide, map: Record<string, string>) => ({ text: null, details: r['details'] || null, leaderMemberId: null, leaderGroup: group(side, map), thoughtMemberId: th[side]?.id ?? null });
-		store(date, { kind: 'klasse', joint: false, details: '', topic: r['thema'], snack: '' }, { jd: part('jd', JD_GROUPS), jm: part('jm', JM_GROUPS) }, adultEntries(date, r), lost);
+		// On class rows "Geistiger Gedanke / Klasse" names who teaches.
+		const part = (side: YouthSide, map: Record<string, string>) => ({ text: null, details: r['details'] || null, leaderMemberId: null, leaderGroup: group(side, map), thoughtMemberId: null, teacherMemberId: th[side]?.id ?? null });
+		store(date, { kind: 'klasse', joint: false, details: '', topic: r['thema'], snack: '' }, { jd: part('jd', JD_GROUPS), jm: part('jm', JM_GROUPS) }, [], lost);
 	}
 
 	report.events = dates.size;

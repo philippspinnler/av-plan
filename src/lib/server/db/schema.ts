@@ -226,7 +226,9 @@ export const youthEventParts = sqliteTable(
 		details: text('details'),
 		leaderMemberId: integer('leader_member_id').references(() => members.id),
 		leaderGroup: text('leader_group'),
-		thoughtMemberId: integer('thought_member_id').references(() => members.id)
+		thoughtMemberId: integer('thought_member_id').references(() => members.id),
+		/** Sunday class: who teaches (youth or adult). */
+		teacherMemberId: integer('teacher_member_id').references(() => members.id)
 	},
 	(t) => [uniqueIndex('youth_event_parts_side').on(t.eventId, t.side)]
 );

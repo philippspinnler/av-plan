@@ -35,7 +35,7 @@
 							{#if p.text && ev.weekday !== 'sunday'}<p class="what">{p.text}</p>{/if}
 							<p class="who">
 								{#if p.leaderName}Leitung: {p.leaderName}<br />{/if}
-								{#if p.thoughtName}Gedanke: {p.thoughtName}{/if}
+								{#if p.teacherName}Lehrer: {p.teacherName}{:else if p.thoughtName}Gedanke: {p.thoughtName}{/if}
 							</p>
 						</div>
 					{/each}

@@ -76,7 +76,7 @@ describe('youth page items', () => {
 		const e = listYouthEvents(db, '2026-10-21', '2026-10-21')[0];
 		saveYouthPart(db, e.event.id, 'jd', { text: 'Film', leaderMemberId: adult.id, leaderGroup: null, thoughtMemberId: lea.id });
 		const item = youthPageItems(db, '2026-10-20').big[0];
-		expect(item.parts).toEqual([{ side: 'jd', label: 'Junge Damen', text: 'Film', details: null, leaderName: null, thoughtName: 'Lea' }]);
+		expect(item.parts).toEqual([{ side: 'jd', label: 'Junge Damen', text: 'Film', details: null, leaderName: null, thoughtName: 'Lea', teacherName: null }]);
 		expect(compactText(item)).toBe('Aktivität · Film · Gedanke: Lea');
 		// A leader may give the thought: first name only, like the youth.
 		setLeaders(db, 'jd_beraterin', [adult.id]);

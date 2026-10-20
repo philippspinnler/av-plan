@@ -19,7 +19,7 @@ export interface YouthPageItem {
 	topicUrl: string | null;
 	snack: string | null;
 	joint: boolean;
-	parts: { side: YouthPartSide; label: 'Junge Damen' | 'Junge Männer' | null; text: string | null; details: string | null; leaderName: string | null; thoughtName: string | null }[];
+	parts: { side: YouthPartSide; label: 'Junge Damen' | 'Junge Männer' | null; text: string | null; details: string | null; leaderName: string | null; thoughtName: string | null; teacherName: string | null }[];
 }
 
 const DAYS_LONG = ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag'];
@@ -55,7 +55,8 @@ function toItem(e: YouthEventFull, names: Map<number, string>): YouthPageItem {
 		parts: e.parts.map((p) => ({
 			side: p.side, label: SIDE_LABELS[p.side], text: p.text, details: p.details,
 			leaderName: name(p.leader) ?? (p.leaderGroup ? (YOUTH_GROUP_LABELS[p.leaderGroup] ?? p.leaderGroup) : null),
-			thoughtName: name(p.thought)
+			thoughtName: name(p.thought),
+			teacherName: name(p.teacher)
 		}))
 	};
 }
@@ -90,7 +91,9 @@ export function compactText(i: YouthPageItem): string {
 		i.kindLabel,
 		i.weekday === 'sunday' ? i.topic : join(i.parts.map((p) => p.text)),
 		i.weekday === 'sunday' ? null : join(i.parts.map((p) => p.leaderName)) && `Leitung: ${join(i.parts.map((p) => p.leaderName))}`,
-		join(i.parts.map((p) => p.thoughtName)) && `Gedanke: ${join(i.parts.map((p) => p.thoughtName))}`
+		i.weekday === 'sunday'
+			? join(i.parts.map((p) => p.teacherName)) && `Lehrer: ${join(i.parts.map((p) => p.teacherName))}`
+			: join(i.parts.map((p) => p.thoughtName)) && `Gedanke: ${join(i.parts.map((p) => p.thoughtName))}`
 	];
 	return parts.filter(Boolean).join(' · ');
 }

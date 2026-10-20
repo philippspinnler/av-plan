@@ -40,7 +40,7 @@
 								{#if p.details}<p class="hint">{p.details}</p>{/if}
 								<p class="hint">
 									{#if p.leaderName}Leitung: {p.leaderName}<br />{/if}
-									{#if p.thoughtName}Gedanke: {p.thoughtName}{/if}
+									{#if p.teacherName}Lehrer: {p.teacherName}{:else if p.thoughtName}Gedanke: {p.thoughtName}{/if}
 								</p>
 							</div>
 						{/each}

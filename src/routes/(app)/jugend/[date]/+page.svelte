@@ -184,14 +184,25 @@
 					<MemberSelect id="{s.side}_leader" name="leader" form={formId} options={s.options} value={p?.leaderId ?? null} />
 				{/if}
 			</div>
-			<div class="field">
-				<label for="{s.side}_thought">Gedanke</label>
-				{#if s.canEdit}
-					<MemberSelect id="{s.side}_thought" name="thought" form={formId} options={s.thoughtOptions} value={p?.thoughtId ?? null} />
-				{:else}
-					<p>{p?.thoughtName ?? '–'}</p>
-				{/if}
-			</div>
+			{#if data.isSunday}
+				<div class="field">
+					<label for="{s.side}_teacher">Lehrer</label>
+					{#if s.canEdit}
+						<MemberSelect id="{s.side}_teacher" name="teacher" form={formId} options={s.thoughtOptions} value={p?.teacherId ?? null} />
+					{:else}
+						<p>{p?.teacherName ?? '–'}</p>
+					{/if}
+				</div>
+			{:else}
+				<div class="field">
+					<label for="{s.side}_thought">Gedanke</label>
+					{#if s.canEdit}
+						<MemberSelect id="{s.side}_thought" name="thought" form={formId} options={s.thoughtOptions} value={p?.thoughtId ?? null} />
+					{:else}
+						<p>{p?.thoughtName ?? '–'}</p>
+					{/if}
+				</div>
+			{/if}
 		</div>
 	</div>
 {/snippet}
@@ -288,6 +299,7 @@
 	{#if !data.off}
 		{#each sections as s (s.side)}{@render partSection(s)}{/each}
 
+		{#if !data.isSunday}
 		<div class="section">
 			<h2>Erwachsene</h2>
 			{#if !data.adults.length}
@@ -310,6 +322,7 @@
 				{/each}
 			</div>
 		</div>
+		{/if}
 	{/if}
 </div>
 

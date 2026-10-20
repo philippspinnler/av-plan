@@ -56,7 +56,7 @@ describe('importYouthCsv', () => {
 		expect(j.parts.map((p) => [p.side, p.text, p.leader?.firstName, p.thought?.firstName])).toEqual([['both', 'Kochen\nund backen', 'Lea', 'Mia']]);
 		expect(loadYouthEvent(db, '2026-10-28')!.event.kind).toBe('ferien');
 		const c = loadYouthEvent(db, '2026-10-18')!;
-		expect(c.parts.map((p) => [p.side, p.leaderGroup, p.thought?.firstName])).toEqual([['jd', 'glauben', 'Mia'], ['jm', 'priester', 'Urs']]);
+		expect(c.parts.map((p) => [p.side, p.leaderGroup, p.teacher?.firstName])).toEqual([['jd', 'glauben', 'Mia'], ['jm', 'priester', 'Urs']]);
 	});
 
 	it('resolves first names per side and warns on unknown', () => {

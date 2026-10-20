@@ -57,6 +57,13 @@
       "when": 1792481471138,
       "tag": "0007_youth_part_details",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "6",
+      "when": 1792482561838,
+      "tag": "0008_youth_part_teacher",
+      "breakpoints": true
     }
   ]
 }

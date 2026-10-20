@@ -57,7 +57,8 @@ function partAction(side: YouthPartSide): Action {
 			details: optStr(fd, 'details'),
 			leaderMemberId: optInt(fd, 'leader'),
 			leaderGroup,
-			thoughtMemberId: optInt(fd, 'thought')
+			thoughtMemberId: optInt(fd, 'thought'),
+			teacherMemberId: optInt(fd, 'teacher')
 		});
 		// An idea taken over into the text is planned together with it; foreign or closed ideas are ignored.
 		const idea = openIdeasFor(locals.db, side).find((i) => i.id === optInt(fd, 'ideaId'));
@@ -96,7 +97,9 @@ export const load: PageServerLoad = ({ locals, params }) => {
 				leaderName: name(p.leader),
 				leaderGroup: p.leaderGroup,
 				thoughtId: p.thought?.id ?? null,
-				thoughtName: name(p.thought)
+				thoughtName: name(p.thought),
+				teacherId: p.teacher?.id ?? null,
+				teacherName: name(p.teacher)
 			}))
 		},
 		versions: youthSectionVersions(full),
