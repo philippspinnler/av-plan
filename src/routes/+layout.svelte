@@ -6,7 +6,7 @@
 </script>
 
 <svelte:head>
-	<title>AVplan</title>
+	<title>Pulpit</title>
 	<link rel="icon" href={favicon} />
 </svelte:head>
 

@@ -1,8 +1,8 @@
 services:
   app:
-    image: philippspinnler/av-plan:latest
+    image: philippspinnler/pulpit:latest
     build: .
-    container_name: av-plan
+    container_name: pulpit
     ports:
       - '3000:3000'
     volumes:
