@@ -60,3 +60,6 @@ export function requireRole(user: { role: Role } | null | undefined, action: Act
 export function roleLabel(role: Role): string {
 	return { admin: 'Admin', bischofschaft: 'Bischofschaft', gebete: 'Gebete', musik: 'Musik', dirigent: 'Dirigent/in', jm_berater: 'JM-Berater', jd_leitung: 'JD-Leitung' }[role];
 }
+
+/** Youth leaders without program access: Jugend is their home, Sonntage is hidden. */
+export const youthOnly = (role: Role) => !can(role, 'program.view') && can(role, 'youth.view');

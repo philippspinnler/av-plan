@@ -27,7 +27,9 @@
 		}
 		return () => marked.forEach((b) => b.removeAttribute('data-live-user'));
 	});
-	const isActive = (href: string) => (href === '/' ? page.url.pathname === '/' : page.url.pathname.startsWith(href));
+	// A member page belongs to the section its back link points to (Anfragen or Einstellungen).
+	const section = $derived(page.url.pathname.startsWith('/mitglieder/') ? String(page.data.backHref ?? '') : page.url.pathname);
+	const isActive = (href: string) => (href === '/' ? section === '/' : section.startsWith(href));
 	const role = $derived(data.user?.role);
 	const accountRole = $derived(data.accountRole);
 	const ROLE_LABELS: Record<string, string> = { admin: 'Admin', bischofschaft: 'Bischofschaft', gebete: 'Gebete', musik: 'Musik', dirigent: 'Dirigent/in', jm_berater: 'JM-Berater', jd_leitung: 'JD-Leitung' };
@@ -39,12 +41,12 @@
 <nav class="topnav no-print">
 	<div class="inner">
 		<div class="nav-links">
-			<a href="/" class:active={isActive('/')}>Sonntage</a>
+			{#if !data.youthOnly}<a href="/" class:active={isActive('/')}>Sonntage</a>{/if}
 			{#if data.canHymns}<a href="/lieder" class:active={isActive('/lieder')}>Lieder</a>{/if}
-			{#if data.canAsk}<a href="/fragen" class:active={isActive('/fragen') || isActive('/mitglieder')}>Fragen</a>{/if}
+			{#if data.canAsk}<a href="/fragen" class:active={isActive('/fragen')}>Anfragen</a>{/if}
 			{#if data.canYouth}<a href="/jugend" class:active={isActive('/jugend')}>Jugend</a>{/if}
 			{#if role === 'admin'}
-				<a href="/einstellungen" class:active={isActive('/einstellungen')}>Einstellungen</a>
+				<a href="/einstellungen/mitglieder" class:active={isActive('/einstellungen')}>Einstellungen</a>
 			{/if}
 		</div>
 		<div class="nav-user">

@@ -3,7 +3,7 @@ import type { PageServerLoad } from './$types';
 import { formatDateLong, todayIso } from '$lib/dates';
 import { adjacentMeetingDates, listMeetings, loadMeetingFullByDate } from '$lib/server/meetings';
 import { overviewRange, summarize } from '$lib/server/overview';
-import { can } from '$lib/server/permissions';
+import { can, youthOnly } from '$lib/server/permissions';
 import { isWednesday, loadYouthEvent, type YouthEventFull } from '$lib/server/youth';
 import { addDays, formatDateShort } from '$lib/dates';
 
@@ -24,7 +24,7 @@ export const load: PageServerLoad = ({ locals, url }) => {
 	const today = todayIso();
 	const role = locals.user!.role;
 	const showProgram = can(role, 'program.view');
-	if (!showProgram && can(role, 'youth.view')) redirect(303, '/jugend');
+	if (youthOnly(role)) redirect(303, '/jugend');
 	const showPrayers = can(role, 'meeting.prayers');
 	/** Role "Gebete": prayers only, no topics, hymns or music. */
 	const showHymns = can(role, 'hymns.view');

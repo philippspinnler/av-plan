@@ -1,5 +1,5 @@
 import type { LayoutServerLoad } from './$types';
-import { can } from '$lib/server/permissions';
+import { can, youthOnly } from '$lib/server/permissions';
 
 export const load: LayoutServerLoad = ({ locals }) => {
 	const role = locals.user?.role;
@@ -8,6 +8,7 @@ export const load: LayoutServerLoad = ({ locals }) => {
 		accountRole: locals.accountRole,
 		canAsk: !!role && (can(role, 'ask.talks') || can(role, 'ask.prayers')),
 		canHymns: !!role && can(role, 'hymns.view'),
-		canYouth: !!role && can(role, 'youth.view')
+		canYouth: !!role && can(role, 'youth.view'),
+		youthOnly: !!role && youthOnly(role)
 	};
 };
