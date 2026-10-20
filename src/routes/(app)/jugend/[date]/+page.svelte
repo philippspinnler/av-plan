@@ -20,11 +20,11 @@
 	const sections = $derived.by(() => {
 		if (ev.joint) {
 			const groups = [...data.groupsJd, ...data.groupsJm].filter((g, i, all) => all.findIndex((x) => x.value === g.value) === i);
-			return [{ side: 'both' as Side, title: 'Gemeinsam', canEdit: canBoth, version: data.versions.both, options: [...data.jdOptions, ...data.jmOptions], groups, ideas: data.ideasBoth }];
+			return [{ side: 'both' as Side, title: 'Gemeinsam', canEdit: canBoth, version: data.versions.both, options: [...data.jdOptions, ...data.jmOptions], thoughtOptions: [...data.jdThoughtOptions, ...data.jmThoughtOptions].filter((o, i, all) => all.findIndex((x) => x.id === o.id) === i), groups, ideas: data.ideasBoth }];
 		}
 		return [
-			{ side: 'jd' as Side, title: 'JD', canEdit: data.canJd, version: data.versions.jd, options: data.jdOptions, groups: data.groupsJd, ideas: data.ideasJd },
-			{ side: 'jm' as Side, title: 'JM', canEdit: data.canJm, version: data.versions.jm, options: data.jmOptions, groups: data.groupsJm, ideas: data.ideasJm }
+			{ side: 'jd' as Side, title: 'JD', canEdit: data.canJd, version: data.versions.jd, options: data.jdOptions, thoughtOptions: data.jdThoughtOptions, groups: data.groupsJd, ideas: data.ideasJd },
+			{ side: 'jm' as Side, title: 'JM', canEdit: data.canJm, version: data.versions.jm, options: data.jmOptions, thoughtOptions: data.jmThoughtOptions, groups: data.groupsJm, ideas: data.ideasJm }
 		];
 	});
 	const presentLabel = (p: boolean | null) => (p === true ? 'anwesend' : p === false ? 'abwesend' : '–');
@@ -132,7 +132,7 @@
 	});
 </script>
 
-{#snippet partSection(s: { side: Side; title: string; canEdit: boolean; options: { id: number; label: string; hint: string }[]; groups: Option[]; ideas: Idea[] })}
+{#snippet partSection(s: { side: Side; title: string; canEdit: boolean; options: { id: number; label: string; hint: string }[]; thoughtOptions: { id: number; label: string; hint: string }[]; groups: Option[]; ideas: Idea[] })}
 	{@const p = part(s.side)}
 	{@const formId = `${s.side}Form`}
 	<div class="section">
@@ -179,7 +179,7 @@
 			<div class="field">
 				<label for="{s.side}_thought">Gedanke</label>
 				{#if s.canEdit}
-					<MemberSelect id="{s.side}_thought" name="thought" form={formId} options={s.options} value={p?.thoughtId ?? null} />
+					<MemberSelect id="{s.side}_thought" name="thought" form={formId} options={s.thoughtOptions} value={p?.thoughtId ?? null} />
 				{:else}
 					<p>{p?.thoughtName ?? '–'}</p>
 				{/if}

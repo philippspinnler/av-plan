@@ -107,6 +107,8 @@ export const load: PageServerLoad = ({ locals, params }) => {
 		offNotice: full.meetingKind && full.status === 'off' ? full.offLabel : null,
 		jdOptions: options('jd'),
 		jmOptions: options('jm'),
+		jdThoughtOptions: memberOptions([...listYouth(locals.db, 'jd').map((y) => y.member), ...adultMembers], new Map(), 'plain', today),
+		jmThoughtOptions: memberOptions([...listYouth(locals.db, 'jm').map((y) => y.member), ...adultMembers], new Map(), 'plain', today),
 		adults: adultMembers.map((m) => ({ id: m.id, name: displayName(m), present: present.get(m.id) ?? null })),
 		groupsJd: groups('jd'),
 		groupsJm: groups('jm'),

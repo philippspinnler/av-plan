@@ -48,11 +48,11 @@ docker compose up -d
 
 ## Import Jugend aus Airtable
 
-Zuerst unter Einstellungen die Jugendlichen und die Berufungen (Bischofschaft, JD/JM-Leitung) erfassen, denn die Airtable kennt nur Vornamen. Dann die Tabellen "JD/JM Programm" und "Sonntagsklassen" als CSV exportieren (Grid-Ansicht, Download CSV) und bei gestopptem Container auf dem Host importieren. Vorher `data/app.db` sichern.
+Zuerst unter Einstellungen die Jugendlichen und die Berufungen (Bischofschaft, JD/JM-Leitung) erfassen, denn die Airtable kennt nur Vornamen. Dann die Tabelle "JD/JM" als CSV exportieren (Grid-Ansicht → Download CSV; Klassen sind die Zeilen mit Art "JD/AP Klassen") und bei gestopptem Container auf dem Host importieren. Der Export enthält nur, was der Filter der Ansicht zeigt. Vorher `data/app.db` sichern.
 
 ```bash
 docker compose stop
-DATABASE_PATH=data/app.db npm run import:jugend -- import/aktivitaeten.csv import/klassen.csv
+DATABASE_PATH=data/app.db npm run import:jugend -- import/jd-jm.csv
 docker compose up -d
 ```
 

@@ -29,6 +29,21 @@ beforeEach(() => {
 });
 
 describe('importYouthCsv', () => {
+	it('splits a single table into activities and classes and lets adults give the thought', () => {
+		const single = [
+			ACT_HEAD,
+			'10/14/2026,Aktivitäten Pratteln JD AP,,"JM: Vreni",,,,Fussball,Leitung,,,',
+			'10/18/2026,JD/AP Klassen,,"JD: Mia",FSJ Kap. 3,,JD des Glaubens,,Priester Kollegium,,,'
+		].join('\n');
+		const r = importYouthCsv(db, single, null);
+		const wed = loadYouthEvent(db, '2026-10-14')!;
+		const sun = loadYouthEvent(db, '2026-10-18')!;
+		expect(wed.parts.find((p) => p.side === 'jm')?.thought?.firstName).toBe('Vreni');
+		expect(wed.parts.find((p) => p.side === 'jm')?.leader).toBeNull();
+		expect(sun.event.kind).toBe('klasse');
+		expect(sun.parts.find((p) => p.side === 'jm')?.leaderGroup).toBe('priester');
+		expect(r.warnings).toEqual([]);
+	});
 	it('maps activity kinds, joint and texts', () => {
 		const r = importYouthCsv(db, activities, classes);
 		expect(r.events).toBe(6);
@@ -51,9 +66,10 @@ describe('importYouthCsv', () => {
 		const b = loadYouthEvent(db, '2026-11-04')!;
 		expect(b.event.kind).toBe('basel');
 		expect(b.event.joint).toBe(true);
-		expect(b.event.details).toBe('Geistiger Gedanke JD: Vreni\nLeitung JD: Vreni');
+		// The bishop may give the thought (adults are in the thought pool) but cannot lead as a youth.
+		expect(b.parts[0].thought?.firstName).toBe('Vreni');
+		expect(b.event.details).toBe('Leitung JD: Vreni');
 		expect(r.warnings).toEqual(expect.arrayContaining([
-			"2026-11-04: Geistiger Gedanke JD 'Vreni' nicht gefunden",
 			"2026-11-04: Leitung JD 'Vreni' nicht gefunden",
 			"2026-10-14: Abwesende Erw. 'Widmer' nicht gefunden"
 		]));

@@ -4,7 +4,7 @@ import type { Db } from './db';
 import type { Member, YouthPartSide } from './db/schema';
 import { listYouthEvents, YOUTH_KIND_LABELS, type YouthEventFull } from './youth';
 import { listBreaks } from './youth-breaks';
-import { listYouth, YOUTH_GROUP_LABELS } from './youth-people';
+import { listAdults, listYouth, YOUTH_GROUP_LABELS } from './youth-people';
 
 export interface YouthPageItem {
 	date: string;
@@ -62,7 +62,8 @@ function toItem(e: YouthEventFull, names: Map<number, string>): YouthPageItem {
 
 export function youthPageItems(db: Db, today: string, opts = { big: 2, small: 3 }): { big: YouthPageItem[]; small: YouthPageItem[] } {
 	const total = opts.big + opts.small;
-	const names = shortNames(listYouth(db).map((y) => y.member));
+	// Leaders may give the thought, so their first names are allowed here too (still no last names).
+	const names = shortNames([...listYouth(db).map((y) => y.member), ...listAdults(db)]);
 	const events = listYouthEvents(db, today, addDays(today, 7 * total)).slice(0, total).map((e) => toItem(e, names));
 	const big = events.slice(0, opts.big);
 	const small = events.slice(opts.big);

@@ -64,11 +64,14 @@ const ACTIVITY_KINDS: Record<string, { kind: YouthEventKind; joint: boolean }> =
 const JM_GROUPS: Record<string, string> = { 'priester kollegium': 'priester', 'lehrer kollegium': 'lehrer', 'diakons kollegium': 'diakone', leitung: 'leitung' };
 const JD_GROUPS: Record<string, string> = { 'jd der hoffnung': 'hoffnung', 'jd des glaubens': 'glauben', 'jd des lichts': 'licht', leitung: 'leitung' };
 
-export function importYouthCsv(db: Db, activitiesCsv: string, classesCsv: string, opts: { log?: (s: string) => void } = {}): YouthImportReport {
+/** One CSV (Airtable's single "JD/JM" table, class rows = "JD/AP Klassen") or two (activities, classes). */
+export function importYouthCsv(db: Db, activitiesCsv: string, classesCsv: string | null, opts: { log?: (s: string) => void } = {}): YouthImportReport {
 	return db.transaction(() => importAll(db, activitiesCsv, classesCsv, opts));
 }
 
-function importAll(db: Db, activitiesCsv: string, classesCsv: string, opts: { log?: (s: string) => void }): YouthImportReport {
+const CLASS_KIND = 'jd/ap klassen';
+
+function importAll(db: Db, activitiesCsv: string, classesCsv: string | null, opts: { log?: (s: string) => void }): YouthImportReport {
 	const report: YouthImportReport = { events: 0, breaks: 0, warnings: [] };
 	const warn = (w: string) => { report.warnings.push(w); opts.log?.(`Hinweis: ${w}`); };
 	const youth: Record<YouthSide, Member[]> = { jd: listYouth(db, 'jd').map((y) => y.member), jm: listYouth(db, 'jm').map((y) => y.member) };
@@ -88,7 +91,7 @@ function importAll(db: Db, activitiesCsv: string, classesCsv: string, opts: { lo
 			const m = /^\s*(JD|JM)\s*:\s*(.+?)\s*$/i.exec(item);
 			if (!m) { if (item.trim()) warn(`${date}: Geistiger Gedanke '${item.trim()}' nicht erkannt`); continue; }
 			const side = m[1].toLowerCase() as YouthSide;
-			out[side] = resolve(date, `Geistiger Gedanke ${m[1].toUpperCase()}`, m[2], youth[side], lost);
+			out[side] = resolve(date, `Geistiger Gedanke ${m[1].toUpperCase()}`, m[2], [...youth[side], ...adults], lost);
 		}
 		return out;
 	};
@@ -114,7 +117,12 @@ function importAll(db: Db, activitiesCsv: string, classesCsv: string, opts: { lo
 		dates.add(date);
 	};
 
-	for (const r of records(activitiesCsv, ACT_COLUMNS, 'den Aktivitäten', warn)) {
+	const isClass = (r: Record<string, string>) => r['art der aktivität'].trim().toLowerCase() === CLASS_KIND;
+	const all = classesCsv === null ? records(activitiesCsv, ACT_COLUMNS, 'der Tabelle', warn) : null;
+	const activityRows = all ? all.filter((r) => !isClass(r)) : records(activitiesCsv, ACT_COLUMNS, 'den Aktivitäten', warn);
+	const classRows = all ? all.filter(isClass) : records(classesCsv!, CLS_COLUMNS, 'den Sonntagsklassen', warn);
+
+	for (const r of activityRows) {
 		const date = isoDate(r['datum']);
 		if (!date) { warn(`Ungültiges Datum '${r['datum']}' in den Aktivitäten`); continue; }
 		const label = r['art der aktivität'];
@@ -136,7 +144,9 @@ function importAll(db: Db, activitiesCsv: string, classesCsv: string, opts: { lo
 		}
 		const lost: string[] = [];
 		const th = thoughts(date, r['geistiger gedanke / klasse'], lost);
-		const lead = { jd: resolve(date, 'Leitung JD', r['leitung jd'], youth.jd, lost), jm: resolve(date, 'Leitung JM', r['leitung jm'], youth.jm, lost) };
+		// "Leitung" means the adult leaders run it: no person to resolve.
+		const leader = (side: YouthSide) => (r[`leitung ${side}`].trim().toLowerCase() === 'leitung' ? null : resolve(date, `Leitung ${side.toUpperCase()}`, r[`leitung ${side}`], youth[side], lost));
+		const lead = { jd: leader('jd'), jm: leader('jm') };
 		const part = (side: YouthSide) => ({ text: r[`aktivität ${side}`] || null, leaderMemberId: lead[side]?.id ?? null, leaderGroup: null, thoughtMemberId: th[side]?.id ?? null });
 		const jd = part('jd');
 		const jm = part('jm');
@@ -144,7 +154,7 @@ function importAll(db: Db, activitiesCsv: string, classesCsv: string, opts: { lo
 		store(date, { ...spec, details: r['details'], topic: r['thema'], snack: r['snack'] }, spec.joint ? { both } : { jd, jm }, adultEntries(date, r), lost);
 	}
 
-	for (const r of records(classesCsv, CLS_COLUMNS, 'den Sonntagsklassen', warn)) {
+	for (const r of classRows) {
 		const date = isoDate(r['datum']);
 		if (!date) { warn(`Ungültiges Datum '${r['datum']}' in den Sonntagsklassen`); continue; }
 		if (!isSunday(date)) { warn(`${date}: kein Sonntag, Zeile übersprungen`); continue; }

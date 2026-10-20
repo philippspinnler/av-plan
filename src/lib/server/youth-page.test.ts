@@ -5,7 +5,7 @@ import { createMeeting, saveGeneral } from './meetings';
 import { createMember } from './members';
 import { ensureYouthEvents, listYouthEvents, loadYouthEvent, saveYouthCommon, saveYouthPart } from './youth';
 import { compactText, newYouthPageToken, shortNames, youthPageItems } from './youth-page';
-import { setYouth } from './youth-people';
+import { setLeaders, setYouth } from './youth-people';
 
 let db: Db;
 beforeEach(() => {
@@ -78,6 +78,10 @@ describe('youth page items', () => {
 		const item = youthPageItems(db, '2026-10-20').big[0];
 		expect(item.parts).toEqual([{ side: 'jd', label: 'Junge Damen', text: 'Film', leaderName: null, thoughtName: 'Lea' }]);
 		expect(compactText(item)).toBe('Aktivität · Film · Gedanke: Lea');
+		// A leader may give the thought: first name only, like the youth.
+		setLeaders(db, 'jd_beraterin', [adult.id]);
+		saveYouthPart(db, e.event.id, 'jd', { text: 'Film', leaderMemberId: null, leaderGroup: null, thoughtMemberId: adult.id });
+		expect(youthPageItems(db, '2026-10-20').big[0].parts[0].thoughtName).toBe('Urs');
 	});
 	it('newYouthPageToken is url-safe and unique', () => {
 		const t = newYouthPageToken();
