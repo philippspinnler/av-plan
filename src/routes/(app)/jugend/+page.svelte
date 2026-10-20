@@ -16,6 +16,41 @@
 
 {#snippet cell(r: (typeof data.rows)[number], v: string | null)}{#if v}{v}{:else if r.status === 'open'}<span class="muted">offen</span>{/if}{/snippet}
 
+{#if data.next.length}
+	<div class="next-grid">
+		{#each data.next as ev (ev.date)}
+			<div class="card big-card" class:has-open={ev.status === 'open'}>
+				<div class="section-title">
+					<div><span class="kind-tag">{ev.weekdayLabel} · {ev.kindLabel}</span><h2 class="next-date">{ev.dateLabel}</h2></div>
+					<a class="btn btn-primary btn-small" href="/jugend/{ev.date}">Bearbeiten</a>
+				</div>
+				{#if ev.status === 'off'}
+					<p>{ev.offLabel}</p>
+				{:else if ev.status === 'open'}
+					<p class="muted">noch nicht geplant</p>
+				{:else}
+					{#if ev.weekday === 'sunday' && (ev.topic || ev.topicUrl)}
+						<p class="next-topic">{#if ev.topicUrl}<a href={ev.topicUrl} rel="noopener noreferrer">{ev.topic ?? 'Unterlage'}</a>{:else}{ev.topic}{/if}</p>
+					{/if}
+					<div class="next-parts" class:single={ev.joint}>
+						{#each ev.parts as p (p.side)}
+							<div>
+								{#if p.label}<div class="kind-tag">{p.label}</div>{/if}
+								{#if p.text && ev.weekday !== 'sunday'}<p class="next-what">{p.text}</p>{/if}
+								<p class="hint">
+									{#if p.leaderName}Leitung: {p.leaderName}<br />{/if}
+									{#if p.thoughtName}Gedanke: {p.thoughtName}{/if}
+								</p>
+							</div>
+						{/each}
+					</div>
+					{#if ev.snack}<p class="hint">Snack: {ev.snack}</p>{/if}
+				{/if}
+			</div>
+		{/each}
+	</div>
+{/if}
+
 <div class="section-title">
 	<h2>{data.year ? `Jugend ${data.year}` : 'Kommende Termine'}</h2>
 	<div class="actions">
@@ -54,3 +89,14 @@
 		</div>
 	{/each}
 {/if}
+
+<style>
+	.next-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
+	.next-grid .card { margin-bottom: 0; }
+	.next-date { font-size: 1.25rem; }
+	.next-topic { font-weight: 600; margin: 0 0 0.5rem; }
+	.next-parts { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+	.next-parts.single { grid-template-columns: 1fr; }
+	.next-what { font-weight: 600; margin: 0.2rem 0; }
+	@media (max-width: 640px) { .next-grid, .next-parts { grid-template-columns: 1fr; } }
+</style>

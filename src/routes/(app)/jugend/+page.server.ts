@@ -4,6 +4,7 @@ import { overviewRange } from '$lib/server/overview';
 import { requireRole } from '$lib/server/permissions';
 import { ensureYouthEvents, isFifthSunday, listYouthEvents, YOUTH_KIND_LABELS, type YouthEventFull } from '$lib/server/youth';
 import { YOUTH_GROUP_LABELS } from '$lib/server/youth-people';
+import { youthPageItems } from '$lib/server/youth-page';
 
 function summary(e: YouthEventFull, side: 'jd' | 'jm'): string | null {
 	const part = e.parts.find((p) => p.side === side) ?? e.parts.find((p) => p.side === 'both');
@@ -38,5 +39,7 @@ export const load: PageServerLoad = ({ locals, url }) => {
 	});
 	const years: number[] = [];
 	for (let y = Number(today.slice(0, 4)) - 1; y <= Number(today.slice(0, 4)) + 1; y++) years.push(y);
-	return { rows, years, year, today };
+	// Same selection as the public youth page: the next two Sundays/Wednesdays from today.
+	const next = year ? [] : youthPageItems(locals.db, today, { big: 2, small: 0 }).big;
+	return { rows, years, year, today, next };
 };
