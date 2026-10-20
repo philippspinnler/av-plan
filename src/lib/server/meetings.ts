@@ -69,18 +69,8 @@ export function getMeetingByDate(db: Db, date: string): Meeting | undefined {
 
 export function ensureSundays(db: Db, fromIso: string, months = 12): number {
 	const wanted = sundaysBetween(fromIso, addMonths(fromIso, months));
-	const existing = new Set(
-		db.select({ date: meetings.date }).from(meetings).where(inArray(meetings.date, wanted)).all().map((r) => r.date)
-	);
-	let created = 0;
-	db.transaction((tx) => {
-		for (const date of wanted) {
-			if (existing.has(date)) continue;
-			tx.insert(meetings).values({ date }).run();
-			created++;
-		}
-	});
-	return created;
+	if (!wanted.length) return 0;
+	return db.insert(meetings).values(wanted.map((date) => ({ date }))).onConflictDoNothing().run().changes;
 }
 
 function membersById(db: Db, ids: (number | null | undefined)[]): Map<number, Member> {

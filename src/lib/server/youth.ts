@@ -62,18 +62,8 @@ export function classHeld(kind: MeetingKind): boolean {
 
 export function ensureYouthEvents(db: Db, fromIso: string, months = 6): number {
 	const wanted = youthDatesBetween(fromIso, addMonths(fromIso, months));
-	const existing = new Set(
-		db.select({ date: youthEvents.date }).from(youthEvents).where(inArray(youthEvents.date, wanted)).all().map((r) => r.date)
-	);
-	let created = 0;
-	db.transaction((tx) => {
-		for (const date of wanted) {
-			if (existing.has(date)) continue;
-			tx.insert(youthEvents).values({ date, kind: defaultKind(date) }).run();
-			created++;
-		}
-	});
-	return created;
+	if (!wanted.length) return 0;
+	return db.insert(youthEvents).values(wanted.map((date) => ({ date, kind: defaultKind(date) }))).onConflictDoNothing().run().changes;
 }
 
 const hasContent = (p: { text: string | null; details: string | null; leader: unknown; leaderGroup: string | null; thought: unknown; teacher: unknown }) =>
