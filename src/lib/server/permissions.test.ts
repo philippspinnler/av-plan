@@ -2,8 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { can, requireRole, roleLabel } from './permissions';
 
 const ACTIONS = [
-	'program.view', 'meeting.program', 'meeting.prayers', 'meeting.music', 'meeting.conductor', 'meetings.create',
-	'hymns.view', 'hymns.edit', 'members.create', 'members.edit', 'members.stats', 'ask.talks', 'ask.prayers', 'notes.talk', 'notes.prayer', 'users.manage', 'settings.edit',
+	'program.view', 'meeting.view', 'meeting.program', 'meeting.prayers', 'meeting.music', 'meeting.conductor', 'meetings.create',
+	'hymns.view', 'hymns.edit', 'members.view', 'members.create', 'members.edit', 'members.stats', 'ask.talks', 'ask.prayers', 'notes.talk', 'notes.prayer', 'users.manage', 'settings.edit',
 	'youth.view', 'youth.jm', 'youth.jd', 'youth.common'
 ] as const;
 
@@ -19,6 +19,12 @@ describe('can', () => {
 		expect(can('gebete', 'youth.view')).toBe(false);
 		expect(can('musik', 'youth.common')).toBe(false);
 		expect(roleLabel('jd_leitung')).toBe('JD-Präsidentschaft');
+	});
+	it('member and Sunday pages are closed to roles outside their scope', () => {
+		for (const r of ['admin', 'bischofschaft', 'gebete'] as const) expect(can(r, 'members.view')).toBe(true);
+		for (const r of ['musik', 'dirigent', 'jm_berater', 'jd_leitung'] as const) expect(can(r, 'members.view')).toBe(false);
+		for (const r of ['admin', 'bischofschaft', 'gebete', 'musik', 'dirigent'] as const) expect(can(r, 'meeting.view')).toBe(true);
+		for (const r of ['jm_berater', 'jd_leitung'] as const) expect(can(r, 'meeting.view')).toBe(false);
 	});
 	it('admin may do everything', () => {
 		for (const a of ACTIONS) expect(can('admin', a)).toBe(true);

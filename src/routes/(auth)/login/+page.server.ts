@@ -2,15 +2,11 @@ import { fail, redirect } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 import { createSession, loginWithPassword, pruneLoginAttempts } from '$lib/server/auth';
 import { setSessionCookie } from '$lib/server/cookies';
-import { rawStr, str } from '$lib/server/forms';
-
-function safeNext(next: string | null): string {
-	return next && next.startsWith('/') && !next.startsWith('//') ? next : '/';
-}
+import { rawStr, safeNext, str } from '$lib/server/forms';
 
 export const load: PageServerLoad = ({ locals, url }) => {
-	if (locals.user) redirect(303, safeNext(url.searchParams.get('next')));
-	return { next: safeNext(url.searchParams.get('next')) };
+	if (locals.user) redirect(303, safeNext(url.searchParams.get('next'), url.origin));
+	return { next: safeNext(url.searchParams.get('next'), url.origin) };
 };
 
 export const actions: Actions = {
@@ -26,6 +22,6 @@ export const actions: Actions = {
 		}
 		const s = createSession(locals.db, result.user.id);
 		setSessionCookie(cookies, s.id, s.expiresAt);
-		redirect(303, safeNext(url.searchParams.get('next')));
+		redirect(303, safeNext(url.searchParams.get('next'), url.origin));
 	}
 };

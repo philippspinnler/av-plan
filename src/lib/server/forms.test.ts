@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { int, optInt, optStr, rawStr, str, strList } from './forms';
+import { int, optInt, optStr, rawStr, safeNext, str, strList } from './forms';
 
 const fd = new FormData();
 fd.append('name', '  Anna ');
@@ -29,5 +29,20 @@ describe('forms', () => {
 	it('reads untrimmed strings', () => {
 		expect(rawStr(fd, 'password')).toBe('  geheim  ');
 		expect(rawStr(fd, 'fehlt')).toBe('');
+	});
+});
+
+const ORIGIN = 'https://app.example';
+
+describe('safeNext', () => {
+	it('keeps paths on our origin', () => {
+		expect(safeNext('/sonntag/2026-10-25?tab=musik', ORIGIN)).toBe('/sonntag/2026-10-25?tab=musik');
+		expect(safeNext(null, ORIGIN)).toBe('/');
+		expect(safeNext('', ORIGIN)).toBe('/');
+	});
+	it('rejects every form of a foreign destination', () => {
+		for (const next of ['//evil.example', '/\\evil.example', '\\\\evil.example', 'https://evil.example/', 'javascript:alert(1)', '/\\\\']) {
+			expect(safeNext(next, ORIGIN)).toBe('/');
+		}
 	});
 });

@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { createDb, type Db } from './db';
+import { loginAttempts, sessions } from './db/schema';
 import {
 	acceptInvite, changePassword, createInvite, createSession, createUser, deleteSession, findUserByEmail, getValidInvite,
 	hashPassword, listOpenInvites, loginWithPassword, userCount, validateSession, verifyPassword
@@ -55,6 +56,11 @@ describe('login', () => {
 		const later = await loginWithPassword(db, 'a@b.ch', 'geheim123', new Date(t0.getTime() + 70_000));
 		expect(later.ok).toBe(true);
 	});
+	it('does not record over-long emails', async () => {
+		const r = await loginWithPassword(db, 'x'.repeat(300) + '@a.test', 'p');
+		expect(r).toEqual({ ok: false, reason: 'invalid' });
+		expect(db.select().from(loginAttempts).all()).toHaveLength(0);
+	});
 	it('rejects inactive users', async () => {
 		const u = await createUser(db, { email: 'a@b.ch', name: 'A', role: 'musik', password: 'geheim123' });
 		const { setUserActive } = await import('./auth');
@@ -78,6 +84,15 @@ describe('sessions', () => {
 		expect(validateSession(db, s.id, t40)).toBeNull();
 		deleteSession(db, s.id);
 		expect(validateSession(db, s.id, t0)).toBeNull();
+	});
+	it('stores only a hash of the session id', async () => {
+		const u = await createUser(db, { email: 'a@b.ch', name: 'A', role: 'musik', password: 'geheim123' });
+		const s = createSession(db, u.id);
+		const rows = db.select().from(sessions).all();
+		expect(rows).toHaveLength(1);
+		expect(rows[0].id).not.toBe(s.id);
+		expect(validateSession(db, rows[0].id)).toBeNull();
+		expect(validateSession(db, s.id)).not.toBeNull();
 	});
 	it('deletes sessions on deactivation', async () => {
 		const u = await createUser(db, { email: 'a@b.ch', name: 'A', role: 'musik', password: 'geheim123' });

@@ -32,3 +32,14 @@ export function strList(fd: FormData, key: string): string[] {
 		.map((v) => v.trim())
 		.filter((v) => v !== '');
 }
+
+/** Only a path on our own origin; `//host`, `/\host` and absolute URLs fall back to `/`. */
+export function safeNext(next: string | null, origin: string): string {
+	if (!next) return '/';
+	try {
+		const u = new URL(next, origin);
+		return u.origin === origin ? u.pathname + u.search : '/';
+	} catch {
+		return '/';
+	}
+}

@@ -8,6 +8,7 @@ import { can, requireRole } from '$lib/server/permissions';
 import { memberHistory } from '$lib/server/stats';
 
 export const load: PageServerLoad = ({ locals, params }) => {
+	requireRole(locals.user, 'members.view');
 	const member = getMember(locals.db, Number(params.id));
 	if (!member) error(404, 'Mitglied nicht gefunden');
 	const role = locals.user!.role;

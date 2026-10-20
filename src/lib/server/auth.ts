@@ -1,6 +1,6 @@
 import { hash, verify } from '@node-rs/argon2';
 import { and, desc, eq, gt, gte, isNull, lt, ne } from 'drizzle-orm';
-import { randomBytes } from 'node:crypto';
+import { createHash, randomBytes } from 'node:crypto';
 import type { Db } from './db';
 import { invites, loginAttempts, sessions, users, type Invite, type Role, type User } from './db/schema';
 
@@ -16,7 +16,10 @@ export type SessionUser = Pick<User, 'id' | 'email' | 'name' | 'role'>;
 
 const iso = (d: Date) => d.toISOString();
 const token = () => randomBytes(32).toString('hex');
+/** The cookie carries the raw token; the table stores only its hash, so a DB export yields no usable sessions. */
+const sessionKey = (raw: string) => createHash('sha256').update(raw).digest('hex');
 const normEmail = (e: string) => e.trim().toLowerCase();
+const MAX_EMAIL_LENGTH = 254;
 
 export function hashPassword(pw: string): Promise<string> {
 	return hash(pw);
@@ -66,6 +69,7 @@ export async function loginWithPassword(
 	now: Date = new Date()
 ): Promise<{ ok: true; user: User } | { ok: false; reason: 'invalid' | 'throttled' }> {
 	const e = normEmail(email);
+	if (e.length > MAX_EMAIL_LENGTH) return { ok: false, reason: 'invalid' };
 	if (isThrottled(db, e, now)) return { ok: false, reason: 'throttled' };
 	const user = db.select().from(users).where(eq(users.email, e)).get();
 	const valid = !!user && user.active && (await verifyPassword(user.passwordHash, password));
@@ -82,15 +86,16 @@ export function pruneLoginAttempts(db: Db, now: Date = new Date()): void {
 export function createSession(db: Db, userId: number, now: Date = new Date()): { id: string; expiresAt: string } {
 	const id = token();
 	const expiresAt = iso(new Date(now.getTime() + SESSION_DAYS * DAY_MS));
-	db.insert(sessions).values({ id, userId, expiresAt }).run();
+	db.insert(sessions).values({ id: sessionKey(id), userId, expiresAt }).run();
 	return { id, expiresAt };
 }
 
 export function validateSession(
 	db: Db,
-	sessionId: string,
+	rawSessionId: string,
 	now: Date = new Date()
 ): { user: SessionUser; expiresAt: string } | null {
+	const sessionId = sessionKey(rawSessionId);
 	const row = db
 		.select({ expiresAt: sessions.expiresAt, id: users.id, email: users.email, name: users.name, role: users.role, active: users.active })
 		.from(sessions)
@@ -128,13 +133,13 @@ export async function changePassword(
 	if (!user || !(await verifyPassword(user.passwordHash, currentPassword))) return 'wrong';
 	const passwordHash = await hashPassword(newPassword);
 	db.update(users).set({ passwordHash, updatedAt: iso(new Date()) }).where(eq(users.id, userId)).run();
-	const others = keepSessionId ? and(eq(sessions.userId, userId), ne(sessions.id, keepSessionId)) : eq(sessions.userId, userId);
+	const others = keepSessionId ? and(eq(sessions.userId, userId), ne(sessions.id, sessionKey(keepSessionId))) : eq(sessions.userId, userId);
 	db.delete(sessions).where(others).run();
 	return 'ok';
 }
 
-export function deleteSession(db: Db, sessionId: string): void {
-	db.delete(sessions).where(eq(sessions.id, sessionId)).run();
+export function deleteSession(db: Db, rawSessionId: string): void {
+	db.delete(sessions).where(eq(sessions.id, sessionKey(rawSessionId))).run();
 }
 
 export function createInvite(

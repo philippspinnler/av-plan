@@ -35,6 +35,7 @@ function meetingIdFor(locals: App.Locals, date: string, section: Section, fd: Fo
 }
 
 export const load: PageServerLoad = ({ locals, params }) => {
+	requireRole(locals.user, 'meeting.view');
 	const date = params.date;
 	checkDate(date);
 	const role = locals.user!.role;

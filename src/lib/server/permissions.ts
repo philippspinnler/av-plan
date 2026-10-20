@@ -3,6 +3,7 @@ import type { Role } from './db/schema';
 
 export type Action =
 	| 'program.view'
+	| 'meeting.view'
 	| 'meeting.program'
 	| 'meeting.prayers'
 	| 'meeting.music'
@@ -10,6 +11,7 @@ export type Action =
 	| 'meetings.create'
 	| 'hymns.view'
 	| 'hymns.edit'
+	| 'members.view'
 	| 'members.create'
 	| 'members.edit'
 	| 'members.stats'
@@ -26,6 +28,7 @@ export type Action =
 
 const MATRIX: Record<Action, Role[]> = {
 	'program.view': ['admin', 'bischofschaft'],
+	'meeting.view': ['admin', 'bischofschaft', 'gebete', 'musik', 'dirigent'],
 	'meeting.program': ['admin', 'bischofschaft'],
 	'meeting.prayers': ['admin', 'bischofschaft', 'gebete'],
 	'meeting.music': ['admin', 'bischofschaft', 'musik'],
@@ -33,6 +36,7 @@ const MATRIX: Record<Action, Role[]> = {
 	'meetings.create': ['admin', 'bischofschaft'],
 	'hymns.view': ['admin', 'bischofschaft', 'musik', 'dirigent'],
 	'hymns.edit': ['admin', 'bischofschaft', 'musik'],
+	'members.view': ['admin', 'bischofschaft', 'gebete'],
 	'members.create': ['admin'],
 	'members.edit': ['admin'],
 	'members.stats': ['admin', 'bischofschaft'],
@@ -62,4 +66,4 @@ export function roleLabel(role: Role): string {
 }
 
 /** Youth leaders without program access: Jugend is their home, Sonntage is hidden. */
-export const youthOnly = (role: Role) => !can(role, 'program.view') && can(role, 'youth.view');
+export const youthOnly = (role: Role) => !can(role, 'meeting.view') && can(role, 'youth.view');

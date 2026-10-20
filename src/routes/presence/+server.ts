@@ -3,8 +3,10 @@ import type { RequestHandler } from './$types';
 import { live } from '$lib/server/live';
 
 /** Browser reports: I (connection c) am on page `page`, in field `field`. */
-export const POST: RequestHandler = async ({ locals, request }) => {
+export const POST: RequestHandler = async ({ locals, request, url }) => {
 	if (!locals.user) error(401, 'Bitte anmelden');
+	// JSON bodies bypass SvelteKit's form origin check.
+	if (request.headers.get('origin') !== url.origin) error(403, 'Ungültiger Ursprung');
 	const body = (await request.json().catch(() => null)) as { client?: unknown; page?: unknown; field?: unknown } | null;
 	const str = (v: unknown, max: number) => (typeof v === 'string' && v.length <= max ? v : null);
 	const client = str(body?.client, 64);
