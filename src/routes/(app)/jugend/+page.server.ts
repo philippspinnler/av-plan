@@ -1,5 +1,5 @@
 import type { PageServerLoad } from './$types';
-import { formatDateDe, todayIso } from '$lib/dates';
+import { parseIso, todayIso, WEEKDAYS } from '$lib/dates';
 import { overviewRange } from '$lib/server/overview';
 import { requireRole } from '$lib/server/permissions';
 import { ensureYouthEvents, isFifthSunday, listYouthEvents, YOUTH_KIND_LABELS, type YouthEventFull } from '$lib/server/youth';
@@ -24,11 +24,13 @@ export const load: PageServerLoad = ({ locals, url }) => {
 	const range = overviewRange(today, year);
 	const rows = listYouthEvents(locals.db, range.from, range.to).map((e) => {
 		const fifth = isFifthSunday(e.event.date) && e.event.kind !== 'erwachsene';
+		const d = parseIso(e.event.date);
+		const usual = e.event.kind === (e.weekday === 'sunday' ? 'klasse' : 'aktivitaet');
 		return {
 			date: e.event.date,
-			dateLabel: formatDateDe(e.event.date),
+			dateLabel: `${WEEKDAYS[d.getUTCDay()]} ${d.getUTCDate()}.`,
 			weekday: e.weekday,
-			kindLabel: YOUTH_KIND_LABELS[e.event.kind],
+			kindLabel: usual ? '' : YOUTH_KIND_LABELS[e.event.kind],
 			status: e.status,
 			offLabel: e.offLabel,
 			jd: summary(e, 'jd'),

@@ -66,14 +66,15 @@
 		<h2 class="month-title">{g.label}</h2>
 		<div class="section table-wrap">
 			<table class="table overview stack">
+				<colgroup><col class="c-day" /><col class="c-kind" /><col class="c-person" /><col class="c-person" /><col /><col /></colgroup>
 				<thead>
-					<tr><th>Datum</th><th>Art</th><th>JD</th><th>JM</th><th>Snack</th><th>Hinweis</th></tr>
+					<tr><th class="col-day">Datum</th><th>Typ</th><th>JD</th><th>JM</th><th>Snack</th><th>Hinweis</th></tr>
 				</thead>
 				<tbody>
 					{#each g.items as r}
-						<tr class="clickable" class:muted={r.date < data.today || r.status === 'off'} onclick={() => goto(`/jugend/${r.date}`)}>
-							<td class="td-main td-inline"><a href="/jugend/{r.date}">{r.dateLabel}</a></td>
-							<td class="td-inline td-kind"><span class="kind-tag">{r.kindLabel}</span></td>
+						<tr class="clickable" class:muted={r.date < data.today} class:no-meeting={r.status === 'off'} onclick={() => goto(`/jugend/${r.date}`)}>
+							<td class="col-day td-main td-inline"><a href="/jugend/{r.date}">{r.dateLabel}</a></td>
+							<td class="td-inline td-kind">{r.kindLabel}</td>
 							{#if r.status === 'off'}
 								<td></td><td></td><td></td>
 								<td>{r.offLabel ?? ''}</td>
