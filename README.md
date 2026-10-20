@@ -12,7 +12,7 @@ Planung der Abendmahlsversammlung: Programm, Sprecher, Gebete, Lieder und Leitun
 | Musik | Lieder, Orgel/Klavier, Dirigieren, Liederbuch |
 | Dirigent/in | nur Dirigieren |
 | JM-Berater | JM-Termine und Sonntagsklasse JM, Ideen, Ausfälle |
-| JD-Leitung | dasselbe für JD (die Bischofschaft bearbeitet nur JM) |
+| JD-Präsidentschaft | dasselbe für JD (die Bischofschaft bearbeitet nur JM) |
 
 ## Jugend (JD/JM)
 

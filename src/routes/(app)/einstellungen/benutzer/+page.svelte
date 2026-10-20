@@ -9,7 +9,7 @@
 		{ value: 'gebete', label: 'Gebete' },
 		{ value: 'dirigent', label: 'Dirigent/in' },
 		{ value: 'jm_berater', label: 'JM-Berater' },
-		{ value: 'jd_leitung', label: 'JD-Leitung' }
+		{ value: 'jd_leitung', label: 'JD-Präsidentschaft' }
 	];
 	let copied = $state(false);
 	const invited = $derived(form?.invited);

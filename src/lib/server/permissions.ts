@@ -58,7 +58,7 @@ export function requireRole(user: { role: Role } | null | undefined, action: Act
 }
 
 export function roleLabel(role: Role): string {
-	return { admin: 'Admin', bischofschaft: 'Bischofschaft', gebete: 'Gebete', musik: 'Musik', dirigent: 'Dirigent/in', jm_berater: 'JM-Berater', jd_leitung: 'JD-Leitung' }[role];
+	return { admin: 'Admin', bischofschaft: 'Bischofschaft', gebete: 'Gebete', musik: 'Musik', dirigent: 'Dirigent/in', jm_berater: 'JM-Berater', jd_leitung: 'JD-Präsidentschaft' }[role];
 }
 
 /** Youth leaders without program access: Jugend is their home, Sonntage is hidden. */

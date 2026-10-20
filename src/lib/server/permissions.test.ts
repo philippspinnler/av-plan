@@ -8,7 +8,7 @@ const ACTIONS = [
 ] as const;
 
 describe('can', () => {
-	it('youth: bishopric edits JM only, JD-Leitung edits JD only, both see everything', () => {
+	it('youth: bishopric edits JM only, JD-Präsidentschaft edits JD only, both see everything', () => {
 		for (const r of ['admin', 'bischofschaft', 'jm_berater', 'jd_leitung'] as const) expect(can(r, 'youth.view')).toBe(true);
 		expect(can('bischofschaft', 'youth.jm')).toBe(true);
 		expect(can('bischofschaft', 'youth.jd')).toBe(false);
@@ -18,7 +18,7 @@ describe('can', () => {
 		expect(can('jd_leitung', 'youth.common')).toBe(true);
 		expect(can('gebete', 'youth.view')).toBe(false);
 		expect(can('musik', 'youth.common')).toBe(false);
-		expect(roleLabel('jd_leitung')).toBe('JD-Leitung');
+		expect(roleLabel('jd_leitung')).toBe('JD-Präsidentschaft');
 	});
 	it('admin may do everything', () => {
 		for (const a of ACTIONS) expect(can('admin', a)).toBe(true);
