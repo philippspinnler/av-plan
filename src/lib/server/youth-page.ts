@@ -3,7 +3,7 @@ import { addDays, MONTHS_LONG, MONTHS_SHORT, parseIso, WEEKDAYS, WEEKDAYS_LONG }
 import type { Db } from './db';
 import type { Member, YouthPartSide } from './db/schema';
 import { listYouthEvents, YOUTH_KIND_LABELS, type YouthEventFull } from './youth';
-import { listBreaks } from './youth-breaks';
+import { listBreaks, YOUTH_BREAK_KIND_LABELS } from './youth-breaks';
 import { listAdults, listYouth, YOUTH_GROUP_LABELS } from './youth-people';
 
 export interface YouthPageItem {
@@ -71,10 +71,10 @@ export function youthPageItems(db: Db, today: string, opts = { big: 2, small: 3 
 	const last = events[events.length - 1]?.date ?? today;
 	for (const b of listBreaks(db, today)) {
 		const date = b.fromDate < today ? today : b.fromDate;
-		const offLabel = b.label ?? YOUTH_KIND_LABELS[b.kind];
+		const offLabel = b.label ?? YOUTH_BREAK_KIND_LABELS[b.kind];
 		if (b.kind === 'ferien' || date > last || events.some((e) => e.date === date && e.status === 'off' && e.offLabel === offLabel)) continue;
 		small.push({
-			date, weekday: 'other', ...labels(date), kindLabel: YOUTH_KIND_LABELS[b.kind], status: 'off',
+			date, weekday: 'other', ...labels(date), kindLabel: YOUTH_BREAK_KIND_LABELS[b.kind], status: 'off',
 			offLabel, topic: null, topicUrl: null, snack: null, joint: false, parts: []
 		});
 	}
@@ -84,7 +84,7 @@ export function youthPageItems(db: Db, today: string, opts = { big: 2, small: 3 
 
 /** Compact one-line description of an item for the "Danach" list. */
 export function compactText(i: YouthPageItem): string {
-	if (i.status === 'off') return `${i.kindLabel} – ${i.offLabel}`;
+	if (i.status === 'off') return i.offLabel && i.offLabel !== i.kindLabel ? `${i.kindLabel} – ${i.offLabel}` : i.kindLabel;
 	if (i.status === 'open') return `${i.kindLabel} · noch nicht geplant`;
 	const join = (xs: (string | null)[]) => (xs.some(Boolean) ? [...new Set(xs.map((x) => x ?? '–'))].join(' / ') : null);
 	const planned = i.parts.filter((p) => p.planned);

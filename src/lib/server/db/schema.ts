@@ -35,7 +35,7 @@ export const YOUTH_EVENT_KINDS = ['klasse', 'erwachsene', 'aktivitaet', 'basel',
 export type YouthEventKind = (typeof YOUTH_EVENT_KINDS)[number];
 export const YOUTH_PART_SIDES = ['jd', 'jm', 'both'] as const;
 export type YouthPartSide = (typeof YOUTH_PART_SIDES)[number];
-export const YOUTH_BREAK_KINDS = ['ferien', 'pfahl', 'tempel'] as const;
+export const YOUTH_BREAK_KINDS = ['ferien', 'pfahl', 'tempel', 'supersamstag', 'tanzabend'] as const;
 
 const now = sql`(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))`;
 const timestamps = {

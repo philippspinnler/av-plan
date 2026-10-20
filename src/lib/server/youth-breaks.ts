@@ -12,7 +12,7 @@ export function breakFor(breaks: YouthBreak[], date: string): YouthBreak | null 
 	return breaks.find((b) => b.fromDate <= date && date <= b.toDate) ?? null;
 }
 
-export const YOUTH_BREAK_KIND_LABELS: Record<YouthBreak['kind'], string> = { ferien: 'Ferien', pfahl: 'Pfahl', tempel: 'Tempel' };
+export const YOUTH_BREAK_KIND_LABELS: Record<YouthBreak['kind'], string> = { ferien: 'Ferien', pfahl: 'Pfahl-Aktivität', tempel: 'Tempel', supersamstag: 'Supersamstag', tanzabend: 'Tanzabend' };
 
 export function createBreak(db: Db, input: { fromDate: string; toDate: string; label: string | null; kind: YouthBreak['kind'] }): YouthBreak {
 	for (const d of [input.fromDate, input.toDate]) {

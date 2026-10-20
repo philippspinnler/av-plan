@@ -6,7 +6,7 @@ import {
 	YOUTH_PART_SIDES, type Member, type MeetingKind, type YouthBreak, type YouthEvent, type YouthEventKind, type YouthPartSide
 } from './db/schema';
 import { hasProgram, KIND_LABELS, membersById, versionHash } from './meetings';
-import { breakFor, listBreaks } from './youth-breaks';
+import { breakFor, listBreaks, YOUTH_BREAK_KIND_LABELS } from './youth-breaks';
 
 export const YOUTH_KIND_LABELS: Record<YouthEventKind, string> = {
 	klasse: 'Klasse',
@@ -101,7 +101,7 @@ function assemble(db: Db, from: string, to: string, rows: YouthEvent[]): YouthEv
 			offLabel = YOUTH_KIND_LABELS[event.kind] + (event.details ? `: ${event.details}` : '');
 		} else if (brk && isOpen) {
 			status = 'off';
-			offLabel = brk.label ?? YOUTH_KIND_LABELS[brk.kind];
+			offLabel = brk.label ?? YOUTH_BREAK_KIND_LABELS[brk.kind];
 		}
 		return { event, weekday, parts, adults, meetingKind, break: brk, status, offLabel };
 	});

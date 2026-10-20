@@ -8,7 +8,7 @@
 	<h2>Ausfälle & Pfahltermine</h2>
 	<div class="actions"><a class="btn" href={data.showAll ? '/jugend/ausfaelle' : '/jugend/ausfaelle?alle=1'}>{data.showAll ? 'Nur kommende' : 'Alle anzeigen'}</a></div>
 </div>
-<p class="hint">An diesen Mittwochen findet keine Jugendaktivität statt.</p>
+<p class="hint">Mittwoche im Zeitraum fallen aus. Ein Termin an einem anderen Tag (z. B. Tanzabend am Samstag) wird nur mit seinem Datum erfasst und erscheint so auf der Jugendseite; "Bis" bleibt dann leer.</p>
 
 {#if form?.error}<div class="error">{form.error}</div>{/if}
 
