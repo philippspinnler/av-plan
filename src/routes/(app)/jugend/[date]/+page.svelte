@@ -293,20 +293,22 @@
 			{#if !data.adults.length}
 				<p class="hint">Noch keine Bischofschaft oder Jugendleitung erfasst.</p>
 			{/if}
-			{#each data.adults as a (a.id)}
-				<div class="field">
-					<span class="label">{a.name}</span>
-					{#if data.canCommon}
-						<div class="check-list">
-							<label class="check"><input type="radio" name="adult_{a.id}" value="1" form="adultsForm" checked={a.present === true} /> anwesend</label>
-							<label class="check"><input type="radio" name="adult_{a.id}" value="0" form="adultsForm" checked={a.present === false} /> abwesend</label>
-							<label class="check"><input type="radio" name="adult_{a.id}" value="" form="adultsForm" checked={a.present === null} /> –</label>
-						</div>
-					{:else}
-						<p>{presentLabel(a.present)}</p>
-					{/if}
-				</div>
-			{/each}
+			<div class="adults">
+				{#each data.adults as a (a.id)}
+					<div class="adult" class:is-present={a.present === true} class:is-absent={a.present === false}>
+						<span class="adult-name">{a.name}</span>
+						{#if data.canCommon}
+							<div class="seg" role="radiogroup" aria-label="Anwesenheit {a.name}">
+								<label><input type="radio" name="adult_{a.id}" value="" form="adultsForm" checked={a.present === null} /><span>–</span></label>
+								<label><input type="radio" name="adult_{a.id}" value="1" form="adultsForm" checked={a.present === true} /><span>anwesend</span></label>
+								<label><input type="radio" name="adult_{a.id}" value="0" form="adultsForm" checked={a.present === false} /><span>abwesend</span></label>
+							</div>
+						{:else}
+							<span class="adult-state">{presentLabel(a.present)}</span>
+						{/if}
+					</div>
+				{/each}
+			</div>
 		</div>
 	{/if}
 </div>
@@ -315,3 +317,25 @@
 	<span class="savebar-status" class:err={saveStatus.kind === 'error'}>{saveStatus.text}</span>
 	{#if conflict}<button class="btn btn-primary" type="button" onclick={() => location.reload()}>Seite neu laden</button>{/if}
 </div>
+
+<style>
+	.adults { display: flex; flex-direction: column; }
+	.adult { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 0.45rem 0; border-top: 1px solid var(--line); }
+	.adult:first-child { border-top: 0; }
+	.adult-name { font-weight: 600; }
+	.adult.is-present .adult-name { color: var(--ok); }
+	.adult.is-absent .adult-name { color: var(--danger); }
+	.adult-state { color: var(--muted); }
+	/* Segmented control over the real radios: keyboard and autosave stay untouched. */
+	.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; overflow: hidden; background: var(--surface); }
+	.seg label { position: relative; cursor: pointer; }
+	.seg input { position: absolute; inset: 0; opacity: 0; margin: 0; cursor: pointer; }
+	.seg span { display: block; padding: 0.3rem 0.8rem; font-size: 0.9rem; color: var(--muted); min-width: 2.2rem; text-align: center; border-left: 1px solid var(--line); }
+	.seg label:first-child span { border-left: 0; }
+	.seg input:focus-visible + span { outline: 2px solid var(--primary); outline-offset: -2px; }
+	.seg input:checked + span { color: #fff; }
+	.seg label:nth-child(1) input:checked + span { background: var(--muted); }
+	.seg label:nth-child(2) input:checked + span { background: var(--ok); }
+	.seg label:nth-child(3) input:checked + span { background: var(--danger); }
+	@media (max-width: 640px) { .adult { flex-direction: column; align-items: flex-start; gap: 0.3rem; } }
+</style>
