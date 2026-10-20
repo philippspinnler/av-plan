@@ -25,12 +25,11 @@ export interface MeetingSummary {
 	hasProgram: boolean;
 }
 
-export function summarize(m: MeetingFull, opts: { showProgram: boolean; showPrayers?: boolean }): MeetingSummary {
+export function summarize(m: MeetingFull, opts: { showProgram: boolean; showPrayers: boolean }): MeetingSummary {
 	const r = readiness(m);
-	const showPrayers = opts.showPrayers ?? opts.showProgram;
 	const prayer = (pos: number) => {
 		const p = m.prayers.find((x) => x.position === pos);
-		return showPrayers && p?.member ? displayName(p.member) : null;
+		return opts.showPrayers && p?.member ? displayName(p.member) : null;
 	};
 	return {
 		date: m.meeting.date,

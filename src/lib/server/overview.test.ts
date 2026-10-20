@@ -15,9 +15,9 @@ describe('overview', () => {
 		const m = createMeeting(db, '2026-09-13');
 		saveTalks(db, m.id, [{ position: 1, memberId: anna.id, topic: 'Liebe', durationMinutes: 5, status: 'zugesagt', note: null }]);
 		savePrayers(db, m.id, [{ position: 2, memberId: anna.id, status: 'zugesagt' }]);
-		const s = summarize(loadMeetingFullByDate(db, '2026-09-13')!, { showProgram: true });
+		const s = summarize(loadMeetingFullByDate(db, '2026-09-13')!, { showProgram: true, showPrayers: true });
 		expect(s.prayers).toEqual({ opening: null, closing: 'Anna Rey' });
-		expect(summarize(loadMeetingFullByDate(db, '2026-09-13')!, { showProgram: false }).prayers).toEqual({ opening: null, closing: null });
+		expect(summarize(loadMeetingFullByDate(db, '2026-09-13')!, { showProgram: false, showPrayers: false }).prayers).toEqual({ opening: null, closing: null });
 		expect(summarize(loadMeetingFullByDate(db, '2026-09-13')!, { showProgram: false, showPrayers: true }).prayers.closing).toBe('Anna Rey');
 		expect(s.dateLabel).toBe('So, 13.09.2026');
 		expect(s.kindLabel).toBe('Normal');
@@ -30,7 +30,7 @@ describe('overview', () => {
 		const anna = createMember(db, { firstName: 'Anna', lastName: 'Rey' });
 		const m = createMeeting(db, '2026-09-13');
 		saveTalks(db, m.id, [{ position: 1, memberId: anna.id, topic: 'Liebe', durationMinutes: 5, status: 'zugesagt', note: null }]);
-		const s = summarize(loadMeetingFullByDate(db, '2026-09-13')!, { showProgram: false });
+		const s = summarize(loadMeetingFullByDate(db, '2026-09-13')!, { showProgram: false, showPrayers: false });
 		expect(s.presiding).toBeNull();
 		expect(s.speakers).toEqual([]);
 		expect(s.missingProgram).toEqual([]);

@@ -7,13 +7,13 @@ import * as schema from './schema';
 
 export type Db = BetterSQLite3Database<typeof schema> & { $client: Database.Database };
 
-export function createDb(file: string, migrationsFolder = path.resolve('drizzle')): Db {
+export function createDb(file: string): Db {
 	if (file !== ':memory:') fs.mkdirSync(path.dirname(file), { recursive: true });
 	const sqlite = new Database(file);
 	sqlite.pragma('journal_mode = WAL');
 	sqlite.pragma('foreign_keys = ON');
 	const db = drizzle(sqlite, { schema }) as Db;
-	migrate(db, { migrationsFolder });
+	migrate(db, { migrationsFolder: path.resolve('drizzle') });
 	return db;
 }
 

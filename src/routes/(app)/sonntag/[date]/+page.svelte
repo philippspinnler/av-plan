@@ -125,7 +125,7 @@
 	/>
 {/snippet}
 
-{#snippet talkCard(t: { position: number; memberId: number | null; topic: string | null; durationMinutes: number | null; status: string; note: string | null; options: { id: number; label: string; hint: string }[] } | undefined, statuses: { value: string; label: string }[])}
+{#snippet talkCard(t: { position: number; memberId: number | null; topic: string | null; durationMinutes: number | null; status: string; note: string | null; options: { id: number; label: string; hint: string }[] } | undefined)}
 	{#if t}
 		<div class="card">
 			<strong>Ansprache {t.position}</strong>
@@ -137,7 +137,7 @@
 				<div class="field"><label for="talk{t.position}_duration">Dauer (Minuten)</label><input id="talk{t.position}_duration" name="talk{t.position}_duration" type="number" min="1" max="60" form="programForm" value={t.durationMinutes ?? ''} /></div>
 				<div class="field">
 					<label for="talk{t.position}_status">Status</label>
-					<select id="talk{t.position}_status" name="talk{t.position}_status" form="programForm">{#each statuses as s}<option value={s.value} selected={s.value === t.status}>{s.label}</option>{/each}</select>
+					<select id="talk{t.position}_status" name="talk{t.position}_status" form="programForm">{#each data.missing ? [] : data.statuses as s}<option value={s.value} selected={s.value === t.status}>{s.label}</option>{/each}</select>
 				</div>
 				<div class="field"><label for="talk{t.position}_note">Notiz</label><input id="talk{t.position}_note" name="talk{t.position}_note" type="text" form="programForm" value={t.note ?? ''} /></div>
 			</div>
@@ -398,13 +398,12 @@
 			{#if data.showProgram && !isFast}
 				<div class="tab-panel" hidden={active !== 'ansprachen'}>
 					<div class="section">
-						{@render talkCard(findTalk(1), data.statuses)}
-						{@render talkCard(findTalk(2), data.statuses)}
-						{@render talkCard(findTalk(3), data.statuses)}
+						{@render talkCard(findTalk(1))}
+						{@render talkCard(findTalk(2))}
+						{@render talkCard(findTalk(3))}
 						{#if showFourth}
-							{@render talkCard(findTalk(4), data.statuses)}
-						{/if}
-						{#if !showFourth}
+							{@render talkCard(findTalk(4))}
+						{:else}
 							<div class="actions"><button class="btn" type="button" onclick={() => (showFourth = true)}>4. Ansprache hinzufügen</button></div>
 						{/if}
 					</div>
