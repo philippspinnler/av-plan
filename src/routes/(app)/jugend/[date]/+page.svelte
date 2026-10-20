@@ -1,8 +1,7 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
-	import { invalidateAll } from '$app/navigation';
 	import MemberSelect from '$lib/components/MemberSelect.svelte';
-	import { trackUnsaved } from '$lib/unsaved-fields';
+	import { createAutosave } from '$lib/autosave.svelte';
 	let { data, form } = $props();
 	/** Cleared by a later successful save, which skips `applyAction` (see `saved`). */
 	let formError = $derived(form?.error);
@@ -32,104 +31,21 @@
 	/** Idea taken over per side; the side action plans it together with the saved text. */
 	let takenIdea = $state<Record<string, number | null>>({});
 
-	let results = $state<Record<string, { ok: boolean; error?: string }>>({});
-	let pending = $state(0);
-
-	/**
-	 * Autosave, same as the Sunday page: changes mark their form as unsaved and the marked
-	 * forms are submitted one after another, never concurrently, so no stale version is sent.
-	 */
-	let queue: string[] = [];
-	const dirty = new Set<string>();
-	let unsaved = $state(false);
-	let conflict = $state(false);
-	let timer: ReturnType<typeof setTimeout> | undefined;
-	function touch(formId: string) {
-		if (conflict) return;
-		dirty.add(formId);
-		unsaved = true;
-		clearTimeout(timer);
-		timer = setTimeout(flush, 400);
-	}
-	function flush() {
-		if (pending > 0 || dirty.size === 0) return;
-		queue = [...dirty];
-		dirty.clear();
-		unsaved = false;
-		results = {};
-		submitNext();
-	}
-	function submitNext() {
-		let id;
-		// A queued form can be gone after "gemeinsam" was toggled.
-		while ((id = queue.shift())) {
-			const f = document.getElementById(id) as HTMLFormElement | null;
-			if (f) return f.requestSubmit();
+	const autosave = createAutosave({
+		deps: () => data,
+		onSaved: (key) => {
+			takenIdea[key] = null;
+			formError = undefined;
 		}
-		flush();
-	}
-	/** A form responded: keep the result, reload data, then the next form. */
-	function saved(key: string) {
-		pending++;
-		const sent = changedFields.sending(`${key}Form`);
-		return async ({ result, update }: { result: { type: string; status?: number; data?: Record<string, unknown>; error?: { message?: string } }; update: (o: { reset: boolean }) => Promise<void> }) => {
-			pending--;
-			if (result.type === 'success') {
-				results[key] = { ok: true };
-				takenIdea[key] = null;
-				changedFields.saved(sent);
-				formError = undefined;
-			}
-			else if (result.type === 'failure') results[key] = { ok: false, error: String(result.data?.error ?? 'Fehler') };
-			else results[key] = { ok: false, error: result.error?.message ?? 'Fehler' };
-			if (result.status === 409) conflict = true;
-			// update() would also run applyAction, whose focus reset blurs the field the user is typing in.
-			if (result.type === 'success') await invalidateAll();
-			else await update({ reset: false });
-			submitNext();
-		};
-	}
+	});
 	function takeIdea(side: Side, idea: Idea) {
 		const field = document.getElementById(`${side}_text`) as HTMLInputElement | null;
-		if (!field || conflict) return;
+		if (!field || autosave.conflict) return;
 		field.value = idea.text;
-		changedFields.mark(field);
+		autosave.mark(field);
 		takenIdea[side] = idea.id;
-		touch(`${side}Form`);
+		autosave.touch(`${side}Form`);
 	}
-	const changedFields = trackUnsaved();
-	let kept: ReturnType<typeof changedFields.snapshot> = [];
-	$effect.pre(() => {
-		void data;
-		kept = changedFields.snapshot();
-	});
-	$effect(() => {
-		void data;
-		changedFields.restore(kept);
-	});
-	/** Field changes land here (fields attach to their form via form="…"). */
-	function onFieldChange(e: Event) {
-		changedFields.mark(e.target);
-		const formId = (e.target as HTMLInputElement | null)?.form?.id;
-		if (formId) touch(formId);
-	}
-	/** Enter in a text field saves instead of submitting the form unthrottled. */
-	function onFieldKey(e: KeyboardEvent) {
-		const el = e.target as HTMLInputElement | null;
-		if (e.key === 'Enter' && el?.tagName === 'INPUT' && el.form) {
-			e.preventDefault();
-			touch(el.form.id);
-		}
-	}
-
-	const saveStatus = $derived.by(() => {
-		const entries = Object.values(results);
-		const errors = entries.filter((r) => !r.ok).map((r) => r.error ?? 'Fehler');
-		if (errors.length) return { kind: 'error' as const, text: errors.join(' · ') };
-		if (pending > 0 || unsaved) return { kind: 'hint' as const, text: 'Speichern …' };
-		if (entries.length && entries.every((r) => r.ok)) return { kind: 'ok' as const, text: 'Gespeichert' };
-		return { kind: 'hint' as const, text: 'Änderungen werden automatisch gespeichert' };
-	});
 </script>
 
 {#snippet partSection(s: { side: Side; title: string; canEdit: boolean; options: { id: number; label: string; hint: string }[]; thoughtOptions: { id: number; label: string; hint: string }[]; groups: Option[]; ideas: Idea[] })}
@@ -210,7 +126,7 @@
 <p class="no-print"><a href="/jugend">← Termine</a></p>
 
 <!-- svelte-ignore a11y_no_static_element_interactions -->
-<div class="has-savebar" onchange={onFieldChange} oninput={(e) => changedFields.mark(e.target)} onfocusin={(e) => changedFields.focus(e.target)} onfocusout={(e) => changedFields.release(e.target, pending > 0 || dirty.size > 0)} onkeydown={onFieldKey}>
+<div class="has-savebar" {...autosave.handlers}>
 	<div class="section-title">
 		<div>
 			<span class="kind-tag">{kindLabel}</span>
@@ -222,12 +138,12 @@
 	{#if data.breakHint}<p class="hint">Liegt in: {data.breakHint}</p>{/if}
 
 	{#if data.canCommon}
-		<form id="commonForm" method="POST" action="?/common" use:enhance={() => saved('common')}><input type="hidden" name="version" value={data.versions.common} /></form>
-		<form id="adultsForm" method="POST" action="?/adults" use:enhance={() => saved('adults')}><input type="hidden" name="version" value={data.versions.adults} /></form>
+		<form id="commonForm" method="POST" action="?/common" use:enhance={() => autosave.saved('common')}><input type="hidden" name="version" value={data.versions.common} /></form>
+		<form id="adultsForm" method="POST" action="?/adults" use:enhance={() => autosave.saved('adults')}><input type="hidden" name="version" value={data.versions.adults} /></form>
 	{/if}
 	{#each sections as s (s.side)}
 		{#if s.canEdit}
-			<form id="{s.side}Form" method="POST" action="?/{s.side}" use:enhance={() => saved(s.side)}><input type="hidden" name="version" value={s.version} /><input type="hidden" name="ideaId" value={takenIdea[s.side] ?? ''} /></form>
+			<form id="{s.side}Form" method="POST" action="?/{s.side}" use:enhance={() => autosave.saved(s.side)}><input type="hidden" name="version" value={s.version} /><input type="hidden" name="ideaId" value={takenIdea[s.side] ?? ''} /></form>
 		{/if}
 	{/each}
 
@@ -327,8 +243,8 @@
 </div>
 
 <div class="savebar no-print">
-	<span class="savebar-status" class:err={saveStatus.kind === 'error'}>{saveStatus.text}</span>
-	{#if conflict}<button class="btn btn-primary" type="button" onclick={() => location.reload()}>Seite neu laden</button>{/if}
+	<span class="savebar-status" class:err={autosave.status.kind === 'error'}>{autosave.status.text}</span>
+	{#if autosave.conflict}<button class="btn btn-primary" type="button" onclick={() => location.reload()}>Seite neu laden</button>{/if}
 </div>
 
 <style>

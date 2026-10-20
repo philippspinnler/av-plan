@@ -1,12 +1,12 @@
 <script lang="ts">
 	import { untrack } from 'svelte';
 	import { enhance } from '$app/forms';
-	import { invalidateAll, replaceState } from '$app/navigation';
+	import { replaceState } from '$app/navigation';
 	import { page } from '$app/state';
 	import HymnSelect from '$lib/components/HymnSelect.svelte';
 	import Icon from '$lib/components/Icon.svelte';
 	import MemberSelect from '$lib/components/MemberSelect.svelte';
-	import { trackUnsaved } from '$lib/unsaved-fields';
+	import { createAutosave } from '$lib/autosave.svelte';
 	let { data, form } = $props();
 	/** Cleared by a later successful save, which skips `applyAction` (see `saved`). */
 	let formError = $derived(form?.error);
@@ -53,8 +53,6 @@
 	let seededAnnouncements = $state<string | null>(null);
 	let seededCallings = $state<string | null>(null);
 	let seededFourth = $state<string | null>(null);
-	let results = $state<Record<string, { ok: boolean; error?: string }>>({});
-	let pending = $state(0);
 
 	$effect(() => {
 		if (data.missing) return;
@@ -93,90 +91,7 @@
 		return data.missing ? undefined : data.talks.find((t) => t.position === position);
 	}
 
-	/**
-	 * Autosave: each change marks its form as unsaved; shortly after, the marked forms are
-	 * submitted one after another, never concurrently. With parallel requests one form's data
-	 * reload could run before the other's write and overwrite freshly typed values with stale
-	 * data. If a save is running, the next round waits for it (else it would carry a stale version).
-	 */
-	let queue: string[] = [];
-	const dirty = new Set<string>();
-	let unsaved = $state(false);
-	let conflict = $state(false);
-	let timer: ReturnType<typeof setTimeout> | undefined;
-	function touch(formId: string) {
-		if (data.missing || conflict) return;
-		dirty.add(formId);
-		unsaved = true;
-		clearTimeout(timer);
-		timer = setTimeout(flush, 400);
-	}
-	function flush() {
-		if (pending > 0 || dirty.size === 0) return;
-		queue = [...dirty];
-		dirty.clear();
-		unsaved = false;
-		results = {};
-		submitNext();
-	}
-	function submitNext() {
-		const id = queue.shift();
-		if (id) (document.getElementById(id) as HTMLFormElement | null)?.requestSubmit();
-		else flush();
-	}
-	/** A form responded: keep the result, reload data, then the next form. */
-	function saved(key: string) {
-		pending++;
-		const sent = changedFields.sending(`${key}Form`);
-		return async ({ result, update }: { result: { type: string; status?: number; data?: Record<string, unknown>; error?: { message?: string } }; update: (o: { reset: boolean }) => Promise<void> }) => {
-			pending--;
-			if (result.type === 'success') {
-				results[key] = { ok: true };
-				changedFields.saved(sent);
-				formError = undefined;
-			}
-			else if (result.type === 'failure') results[key] = { ok: false, error: String(result.data?.error ?? 'Fehler') };
-			else results[key] = { ok: false, error: result.error?.message ?? 'Fehler' };
-			if (result.status === 409) conflict = true;
-			// update() would also run applyAction, whose focus reset blurs the field the user is typing in.
-			if (result.type === 'success') await invalidateAll();
-			else await update({ reset: false });
-			submitNext();
-		};
-	}
-	const changedFields = trackUnsaved();
-	let kept: ReturnType<typeof changedFields.snapshot> = [];
-	$effect.pre(() => {
-		void data;
-		kept = changedFields.snapshot();
-	});
-	$effect(() => {
-		void data;
-		changedFields.restore(kept);
-	});
-	/** Field changes land here (fields attach to their form via form="…"). */
-	function onFieldChange(e: Event) {
-		changedFields.mark(e.target);
-		const formId = (e.target as HTMLInputElement | null)?.form?.id;
-		if (formId) touch(formId);
-	}
-	/** Enter in a text field saves instead of submitting the form unthrottled. */
-	function onFieldKey(e: KeyboardEvent) {
-		const el = e.target as HTMLInputElement | null;
-		if (e.key === 'Enter' && el?.tagName === 'INPUT' && el.form) {
-			e.preventDefault();
-			touch(el.form.id);
-		}
-	}
-
-	const saveStatus = $derived.by(() => {
-		const entries = Object.values(results);
-		const errors = entries.filter((r) => !r.ok).map((r) => r.error ?? 'Fehler');
-		if (errors.length) return { kind: 'error' as const, text: errors.join(' · ') };
-		if (pending > 0 || unsaved) return { kind: 'hint' as const, text: 'Speichern …' };
-		if (entries.length && entries.every((r) => r.ok)) return { kind: 'ok' as const, text: 'Gespeichert' };
-		return { kind: 'hint' as const, text: 'Änderungen werden automatisch gespeichert' };
-	});
+	const autosave = createAutosave({ deps: () => data, onSaved: () => (formError = undefined) });
 </script>
 
 {#snippet hymnRow(h: { slot: string; label: string; value: string; freeText: string | null } | undefined)}
@@ -244,7 +159,7 @@
 	</div>
 {:else}
 	<!-- svelte-ignore a11y_no_static_element_interactions -->
-	<div class="has-savebar" onchange={onFieldChange} oninput={(e) => changedFields.mark(e.target)} onfocusin={(e) => changedFields.focus(e.target)} onfocusout={(e) => changedFields.release(e.target, pending > 0 || dirty.size > 0)} onkeydown={onFieldKey}>
+	<div class="has-savebar" {...autosave.handlers}>
 		<div class="section-title">
 			<div>
 				<span class="kind-tag">{data.kinds.find((k) => k.value === data.meeting.kind)?.label}</span>
@@ -274,7 +189,7 @@
 				id="programForm"
 				method="POST"
 				action="?/program"
-				use:enhance={() => saved('program')}
+				use:enhance={() => autosave.saved('program')}
 			><input type="hidden" name="version" value={data.versions.program} /></form>
 		{/if}
 		{#if !data.showProgram && data.canPrayers}
@@ -282,7 +197,7 @@
 				id="prayersForm"
 				method="POST"
 				action="?/prayers"
-				use:enhance={() => saved('prayers')}
+				use:enhance={() => autosave.saved('prayers')}
 			><input type="hidden" name="version" value={data.versions.prayers} /></form>
 		{/if}
 		{#if data.canMusic}
@@ -290,14 +205,14 @@
 				id="musicForm"
 				method="POST"
 				action="?/music"
-				use:enhance={() => saved('music')}
+				use:enhance={() => autosave.saved('music')}
 			><input type="hidden" name="version" value={data.versions.music} /></form>
 		{:else if data.canConductor}
 			<form
 				id="conductorForm"
 				method="POST"
 				action="?/conductor"
-				use:enhance={() => saved('conductor')}
+				use:enhance={() => autosave.saved('conductor')}
 			><input type="hidden" name="version" value={data.versions.conductor} /></form>
 		{/if}
 
@@ -387,9 +302,9 @@
 							{#each announcements as a, i}
 								<li>
 									<input type="text" name="announcement" form="programForm" bind:value={announcements[i]} placeholder="Text der Bekanntmachung" />
-									<button class="btn btn-small" type="button" onclick={() => { move(announcements, i, -1); touch('programForm'); }} aria-label="nach oben">↑</button>
-									<button class="btn btn-small" type="button" onclick={() => { move(announcements, i, 1); touch('programForm'); }} aria-label="nach unten">↓</button>
-									<button class="btn btn-small btn-danger" type="button" onclick={() => { announcements.splice(i, 1); touch('programForm'); }} aria-label="entfernen">✕</button>
+									<button class="btn btn-small" type="button" onclick={() => { move(announcements, i, -1); autosave.touch('programForm'); }} aria-label="nach oben">↑</button>
+									<button class="btn btn-small" type="button" onclick={() => { move(announcements, i, 1); autosave.touch('programForm'); }} aria-label="nach unten">↓</button>
+									<button class="btn btn-small btn-danger" type="button" onclick={() => { announcements.splice(i, 1); autosave.touch('programForm'); }} aria-label="entfernen">✕</button>
 								</li>
 							{/each}
 						</ul>
@@ -409,7 +324,7 @@
 										<li class="calling-row">
 											{@render personSelect('release_person', releases[i], `release_person_${i}`)}
 											<input type="text" name="release_calling" form="programForm" bind:value={releases[i].calling} placeholder="Amt" />
-											<button class="btn btn-small btn-danger" type="button" onclick={() => { releases.splice(i, 1); touch('programForm'); }} aria-label="entfernen">✕</button>
+											<button class="btn btn-small btn-danger" type="button" onclick={() => { releases.splice(i, 1); autosave.touch('programForm'); }} aria-label="entfernen">✕</button>
 										</li>
 									{/each}
 								</ul>
@@ -422,7 +337,7 @@
 										<li class="calling-row">
 											{@render personSelect('sustain_person', sustainings[i], `sustain_person_${i}`)}
 											<input type="text" name="sustain_calling" form="programForm" bind:value={sustainings[i].calling} placeholder="Amt" />
-											<button class="btn btn-small btn-danger" type="button" onclick={() => { sustainings.splice(i, 1); touch('programForm'); }} aria-label="entfernen">✕</button>
+											<button class="btn btn-small btn-danger" type="button" onclick={() => { sustainings.splice(i, 1); autosave.touch('programForm'); }} aria-label="entfernen">✕</button>
 										</li>
 									{/each}
 								</ul>
@@ -499,7 +414,7 @@
 	</div>
 
 	<div class="savebar no-print">
-		<span class="savebar-status" class:err={saveStatus.kind === 'error'}>{saveStatus.text}</span>
-		{#if conflict}<button class="btn btn-primary" type="button" onclick={() => location.reload()}>Seite neu laden</button>{/if}
+		<span class="savebar-status" class:err={autosave.status.kind === 'error'}>{autosave.status.text}</span>
+		{#if autosave.conflict}<button class="btn btn-primary" type="button" onclick={() => location.reload()}>Seite neu laden</button>{/if}
 	</div>
 {/if}
