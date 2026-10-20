@@ -29,15 +29,16 @@
 		const t: { key: TabKey; label: string; open: string[] }[] = [];
 		if (!prayersOnly) t.push({ key: 'allgemein', label: 'Allgemein', open: data.open.allgemein });
 		if (data.hasProgram) {
-			if (data.showProgram) t.push({ key: 'begruessung', label: 'Begrüssung und Bekanntmachungen', open: [] }, { key: 'aenderungen', label: 'Beamtenänderungen', open: [] });
-			if (data.showHymns) t.push({ key: 'musik', label: 'Musik', open: data.open.musik });
-			if (data.showProgram || data.canPrayers) t.push({ key: 'gebete', label: 'Gebete', open: data.open.gebete });
 			if (data.showProgram && !isFast) t.push({ key: 'ansprachen', label: 'Ansprachen', open: data.open.ansprachen });
+			if (data.showProgram || data.canPrayers) t.push({ key: 'gebete', label: 'Gebete', open: data.open.gebete });
+			if (data.showHymns) t.push({ key: 'musik', label: 'Musik', open: data.open.musik });
+			if (data.showProgram) t.push({ key: 'begruessung', label: 'Begrüssung und Bekanntmachungen', open: [] }, { key: 'aenderungen', label: 'Beamtenänderungen', open: [] });
 		}
 		return t;
 	});
 	let requested = $state<string | null>(page.url.searchParams.get('tab'));
-	const active = $derived(tabs.find((t) => t.key === requested)?.key ?? tabs[0]?.key ?? 'allgemein');
+	/** Default: the first tab the user can edit (Allgemein is read-only without program access). */
+	const active = $derived(tabs.find((t) => t.key === requested)?.key ?? tabs.find((t) => data.showProgram || t.key !== 'allgemein')?.key ?? tabs[0]?.key ?? 'allgemein');
 	function selectTab(key: TabKey) {
 		requested = key;
 		const url = new URL(page.url);
