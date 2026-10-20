@@ -32,6 +32,7 @@
 					{#each ev.parts as p (p.side)}
 						<div class="g">
 							{#if p.label}<h4>{p.label}</h4>{/if}
+							{#if !p.planned}<p class="muted">noch nicht geplant</p>{/if}
 							{#if p.text && ev.weekday !== 'sunday'}<p class="what">{p.text}</p>{/if}
 							<p class="who">
 								{#if p.leaderName}Leitung: {p.leaderName}<br />{/if}

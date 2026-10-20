@@ -35,6 +35,7 @@
 						{#each ev.parts as p (p.side)}
 							<div>
 								{#if p.label}<div class="kind-tag">{p.label}</div>{/if}
+								{#if !p.planned}<p class="muted">noch nicht geplant</p>{/if}
 								{#if p.text && ev.weekday !== 'sunday'}<p class="next-what">{p.text}</p>{/if}
 								{#if p.details}<p class="hint">{p.details}</p>{/if}
 								<p class="hint">

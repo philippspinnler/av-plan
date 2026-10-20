@@ -19,7 +19,7 @@ export interface YouthPageItem {
 	topicUrl: string | null;
 	snack: string | null;
 	joint: boolean;
-	parts: { side: YouthPartSide; label: 'Junge Damen' | 'Junge Männer' | null; text: string | null; details: string | null; leaderName: string | null; thoughtName: string | null; teacherName: string | null }[];
+	parts: { side: YouthPartSide; label: 'Junge Damen' | 'Junge Männer' | null; planned: boolean; text: string | null; details: string | null; leaderName: string | null; thoughtName: string | null; teacherName: string | null }[];
 }
 
 const SIDE_LABELS = { jd: 'Junge Damen', jm: 'Junge Männer', both: null } as const;
@@ -45,15 +45,19 @@ function toItem(e: YouthEventFull, names: Map<number, string>): YouthPageItem {
 	const date = e.event.date;
 	const name = (m: Member | null) => (m ? (names.get(m.id) ?? null) : null);
 	const kindLabel = e.status === 'off' ? 'Kein JD/JM' : e.event.joint && e.event.kind !== 'basel' ? 'Gemeinsam' : YOUTH_KIND_LABELS[e.event.kind];
+	// Both sides are always listed, so an unplanned side is visible as such.
+	const sides: YouthPartSide[] = e.event.joint ? ['both'] : ['jd', 'jm'];
 	return {
 		date, weekday: e.weekday, ...labels(date), kindLabel, status: e.status, offLabel: e.offLabel,
 		topic: e.event.topic, topicUrl: e.event.topicUrl, snack: e.event.snack, joint: e.event.joint,
-		parts: e.parts.map((p) => ({
-			side: p.side, label: SIDE_LABELS[p.side], text: p.text, details: p.details,
-			leaderName: name(p.leader) ?? (p.leaderGroup ? (YOUTH_GROUP_LABELS[p.leaderGroup] ?? p.leaderGroup) : null),
-			thoughtName: name(p.thought),
-			teacherName: name(p.teacher)
-		}))
+		parts: sides.map((side) => {
+			const p = e.parts.find((x) => x.side === side);
+			const leaderName = p ? (name(p.leader) ?? (p.leaderGroup ? (YOUTH_GROUP_LABELS[p.leaderGroup] ?? p.leaderGroup) : null)) : null;
+			const thoughtName = name(p?.thought ?? null);
+			const teacherName = name(p?.teacher ?? null);
+			const text = p?.text ?? null;
+			return { side, label: SIDE_LABELS[side], planned: Boolean(text || leaderName || thoughtName || teacherName), text, details: p?.details ?? null, leaderName, thoughtName, teacherName };
+		})
 	};
 }
 
@@ -83,13 +87,14 @@ export function compactText(i: YouthPageItem): string {
 	if (i.status === 'off') return `${i.kindLabel} – ${i.offLabel}`;
 	if (i.status === 'open') return `${i.kindLabel} · noch nicht geplant`;
 	const join = (xs: (string | null)[]) => (xs.some(Boolean) ? [...new Set(xs.map((x) => x ?? '–'))].join(' / ') : null);
+	const planned = i.parts.filter((p) => p.planned);
 	const parts = [
 		i.kindLabel,
-		i.weekday === 'sunday' ? i.topic : join(i.parts.map((p) => p.text)),
-		i.weekday === 'sunday' ? null : join(i.parts.map((p) => p.leaderName)) && `Leitung: ${join(i.parts.map((p) => p.leaderName))}`,
+		i.weekday === 'sunday' ? i.topic : join(planned.map((p) => p.text)),
+		i.weekday === 'sunday' ? null : join(planned.map((p) => p.leaderName)) && `Leitung: ${join(planned.map((p) => p.leaderName))}`,
 		i.weekday === 'sunday'
-			? join(i.parts.map((p) => p.teacherName)) && `Lehrer: ${join(i.parts.map((p) => p.teacherName))}`
-			: join(i.parts.map((p) => p.thoughtName)) && `Gedanke: ${join(i.parts.map((p) => p.thoughtName))}`
+			? join(planned.map((p) => p.teacherName)) && `Lehrer: ${join(planned.map((p) => p.teacherName))}`
+			: join(planned.map((p) => p.thoughtName)) && `Gedanke: ${join(planned.map((p) => p.thoughtName))}`
 	];
 	return parts.filter(Boolean).join(' · ');
 }
