@@ -1,6 +1,6 @@
 <script lang="ts">
 	/**
-	 * Member picker with search: typing filters the list, click or Enter selects.
+	 * Picker with search (members, hymns): typing filters the list, click or Enter selects.
 	 * The selected value reaches the form via a hidden field.
 	 */
 	type Option = { id: number; label: string; hint: string };
@@ -12,7 +12,9 @@
 		form = undefined,
 		placeholder = 'Name tippen …',
 		emptyLabel = '– niemand –',
-		serialize = (id: number | null) => (id === null ? '' : String(id))
+		serialize = (id: number | null) => (id === null ? '' : String(id)),
+		numbered = false,
+		noMatch = 'Kein Treffer. Andere Schreibweise versuchen.'
 	}: {
 		id: string;
 		name: string;
@@ -24,6 +26,9 @@
 		emptyLabel?: string;
 		/** Form value for the selected id; allows special cases such as free-text names. */
 		serialize?: (id: number | null) => string;
+		/** Labels start with a number (hymns): a typed number matches that prefix. */
+		numbered?: boolean;
+		noMatch?: string;
 	} = $props();
 
 	let selected = $state<number | null>(null);
@@ -49,7 +54,7 @@
 	const matches = $derived.by(() => {
 		const q = fold(query.trim());
 		const words = q.split(/\s+/).filter(Boolean);
-		const list = words.length ? options.filter((o) => words.every((w) => fold(o.label).includes(w))) : options;
+		const list = numbered && /^\d+$/.test(q) ? options.filter((o) => (o.label.match(/^\d+/)?.[0] ?? '').startsWith(q)) : words.length ? options.filter((o) => words.every((w) => fold(o.label).includes(w))) : options;
 		return list.slice(0, 60);
 	});
 
@@ -100,6 +105,7 @@
 		aria-controls="{id}-list"
 		aria-autocomplete="list"
 		autocomplete="off"
+		inputmode={numbered ? 'search' : undefined}
 		value={open ? query : (current?.label ?? '')}
 		placeholder={current ? current.label : placeholder}
 		oninput={onInput}
@@ -133,7 +139,7 @@
 				</li>
 			{/each}
 			{#if matches.length === 0}
-				<li class="combo-empty">Kein Treffer. Andere Schreibweise versuchen.</li>
+				<li class="combo-empty">{noMatch}</li>
 			{:else if matches.length === 60}
 				<li class="combo-empty">Mehr Treffer vorhanden, bitte weiter tippen.</li>
 			{/if}

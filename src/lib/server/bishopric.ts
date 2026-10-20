@@ -14,17 +14,14 @@ export interface BishopricEntry { id: number; role: BishopricRole }
 
 const isRole = (r: unknown): r is BishopricRole => typeof r === 'string' && (BISHOPRIC_ROLES as readonly string[]).includes(r);
 
-/**
- * At most one person per role and one role per person.
- * Falls back to the old role-less list (order = bishop, 1st, 2nd counselor) until something new is saved.
- */
+/** At most one person per role and one role per person. */
 export function getBishopric(db: Db): BishopricEntry[] {
 	try {
 		const v: unknown = JSON.parse(getSetting(db, 'bishopric'));
-		if (Array.isArray(v) && v.length) return normalize(v.filter((e) => e && Number.isInteger(e.id) && e.id > 0 && isRole(e.role)));
+		if (Array.isArray(v)) return normalize(v.filter((e) => e && Number.isInteger(e.id) && e.id > 0 && isRole(e.role)));
 	} catch {
 	}
-	return normalize(getLegacyIds(db).map((id, i) => ({ id, role: BISHOPRIC_ROLES[i] })).filter((e) => e.role));
+	return [];
 }
 
 function normalize(entries: BishopricEntry[]): BishopricEntry[] {
@@ -34,15 +31,6 @@ function normalize(entries: BishopricEntry[]): BishopricEntry[] {
 		if (e) out.push({ id: e.id, role });
 	}
 	return out;
-}
-
-function getLegacyIds(db: Db): number[] {
-	try {
-		const v: unknown = JSON.parse(getSetting(db, 'bishopric_member_ids'));
-		return Array.isArray(v) ? v.filter((x): x is number => Number.isInteger(x) && x > 0) : [];
-	} catch {
-		return [];
-	}
 }
 
 export function setBishopric(db: Db, entries: BishopricEntry[]): void {

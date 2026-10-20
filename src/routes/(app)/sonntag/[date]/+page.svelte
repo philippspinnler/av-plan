@@ -3,7 +3,6 @@
 	import { enhance } from '$app/forms';
 	import { replaceState } from '$app/navigation';
 	import { page } from '$app/state';
-	import HymnSelect from '$lib/components/HymnSelect.svelte';
 	import Icon from '$lib/components/Icon.svelte';
 	import MemberSelect from '$lib/components/MemberSelect.svelte';
 	import { createAutosave } from '$lib/autosave.svelte';
@@ -94,12 +93,12 @@
 	const autosave = createAutosave({ deps: () => data, onSaved: () => (formError = undefined) });
 </script>
 
-{#snippet hymnRow(h: { slot: string; label: string; value: string; freeText: string | null } | undefined)}
+{#snippet hymnRow(h: { slot: string; label: string; value: string; number: number | null; freeText: string | null } | undefined)}
 	{#if h}
 		<div class="field">
 			<label for="hymn_{h.slot}">{h.label}</label>
 			{#if data.canMusic}
-				<HymnSelect id="hymn_{h.slot}" name="hymn_{h.slot}" form="musicForm" options={data.missing ? [] : data.hymnList} value={h.value} />
+				<MemberSelect id="hymn_{h.slot}" name="hymn_{h.slot}" form="musicForm" options={data.missing ? [] : data.hymnList} value={h.number} numbered placeholder="Nummer oder Titel tippen" emptyLabel="– kein Lied –" noMatch={'Kein Treffer. Lieder werden unter "Lieder" angelegt.'} />
 				{#if h.slot === 'zwischen'}
 					<input type="text" name="zwischen_text" form="musicForm" value={h.freeText ?? ''} placeholder="oder Musikeinlage, z.B. PV singt" />
 				{/if}

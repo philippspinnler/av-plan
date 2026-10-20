@@ -23,6 +23,7 @@
 		"@sveltejs/vite-plugin-svelte": "^7.1.2",
 		"@types/better-sqlite3": "^9.6.0",
 		"drizzle-kit": "^0.31.10",
+		"exceljs": "^4.4.0",
 		"svelte": "^5.56.1",
 		"svelte-check": "^4.6.0",
 		"tsx": "^4.23.13",
@@ -33,7 +34,6 @@
 	"dependencies": {
 		"@node-rs/argon2": "^2.2.0",
 		"better-sqlite3": "^13.0.3",
-		"drizzle-orm": "^0.45.2",
-		"exceljs": "^4.4.0"
+		"drizzle-orm": "^0.45.2"
 	}
 }

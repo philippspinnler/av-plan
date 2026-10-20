@@ -1,7 +1,6 @@
 import { error, fail, type ActionFailure } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 import { formatDateLong, isSunday, todayIso } from '$lib/dates';
-import { leadingInt } from '$lib/hymn-input';
 import { HYMN_SLOTS, MEETING_KINDS, STATUSES, isFastLike, type HymnSlot, type MeetingKind, type Status } from '$lib/server/db/schema';
 import { optInt, optStr, str, strList } from '$lib/server/forms';
 import { hymnLabel, listHymns } from '$lib/server/hymns';
@@ -159,9 +158,9 @@ export const load: PageServerLoad = ({ locals, params }) => {
 		showFourth,
 		hymns: hymnSlots.map((slot) => {
 			const h = full.hymns[slot];
-			return { slot, label: SLOT_LABELS[slot], value: h.hymn ? hymnLabel(h.hymn) : '', freeText: h.freeText };
+			return { slot, label: SLOT_LABELS[slot], value: h.hymn ? hymnLabel(h.hymn) : '', number: h.hymn?.number ?? null, freeText: h.freeText };
 		}),
-		hymnList: listHymns(locals.db).map((h) => hymnLabel(h)),
+		hymnList: listHymns(locals.db).map((h) => ({ id: h.number, label: hymnLabel(h), hint: '' })),
 		announcements: showProgram ? full.announcements : [],
 		releases: showProgram ? full.callings.filter((c) => c.kind === 'entlassung').map(withMemberId) : [],
 		sustainings: showProgram ? full.callings.filter((c) => c.kind === 'berufung').map(withMemberId) : [],
@@ -246,7 +245,7 @@ export const actions: Actions = {
 		const hymns = {} as Record<HymnSlot, { hymnNumber: number | null; freeText: string | null }>;
 		for (const slot of HYMN_SLOTS) {
 			const text = str(fd, `hymn_${slot}`);
-			const hymnNumber = leadingInt(text);
+			const hymnNumber = parseInt(text, 10) || null;
 			if (text && hymnNumber === null) return fail(400, { error: `${SLOT_LABELS[slot]}: bitte ein Lied aus der Liste wählen oder die Nummer eingeben.` });
 			hymns[slot] = { hymnNumber, freeText: slot === 'zwischen' ? optStr(fd, 'zwischen_text') : null };
 		}

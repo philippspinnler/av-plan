@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest';
 import { chairFor, formatAbsences, getBishopric, getBishopricIds, parseAbsences, setBishopric, setBishopricMember } from './bishopric';
-import { setSetting } from './settings';
 import { createDb } from './db';
 
 describe('bishopric', () => {
@@ -17,11 +16,6 @@ describe('bishopric', () => {
 		expect(getBishopricIds(db)).toEqual([3]);
 		setBishopric(db, [{ id: 5, role: 'bischof' }, { id: 6, role: 'bischof' }, { id: 5, role: 'ratgeber1' }]);
 		expect(getBishopric(db)).toEqual([{ id: 5, role: 'bischof' }]);
-	});
-	it('reads the old list without roles as bishop, 1st, 2nd counselor', () => {
-		const db = createDb(':memory:');
-		setSetting(db, 'bishopric_member_ids', '[7, 8, 9, 10]');
-		expect(getBishopric(db)).toEqual([{ id: 7, role: 'bischof' }, { id: 8, role: 'ratgeber1' }, { id: 9, role: 'ratgeber2' }]);
 	});
 	it('determines who presides', () => {
 		const bishopric = [{ id: 1, role: 'bischof' as const }, { id: 2, role: 'ratgeber1' as const }, { id: 3, role: 'ratgeber2' as const }];
