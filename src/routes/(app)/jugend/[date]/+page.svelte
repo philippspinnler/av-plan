@@ -162,6 +162,14 @@
 				{/if}
 			</div>
 		{/if}
+		<div class="field">
+			<label for="{s.side}_details">Details</label>
+			{#if s.canEdit}
+				<input id="{s.side}_details" name="details" type="text" form={formId} value={p?.details ?? ''} placeholder="z.B. Treffpunkt, Mitbringen, 18:00 Leitungssitzung" />
+			{:else}
+				<p>{p?.details ?? '–'}</p>
+			{/if}
+		</div>
 		<div class="grid-2">
 			<div class="field">
 				<label for="{s.side}_leader">Leitung</label>
@@ -232,14 +240,18 @@
 				{/if}
 			</div>
 		</div>
-		<div class="field">
-			<label for="details">Details</label>
-			{#if data.canCommon}
-				<input id="details" name="details" type="text" form="commonForm" value={ev.details ?? ''} />
-			{:else}
-				<p>{ev.details ?? '–'}</p>
-			{/if}
-		</div>
+		{#if data.off}
+			<div class="field">
+				<label for="details">Begründung</label>
+				{#if data.canCommon}
+					<input id="details" name="details" type="text" form="commonForm" value={ev.details ?? ''} placeholder="z.B. Mini-MTC ab Jg 12" />
+				{:else}
+					<p>{ev.details ?? '–'}</p>
+				{/if}
+			</div>
+		{:else if data.canCommon}
+			<input type="hidden" name="details" form="commonForm" value={ev.details ?? ''} />
+		{/if}
 		{#if data.isSunday}
 			<div class="grid-2">
 				<div class="field">

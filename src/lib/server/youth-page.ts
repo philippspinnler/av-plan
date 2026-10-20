@@ -19,7 +19,7 @@ export interface YouthPageItem {
 	topicUrl: string | null;
 	snack: string | null;
 	joint: boolean;
-	parts: { side: YouthPartSide; label: 'Junge Damen' | 'Junge Männer' | null; text: string | null; leaderName: string | null; thoughtName: string | null }[];
+	parts: { side: YouthPartSide; label: 'Junge Damen' | 'Junge Männer' | null; text: string | null; details: string | null; leaderName: string | null; thoughtName: string | null }[];
 }
 
 const DAYS_LONG = ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag'];
@@ -53,7 +53,7 @@ function toItem(e: YouthEventFull, names: Map<number, string>): YouthPageItem {
 		date, weekday: e.weekday, ...labels(date), kindLabel, status: e.status, offLabel: e.offLabel,
 		topic: e.event.topic, topicUrl: e.event.topicUrl, snack: e.event.snack, joint: e.event.joint,
 		parts: e.parts.map((p) => ({
-			side: p.side, label: SIDE_LABELS[p.side], text: p.text,
+			side: p.side, label: SIDE_LABELS[p.side], text: p.text, details: p.details,
 			leaderName: name(p.leader) ?? (p.leaderGroup ? (YOUTH_GROUP_LABELS[p.leaderGroup] ?? p.leaderGroup) : null),
 			thoughtName: name(p.thought)
 		}))

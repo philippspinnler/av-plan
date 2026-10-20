@@ -2,7 +2,7 @@ import { isSunday, toIso } from '../../dates';
 import type { Db } from '../db';
 import type { Member, YouthEventKind, YouthSide } from '../db/schema';
 import { matchByFirstName } from '../members';
-import { ensureYouthEvents, isWednesday, loadYouthEvent, saveYouthAdults, saveYouthCommon, saveYouthPart, YOUTH_KIND_LABELS } from '../youth';
+import { ensureYouthEvents, isWednesday, loadYouthEvent, OFF_KINDS, saveYouthAdults, saveYouthCommon, saveYouthPart, YOUTH_KIND_LABELS } from '../youth';
 import { createBreak, listBreaks } from '../youth-breaks';
 import { listAdults, listYouth } from '../youth-people';
 
@@ -147,11 +147,14 @@ function importAll(db: Db, activitiesCsv: string, classesCsv: string | null, opt
 		// "Leitung" means the adult leaders run it: no person to resolve.
 		const leader = (side: YouthSide) => (r[`leitung ${side}`].trim().toLowerCase() === 'leitung' ? null : resolve(date, `Leitung ${side.toUpperCase()}`, r[`leitung ${side}`], youth[side], lost));
 		const lead = { jd: leader('jd'), jm: leader('jm') };
-		const part = (side: YouthSide) => ({ text: r[`aktivität ${side}`] || null, leaderMemberId: lead[side]?.id ?? null, leaderGroup: null, thoughtMemberId: th[side]?.id ?? null });
+		// Airtable has one Details column; in the app details belong to the activity (part), the event keeps them only as off reason.
+		const off = OFF_KINDS.includes(spec.kind);
+		const details = off ? null : r['details'] || null;
+		const part = (side: YouthSide) => ({ text: r[`aktivität ${side}`] || null, details, leaderMemberId: lead[side]?.id ?? null, leaderGroup: null, thoughtMemberId: th[side]?.id ?? null });
 		const jd = part('jd');
 		const jm = part('jm');
-		const both = { text: [jd.text, jm.text].filter(Boolean).join('\n') || null, leaderMemberId: jd.leaderMemberId ?? jm.leaderMemberId, leaderGroup: null, thoughtMemberId: jd.thoughtMemberId ?? jm.thoughtMemberId };
-		store(date, { ...spec, details: r['details'], topic: r['thema'], snack: r['snack'] }, spec.joint ? { both } : { jd, jm }, adultEntries(date, r), lost);
+		const both = { text: [jd.text, jm.text].filter(Boolean).join('\n') || null, details, leaderMemberId: jd.leaderMemberId ?? jm.leaderMemberId, leaderGroup: null, thoughtMemberId: jd.thoughtMemberId ?? jm.thoughtMemberId };
+		store(date, { ...spec, details: off ? r['details'] : '', topic: r['thema'], snack: r['snack'] }, spec.joint ? { both } : { jd, jm }, adultEntries(date, r), lost);
 	}
 
 	for (const r of classRows) {
@@ -165,8 +168,8 @@ function importAll(db: Db, activitiesCsv: string, classesCsv: string | null, opt
 			if (raw && !map[raw.toLowerCase()]) warn(`${date}: Leitung ${side.toUpperCase()} '${raw}' unbekannt`);
 			return map[raw.toLowerCase()] ?? null;
 		};
-		const part = (side: YouthSide, map: Record<string, string>) => ({ text: null, leaderMemberId: null, leaderGroup: group(side, map), thoughtMemberId: th[side]?.id ?? null });
-		store(date, { kind: 'klasse', joint: false, details: r['details'], topic: r['thema'], snack: '' }, { jd: part('jd', JD_GROUPS), jm: part('jm', JM_GROUPS) }, adultEntries(date, r), lost);
+		const part = (side: YouthSide, map: Record<string, string>) => ({ text: null, details: r['details'] || null, leaderMemberId: null, leaderGroup: group(side, map), thoughtMemberId: th[side]?.id ?? null });
+		store(date, { kind: 'klasse', joint: false, details: '', topic: r['thema'], snack: '' }, { jd: part('jd', JD_GROUPS), jm: part('jm', JM_GROUPS) }, adultEntries(date, r), lost);
 	}
 
 	report.events = dates.size;

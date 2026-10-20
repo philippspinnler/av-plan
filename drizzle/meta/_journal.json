@@ -50,6 +50,13 @@
       "when": 1792417687616,
       "tag": "0006_youth",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "6",
+      "when": 1792481471138,
+      "tag": "0007_youth_part_details",
+      "breakpoints": true
     }
   ]
 }

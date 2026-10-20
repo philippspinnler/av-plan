@@ -54,6 +54,7 @@ function partAction(side: YouthPartSide): Action {
 		if (leaderGroup !== null && !groupsFor(side).includes(leaderGroup)) return fail(400, { error: 'Ungültige Gruppe.' });
 		saveYouthPart(locals.db, full.event.id, side, {
 			text: optStr(fd, 'text'),
+			details: optStr(fd, 'details'),
 			leaderMemberId: optInt(fd, 'leader'),
 			leaderGroup,
 			thoughtMemberId: optInt(fd, 'thought')
@@ -90,6 +91,7 @@ export const load: PageServerLoad = ({ locals, params }) => {
 			parts: full.parts.map((p) => ({
 				side: p.side,
 				text: p.text,
+				details: p.details,
 				leaderId: p.leader?.id ?? null,
 				leaderName: name(p.leader),
 				leaderGroup: p.leaderGroup,

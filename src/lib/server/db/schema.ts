@@ -223,6 +223,7 @@ export const youthEventParts = sqliteTable(
 		eventId: integer('event_id').notNull().references(() => youthEvents.id, { onDelete: 'cascade' }),
 		side: text('side', { enum: YOUTH_PART_SIDES }).notNull(),
 		text: text('text'),
+		details: text('details'),
 		leaderMemberId: integer('leader_member_id').references(() => members.id),
 		leaderGroup: text('leader_group'),
 		thoughtMemberId: integer('thought_member_id').references(() => members.id)

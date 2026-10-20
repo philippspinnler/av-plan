@@ -26,7 +26,7 @@ export const SUNDAY_KINDS: YouthEventKind[] = ['klasse', 'erwachsene', 'keine'];
 export const WEDNESDAY_KINDS: YouthEventKind[] = ['aktivitaet', 'basel', 'fireside', 'uebertragung', 'pfahl', 'tempel', 'ferien', 'keine'];
 export const OFF_KINDS: YouthEventKind[] = ['erwachsene', 'pfahl', 'tempel', 'ferien', 'keine'];
 
-export interface YouthPartFull { side: YouthPartSide; text: string | null; leader: Member | null; leaderGroup: string | null; thought: Member | null }
+export interface YouthPartFull { side: YouthPartSide; text: string | null; details: string | null; leader: Member | null; leaderGroup: string | null; thought: Member | null }
 /** Dates without a stored row are synthesized with `event.id = 0` and the weekday default kind. */
 export interface YouthEventFull {
 	event: YouthEvent;
@@ -39,7 +39,7 @@ export interface YouthEventFull {
 	offLabel: string | null;
 }
 export interface YouthCommonInput { kind: YouthEventKind; joint: boolean; details: string | null; topic: string | null; topicUrl: string | null; snack: string | null }
-export interface YouthPartInput { text: string | null; leaderMemberId: number | null; leaderGroup: string | null; thoughtMemberId: number | null }
+export interface YouthPartInput { text: string | null; details?: string | null; leaderMemberId: number | null; leaderGroup: string | null; thoughtMemberId: number | null }
 
 const nowIso = () => new Date().toISOString();
 
@@ -76,8 +76,8 @@ export function ensureYouthEvents(db: Db, fromIso: string, months = 6): number {
 	return created;
 }
 
-const hasContent = (p: { text: string | null; leader: unknown; leaderGroup: string | null; thought: unknown }) =>
-	Boolean(p.text || p.leader || p.leaderGroup || p.thought);
+const hasContent = (p: { text: string | null; details: string | null; leader: unknown; leaderGroup: string | null; thought: unknown }) =>
+	Boolean(p.text || p.details || p.leader || p.leaderGroup || p.thought);
 
 function assemble(db: Db, from: string, to: string, rows: YouthEvent[]): YouthEventFull[] {
 	const ids = rows.map((r) => r.id);
@@ -98,7 +98,7 @@ function assemble(db: Db, from: string, to: string, rows: YouthEvent[]): YouthEv
 		const parts: YouthPartFull[] = partRows
 			.filter((p) => p.eventId === event.id)
 			.sort((a, b) => YOUTH_PART_SIDES.indexOf(a.side) - YOUTH_PART_SIDES.indexOf(b.side))
-			.map((p) => ({ side: p.side, text: p.text, leader: pick(p.leaderMemberId), leaderGroup: p.leaderGroup, thought: pick(p.thoughtMemberId) }));
+			.map((p) => ({ side: p.side, text: p.text, details: p.details, leader: pick(p.leaderMemberId), leaderGroup: p.leaderGroup, thought: pick(p.thoughtMemberId) }));
 		const adults = adultRows.filter((a) => a.eventId === event.id).flatMap((a) => (people.has(a.memberId) ? [{ member: people.get(a.memberId)!, present: a.present }] : []));
 		const meetingKind = weekday === 'sunday' ? (meetingKinds.get(date) ?? null) : null;
 		const brk = weekday === 'wednesday' ? breakFor(breaks, date) : null;
@@ -153,13 +153,14 @@ export function saveYouthCommon(db: Db, eventId: number, input: YouthCommonInput
 		const bySide = (s: YouthPartSide) => parts.find((p) => p.side === s);
 		tx.delete(youthEventParts).where(eq(youthEventParts.eventId, eventId)).run();
 		const row = (side: YouthPartSide, p: YouthPartInput) =>
-			tx.insert(youthEventParts).values({ eventId, side, text: p.text, leaderMemberId: p.leaderMemberId, leaderGroup: p.leaderGroup, thoughtMemberId: p.thoughtMemberId }).run();
+			tx.insert(youthEventParts).values({ eventId, side, text: p.text, details: p.details ?? null, leaderMemberId: p.leaderMemberId, leaderGroup: p.leaderGroup, thoughtMemberId: p.thoughtMemberId }).run();
 		if (input.joint) {
 			const jd = bySide('jd');
 			const jm = bySide('jm');
 			if (!jd && !jm) return;
 			row('both', {
 				text: [jd?.text, jm?.text].filter(Boolean).join('\n') || null,
+				details: [jd?.details, jm?.details].filter(Boolean).join('\n') || null,
 				leaderMemberId: jd?.leaderMemberId ?? jm?.leaderMemberId ?? null,
 				leaderGroup: jd?.leaderGroup ?? jm?.leaderGroup ?? null,
 				thoughtMemberId: jd?.thoughtMemberId ?? jm?.thoughtMemberId ?? null
@@ -204,7 +205,7 @@ export function youthSectionVersions(full: YouthEventFull): Record<'common' | 'j
 	const e = full.event;
 	const part = (side: YouthPartSide) => {
 		const p = full.parts.find((x) => x.side === side);
-		return hash(p ? [p.text, p.leader?.id ?? null, p.leaderGroup, p.thought?.id ?? null] : null);
+		return hash(p ? [p.text, p.details, p.leader?.id ?? null, p.leaderGroup, p.thought?.id ?? null] : null);
 	};
 	return {
 		common: hash([e.kind, e.joint, e.details, e.topic, e.topicUrl, e.snack]),

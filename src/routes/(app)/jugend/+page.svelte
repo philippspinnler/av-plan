@@ -37,6 +37,7 @@
 							<div>
 								{#if p.label}<div class="kind-tag">{p.label}</div>{/if}
 								{#if p.text && ev.weekday !== 'sunday'}<p class="next-what">{p.text}</p>{/if}
+								{#if p.details}<p class="hint">{p.details}</p>{/if}
 								<p class="hint">
 									{#if p.leaderName}Leitung: {p.leaderName}<br />{/if}
 									{#if p.thoughtName}Gedanke: {p.thoughtName}{/if}
