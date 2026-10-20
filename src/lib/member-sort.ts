@@ -1,8 +1,6 @@
-import { collator, compareDate, sortRows, toggleSort, type ColumnSpec, type SortState } from './table-sort';
+import { collator, compareDate, sortRows, type ColumnSpec, type SortState } from './table-sort';
 
 export type SortKey = 'name' | 'lastTalk' | 'lastPrayer' | 'status';
-export type { SortDir } from './table-sort';
-export { toggleSort };
 export type MemberSortState = SortState<SortKey>;
 
 export interface MemberRow {

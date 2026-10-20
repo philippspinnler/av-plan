@@ -10,10 +10,6 @@ export function listHymns(db: Db): Hymn[] {
 	return db.select().from(hymns).orderBy(asc(hymns.number)).all();
 }
 
-export function getHymn(db: Db, id: number): Hymn | undefined {
-	return db.select().from(hymns).where(eq(hymns.id, id)).get();
-}
-
 export function getHymnByNumber(db: Db, number: number): Hymn | undefined {
 	return db.select().from(hymns).where(eq(hymns.number, number)).get();
 }

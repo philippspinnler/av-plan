@@ -271,6 +271,5 @@ export type Hymn = typeof hymns.$inferSelect;
 export type Meeting = typeof meetings.$inferSelect;
 export type Invite = typeof invites.$inferSelect;
 export type YouthEvent = typeof youthEvents.$inferSelect;
-export type YouthEventPart = typeof youthEventParts.$inferSelect;
 export type YouthIdea = typeof youthIdeas.$inferSelect;
 export type YouthBreak = typeof youthBreaks.$inferSelect;

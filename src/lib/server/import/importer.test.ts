@@ -5,7 +5,7 @@ import path from 'node:path';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { createDb, type Db } from '../db';
 import { getHymnByNumber, listHymns } from '../hymns';
-import { findMemberByName, listMembers } from '../members';
+import { listMembers, matchMember } from '../members';
 import { loadMeetingFullByDate } from '../meetings';
 import { importWorkbooks, type ImportReport } from './importer';
 
@@ -62,22 +62,22 @@ afterAll(() => fs.rmSync(dir, { recursive: true, force: true }));
 
 describe('importWorkbooks', () => {
 	it('imports members with flags, notes and affiliation', () => {
-		const anna = findMemberByName(db, 'Anna Rey')!;
+		const anna = matchMember(listMembers(db), 'Anna Rey')!;
 		expect(anna.active).toBe(true);
 		expect(anna.noteTalk).toBe('gerne kurz');
-		const edith = findMemberByName(db, 'Edith Achermann')!;
+		const edith = matchMember(listMembers(db), 'Edith Achermann')!;
 		expect(edith.active).toBe(false);
 		expect(edith.notePrayer).toBe('will lieber nicht beten');
-		const daniel = findMemberByName(db, 'Daniel Dürst')!;
+		const daniel = matchMember(listMembers(db), 'Daniel Dürst')!;
 		expect(daniel.kind).toBe('pfahl');
 		expect(daniel.calling).toBe('Hoherat');
 		expect(daniel.affiliation).toBeNull();
 	});
 	it('creates unknown speakers and reports them', () => {
-		const elder = findMemberByName(db, 'Elder Neuer')!;
+		const elder = matchMember(listMembers(db), 'Elder Neuer')!;
 		expect(elder.affiliation).toBe('Missionar');
 		expect(elder.active).toBe(true);
-		const unknown = findMemberByName(db, 'Unbekannt Neu')!;
+		const unknown = matchMember(listMembers(db), 'Unbekannt Neu')!;
 		expect(unknown.active).toBe(false);
 		expect(report.unresolved).toEqual(expect.arrayContaining(['Elder Neuer', 'Unbekannt Neu']));
 		expect(listMembers(db)).toHaveLength(7);

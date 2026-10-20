@@ -11,7 +11,7 @@ describe('live', () => {
 		live.changed('/fragen');
 		expect(got).toEqual([{ kind: 'change', page: '/sonntag/2026-09-13' }]);
 	});
-	it('tracks who is where, and forgets those who left or went silent', () => {
+	it('tracks who is where, and forgets those who left', () => {
 		const live = createLive(() => 1000);
 		const got: unknown[] = [];
 		live.subscribe((e) => got.push(e));
@@ -21,9 +21,6 @@ describe('live', () => {
 		expect(got.at(-1)).toEqual({ kind: 'presence', list: live.list() });
 		live.removePresence('c2');
 		expect(live.list().map((p) => p.client)).toEqual(['c1']);
-		const later = createLive(() => 1000 + 61_000);
-		later.setPresence('c3', { userId: 3, name: 'Mia' }, '/', null);
-		expect(later.list().map((p) => p.client)).toEqual(['c3']);
 	});
 	it('forgets entries without a heartbeat', () => {
 		let t = 0;

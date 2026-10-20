@@ -35,7 +35,6 @@ export const STATUS_LABELS: Record<Status, string> = { offen: 'Offen', angefragt
 export function hasProgram(kind: MeetingKind): boolean {
 	return kind === 'normal' || isFastLike(kind) || kind === 'ostern' || kind === 'weihnachten' || kind === 'gemeindekonferenz';
 }
-export const countsForStats = hasProgram;
 
 export interface PrayerRow { position: number; member: Member | null; status: Status }
 export interface TalkRow { position: number; member: Member | null; topic: string | null; durationMinutes: number | null; status: Status; note: string | null }
@@ -128,11 +127,6 @@ export function adjacentMeetingDates(db: Db, date: string): { prev: string | nul
 	const prev = db.select({ date: meetings.date }).from(meetings).where(lt(meetings.date, date)).orderBy(desc(meetings.date)).limit(1).get();
 	const next = db.select({ date: meetings.date }).from(meetings).where(gt(meetings.date, date)).orderBy(asc(meetings.date)).limit(1).get();
 	return { prev: prev?.date ?? null, next: next?.date ?? null };
-}
-
-export function loadMeetingFull(db: Db, meetingId: number): MeetingFull | null {
-	const m = db.select().from(meetings).where(eq(meetings.id, meetingId)).get();
-	return m ? assemble(db, m) : null;
 }
 
 export function loadMeetingFullByDate(db: Db, date: string): MeetingFull | null {

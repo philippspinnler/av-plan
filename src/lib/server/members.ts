@@ -86,10 +86,6 @@ export function matchMember(all: Member[], raw: string): Member | null {
 	return hits.length === 1 ? hits[0] : null;
 }
 
-export function findMemberByName(db: Db, raw: string): Member | null {
-	return matchMember(listMembers(db), raw);
-}
-
 export function matchByFirstName(all: Member[], first: string): Member | null {
 	const wanted = normalizeName(first);
 	if (!wanted) return null;

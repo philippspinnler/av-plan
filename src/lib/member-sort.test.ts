@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { sortMembers, toggleSort, type MemberRow, type MemberSortState as SortState } from './member-sort';
+import { sortMembers, type MemberRow, type MemberSortState as SortState } from './member-sort';
+import { toggleSort } from './table-sort';
 
 const rows: MemberRow[] = [
 	{ id: 1, sortName: 'Muster Anna', active: true, lastTalkDate: '2026-08-01', lastPrayerDate: null, noTalk: false, noPrayer: false },

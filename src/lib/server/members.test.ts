@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { createDb, type Db } from './db';
 import { ensureStakeCalling } from './stake-callings';
-import { createMember, displayName, findMemberByName, listMembers, matchByFirstName, matchMember, updateMember } from './members';
+import { createMember, displayName, listMembers, matchByFirstName, matchMember, updateMember } from './members';
 
 let db: Db;
 beforeEach(() => {
@@ -27,7 +27,7 @@ describe('members', () => {
 		expect(listMembers(db, { activeOnly: true }).map((m) => m.lastName)).toEqual(['Dürst', 'Koller', 'Moser', 'Rey']);
 	});
 	it('shows affiliation in the display name', () => {
-		const d = findMemberByName(db, 'HR-Daniel Dürst');
+		const d = matchMember(listMembers(db), 'HR-Daniel Dürst');
 		expect(d && displayName(d)).toBe('Daniel Dürst (Hoherat)');
 		expect(displayName({ firstName: 'Anna', lastName: 'Rey', affiliation: null })).toBe('Anna Rey');
 		expect(displayName({ firstName: 'Simon', lastName: 'Dürst', affiliation: null, calling: '1. Ratgeber Pfahlpräsidentschaft' })).toBe('Simon Dürst (1. Ratgeber Pfahlpräsidentschaft)');
@@ -39,10 +39,10 @@ describe('members', () => {
 		expect(listMembers(db, { kind: 'gemeinde' })).toHaveLength(5);
 	});
 	it('finds by name in both spellings, ignores prefix', () => {
-		expect(findMemberByName(db, 'anna rey')?.firstName).toBe('Anna');
-		expect(findMemberByName(db, 'Rey, Anna')?.firstName).toBe('Anna');
-		expect(findMemberByName(db, 'Durst Daniel')).toBeNull();
-		expect(findMemberByName(db, 'Unbekannt Person')).toBeNull();
+		expect(matchMember(listMembers(db), 'anna rey')?.firstName).toBe('Anna');
+		expect(matchMember(listMembers(db), 'Rey, Anna')?.firstName).toBe('Anna');
+		expect(matchMember(listMembers(db), 'Durst Daniel')).toBeNull();
+		expect(matchMember(listMembers(db), 'Unbekannt Person')).toBeNull();
 	});
 	it('matchByFirstName is set only for a unique active match', () => {
 		const all = listMembers(db);
@@ -53,7 +53,7 @@ describe('members', () => {
 		expect(matchMember(all, 'Thomas Koller')?.lastName).toBe('Koller');
 	});
 	it('updates fields', () => {
-		const a = findMemberByName(db, 'Anna Rey')!;
+		const a = matchMember(listMembers(db), 'Anna Rey')!;
 		updateMember(db, a.id, { active: false, noteTalk: 'gerne kurz' });
 		const again = listMembers(db).find((m) => m.id === a.id)!;
 		expect(again.active).toBe(false);
