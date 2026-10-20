@@ -86,9 +86,6 @@ export const load: PageServerLoad = ({ locals, params }) => {
 		dateLabel: formatDateLong(date),
 		full: {
 			event: full.event,
-			weekday: full.weekday,
-			status: full.status,
-			offLabel: full.offLabel,
 			parts: full.parts.map((p) => ({
 				side: p.side,
 				text: p.text,

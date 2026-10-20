@@ -99,7 +99,6 @@ export const load: PageServerLoad = ({ locals, params }) => {
 		...base,
 		missing: false as const,
 		meeting: {
-			id: full.meeting.id,
 			kind: full.meeting.kind,
 			theme: full.meeting.theme,
 			specialNote: full.meeting.specialNote,
@@ -123,7 +122,6 @@ export const load: PageServerLoad = ({ locals, params }) => {
 		fastLike,
 		kinds: MEETING_KINDS.map((k) => ({ value: k, label: KIND_LABELS[k] })),
 		statuses: STATUSES.map((s) => ({ value: s, label: { offen: 'Offen', angefragt: 'Angefragt', zugesagt: 'Zugesagt' }[s] })),
-		presidingName: showProgram && full.presiding ? displayName(full.presiding) : null,
 		organistName: full.organist ? displayName(full.organist) : null,
 		conductorName: full.conductor ? displayName(full.conductor) : null,
 		presidingOptions: showProgram ? memberOptions(presidingPool, activity, 'plain', today, full.meeting.presidingMemberId) : [],
@@ -133,17 +131,14 @@ export const load: PageServerLoad = ({ locals, params }) => {
 		absenceOptions: showProgram ? bishopric.map((m) => ({ id: m.id, label: displayName(m) })) : [],
 		organistOptions: memberOptions(ward, activity, 'plain', today, full.meeting.organistMemberId),
 		conductorOptions: memberOptions(ward, activity, 'plain', today, full.meeting.conductorMemberId),
-		stakeCallings: listStakeCallings(locals.db).map((c) => ({ id: c.id, name: c.name })),
 		prayers: showProgram || canPrayers
 			? [1, 2].map((position) => {
-					const p = full.prayers.find((x) => x.position === position) ?? { position, member: null, status: 'offen' as Status };
+					const memberId = full.prayers.find((x) => x.position === position)?.member?.id ?? null;
 					return {
 						position,
 						label: position === 1 ? 'Anfangsgebet' : 'Schlussgebet',
-						memberId: p.member?.id ?? null,
-						memberName: p.member ? displayName(p.member) : null,
-						status: p.status,
-						options: memberOptions(ward, activity, canPrayers ? 'prayer' : 'plain', today, p.member?.id ?? null)
+						memberId,
+						options: memberOptions(ward, activity, canPrayers ? 'prayer' : 'plain', today, memberId)
 					};
 				})
 			: [],
@@ -153,7 +148,6 @@ export const load: PageServerLoad = ({ locals, params }) => {
 					return {
 						position,
 						memberId: t.member?.id ?? null,
-						memberName: t.member ? displayName(t.member) : null,
 						topic: t.topic,
 						durationMinutes: t.durationMinutes,
 						status: t.status,
