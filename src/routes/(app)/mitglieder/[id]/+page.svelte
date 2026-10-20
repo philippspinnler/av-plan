@@ -1,18 +1,22 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
+	import { createAutosave } from '$lib/autosave.svelte';
 	let { data, form } = $props();
+	let formError = $derived(form?.error);
 	const m = $derived(data.member);
 	const kind = $derived(m.kind);
+	const autosave = createAutosave({ deps: () => data, onSaved: () => (formError = undefined) });
 </script>
 
 <p><a href={data.backHref}>← {data.backLabel}</a></p>
 <h1>{data.title}</h1>
-{#if form?.error}<div class="error">{form.error}</div>{/if}
-{#if form?.saved}<div class="success">Gespeichert.</div>{/if}
+{#if formError}<div class="error">{formError}</div>{/if}
 
 <div class="section">
 	{#if data.canEdit}
-		<form method="POST" action="?/update" use:enhance>
+		<!-- svelte-ignore a11y_no_static_element_interactions -->
+		<form id="memberForm" method="POST" action="?/update" use:enhance={() => autosave.saved('member')} {...autosave.handlers}>
+			<input type="hidden" name="version" value={data.version} />
 			<div class="grid-2">
 				<div class="field"><label for="fn">Vorname</label><input id="fn" name="firstName" type="text" required value={m.firstName} /></div>
 				<div class="field"><label for="ln">Nachname</label><input id="ln" name="lastName" type="text" value={m.lastName} /></div>
@@ -46,8 +50,11 @@
 					<option value="0" selected={!m.active}>inaktiv (Kind, weggezogen, Gast ohne weitere Einsätze)</option>
 				</select>
 			</div>
-			<button class="btn btn-primary" type="submit">Speichern</button>
 		</form>
+		<div class="savebar no-print">
+			<span class="savebar-status" class:err={autosave.status.kind === 'error'}>{autosave.status.text}</span>
+			{#if autosave.conflict}<button class="btn btn-primary" type="button" onclick={() => location.reload()}>Seite neu laden</button>{/if}
+		</div>
 	{:else}
 		<p><strong>Art:</strong> {m.kind === 'pfahl' ? `Pfahlbeamter${m.calling ? ` (${m.calling})` : ''}` : `Gemeindemitglied${m.affiliation ? ` (${m.affiliation})` : ''}`} · <strong>Status:</strong> {m.active ? 'aktiv' : 'inaktiv'}</p>
 		{#if data.stats && m.kind === 'gemeinde'}
