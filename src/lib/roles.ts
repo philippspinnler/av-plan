@@ -6,8 +6,8 @@ export const ROLE_LABELS: Record<Role, string> = {
 	gebete: 'Gebete',
 	musik: 'Musik',
 	dirigent: 'Dirigent/in',
-	jm_berater: 'JM-Berater',
-	jd_leitung: 'JD-Präsidentschaft'
+	jm_berater: 'Junge Männer',
+	jd_leitung: 'Junge Damen'
 };
 
 /** One sentence per role, shown in the invitation and on the invitation page. */

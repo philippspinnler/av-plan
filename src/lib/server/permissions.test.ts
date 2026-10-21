@@ -18,7 +18,7 @@ describe('can', () => {
 		expect(can('jd_leitung', 'youth.common')).toBe(true);
 		expect(can('gebete', 'youth.view')).toBe(false);
 		expect(can('musik', 'youth.common')).toBe(false);
-		expect(roleLabel('jd_leitung')).toBe('JD-Präsidentschaft');
+		expect(roleLabel('jd_leitung')).toBe('Junge Damen');
 	});
 	it('member and Sunday pages are closed to roles outside their scope', () => {
 		for (const r of ['admin', 'bischofschaft', 'gebete'] as const) expect(can(r, 'members.view')).toBe(true);
