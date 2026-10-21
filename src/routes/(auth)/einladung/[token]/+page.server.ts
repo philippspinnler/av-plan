@@ -1,13 +1,14 @@
 import { fail, redirect } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
-import { acceptInvite, createSession, getValidInvite } from '$lib/server/auth';
+import { acceptInvite, createSession, findUserByEmail, getValidInvite } from '$lib/server/auth';
+import { ROLE_HELP, ROLE_LABELS } from '$lib/roles';
 import { setSessionCookie } from '$lib/server/cookies';
 import { rawStr } from '$lib/server/forms';
 
 export const load: PageServerLoad = ({ locals, params }) => {
 	const inv = getValidInvite(locals.db, params.token);
-	if (!inv) return { invalid: true, name: '', email: '' };
-	return { invalid: false, name: inv.name, email: inv.email };
+	if (!inv) return { invalid: true, name: '', email: '', reset: false, roleLabel: '', roleHelp: '' };
+	return { invalid: false, name: inv.name, email: inv.email, reset: !!findUserByEmail(locals.db, inv.email), roleLabel: ROLE_LABELS[inv.role], roleHelp: ROLE_HELP[inv.role] };
 };
 
 export const actions: Actions = {

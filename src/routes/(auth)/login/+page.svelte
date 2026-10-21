@@ -11,5 +11,6 @@
 			<div class="field"><label for="password">Passwort</label><input id="password" name="password" type="password" required autocomplete="current-password" /></div>
 			<button class="btn btn-primary" type="submit">Anmelden</button>
 		</form>
+		<p class="hint">Passwort vergessen? Der Admin schickt dir einen Link für ein neues.</p>
 	</div>
 </main>

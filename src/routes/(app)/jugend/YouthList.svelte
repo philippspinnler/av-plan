@@ -62,6 +62,7 @@
 		{#each data.years as y}<a class="btn btn-small" href="{page.url.pathname}?jahr={y}" class:btn-primary={data.year === y}>{y}</a>{/each}
 	</div>
 </div>
+<p class="hint">{sunday ? 'Sonntagsklassen der Jungen Damen und Jungen Männer: Wer leitet, wer unterrichtet, welches Thema.' : 'Mittwochaktivitäten der Jungen Damen und Jungen Männer: Was, wer leitet, wer den Gedanken gibt.'} Ein Klick auf das Datum öffnet den Termin.</p>
 {#if data.rows.length === 0}
 	<div class="section"><p class="muted">Keine Termine in diesem Zeitraum.</p></div>
 {:else}

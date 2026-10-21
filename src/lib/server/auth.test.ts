@@ -139,14 +139,6 @@ describe('invites', () => {
 		expect(user2).toBeNull();
 		expect(userCount(db)).toBe(2);
 	});
-	it('rejects an invite when the email already has an account, without consuming the invite', async () => {
-		const admin = await createUser(db, { email: 'a@b.ch', name: 'A', role: 'admin', password: 'geheim123' });
-		await createUser(db, { email: 'm@b.ch', name: 'Bestehend', role: 'musik', password: 'geheim123' });
-		const t0 = new Date('2026-09-07T10:00:00Z');
-		const inv = createInvite(db, { email: 'm@b.ch', name: 'M', role: 'musik', createdBy: admin.id }, t0);
-		expect(await acceptInvite(db, inv.token, 'passwort1', t0)).toBeNull();
-		expect(getValidInvite(db, inv.token, t0)).not.toBeNull();
-	});
 });
 
 describe('findUserByEmail', () => {
@@ -154,5 +146,21 @@ describe('findUserByEmail', () => {
 		await createUser(db, { email: 'A@B.ch', name: 'A', role: 'admin', password: 'geheim123' });
 		expect(findUserByEmail(db, ' a@b.ch ')?.name).toBe('A');
 		expect(findUserByEmail(db, 'nichts@da.ch')).toBeUndefined();
+	});
+});
+
+describe('password reset via invite', () => {
+	it('an invite for an existing e-mail sets a new password and ends old sessions', async () => {
+		const db = createDb(':memory:');
+		const admin = await createUser(db, { email: 'a@b.ch', name: 'Admin', role: 'admin', password: 'geheim123' });
+		const user = await createUser(db, { email: 'm@b.ch', name: 'Mia Muster', role: 'musik', password: 'altesPasswort' });
+		const session = createSession(db, user.id);
+		const inv = createInvite(db, { email: 'M@b.ch', name: 'Mia Muster', role: 'musik', createdBy: admin.id });
+		const back = await acceptInvite(db, inv.token, 'neuesPasswort');
+		expect(back?.id).toBe(user.id);
+		expect(validateSession(db, session.id)).toBeNull();
+		expect((await loginWithPassword(db, 'm@b.ch', 'neuesPasswort')).ok).toBe(true);
+		expect((await loginWithPassword(db, 'm@b.ch', 'altesPasswort')).ok).toBe(false);
+		expect(getValidInvite(db, inv.token)).toBeNull();
 	});
 });

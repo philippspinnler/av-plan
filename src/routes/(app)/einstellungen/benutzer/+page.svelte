@@ -2,15 +2,9 @@
 	import { enhance } from '$app/forms';
 	import { formatDateShort } from '$lib/dates';
 	let { data, form } = $props();
-	const roles = [
-		{ value: 'admin', label: 'Admin' },
-		{ value: 'bischofschaft', label: 'Bischofschaft' },
-		{ value: 'musik', label: 'Musik' },
-		{ value: 'gebete', label: 'Gebete' },
-		{ value: 'dirigent', label: 'Dirigent/in' },
-		{ value: 'jm_berater', label: 'JM-Berater' },
-		{ value: 'jd_leitung', label: 'JD-Präsidentschaft' }
-	];
+	import { ROLE_HELP, ROLE_LABELS } from '$lib/roles';
+	const roles = Object.entries(ROLE_LABELS).map(([value, label]) => ({ value, label }));
+	let newRole = $state('bischofschaft');
 	let copied = $state(false);
 	const invited = $derived(form?.invited);
 	async function copy(text: string) {
@@ -21,6 +15,7 @@
 </script>
 
 <h2>Benutzer</h2>
+<p class="hint">Wer sich anmelden kann und mit welcher Rolle. Wechselt eine Berufung: neue Person einladen und das alte Konto deaktivieren. Hat jemand das Passwort vergessen: «Passwort zurücksetzen» erzeugt einen neuen Link.</p>
 {#if form?.error}<div class="error">{form.error}</div>{/if}
 
 <div class="section">
@@ -30,12 +25,13 @@
 		<div class="field"><label for="inv-email">E-Mail</label><input id="inv-email" name="email" type="email" required /></div>
 		<div class="field">
 			<label for="inv-role">Rolle</label>
-			<select id="inv-role" name="role">{#each roles as r}<option value={r.value}>{r.label}</option>{/each}</select>
+			<select id="inv-role" name="role" bind:value={newRole}>{#each roles as r}<option value={r.value}>{r.label}</option>{/each}</select>
+			<span class="hint">{ROLE_HELP[newRole as keyof typeof ROLE_HELP]}</span>
 		</div>
 		<div class="actions"><button class="btn btn-primary" type="submit">Einladung erzeugen</button></div>
 	</form>
 	{#if invited}
-		<div class="success">Einladung erstellt. Kopiere den Text und schicke ihn der Person.</div>
+		<div class="success">Link erstellt. Kopiere den Text und schicke ihn der Person.</div>
 		<div class="copy-box">{invited.text}</div>
 		<div class="actions">
 			<button class="btn" type="button" onclick={() => copy(invited.text)}>{copied ? 'Kopiert' : 'Text kopieren'}</button>
@@ -93,11 +89,19 @@
 						<td data-label="Status">{u.active ? 'aktiv' : 'deaktiviert'}</td>
 						<td>
 							{#if u.id !== data.user?.id}
-								<form method="POST" action="?/setActive" use:enhance>
-									<input type="hidden" name="id" value={u.id} />
-									<input type="hidden" name="active" value={u.active ? '0' : '1'} />
-									<button class="btn btn-small" type="submit">{u.active ? 'Deaktivieren' : 'Aktivieren'}</button>
-								</form>
+								<div class="actions">
+									<form method="POST" action="?/setActive" use:enhance>
+										<input type="hidden" name="id" value={u.id} />
+										<input type="hidden" name="active" value={u.active ? '0' : '1'} />
+										<button class="btn btn-small" type="submit">{u.active ? 'Deaktivieren' : 'Aktivieren'}</button>
+									</form>
+									{#if u.active}
+										<form method="POST" action="?/resetPassword" use:enhance>
+											<input type="hidden" name="id" value={u.id} />
+											<button class="btn btn-small" type="submit">Passwort zurücksetzen</button>
+										</form>
+									{/if}
+								</div>
 							{/if}
 						</td>
 					</tr>

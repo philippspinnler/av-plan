@@ -31,6 +31,7 @@
 
 <div class="section">
 	<h2>Jugendliche</h2>
+	<p class="hint">Wer zu den Jungen Damen oder Jungen Männern gehört und in welcher Gruppe. Auf der öffentlichen Jugendseite stehen nur die Vornamen.</p>
 	<!-- Forms live outside the table; the row's fields attach via form="…". -->
 	{#each data.youth as y (y.memberId)}
 		<form id="set-{y.memberId}" method="POST" action="?/set" use:enhance><input type="hidden" name="memberId" value={y.memberId} /></form>

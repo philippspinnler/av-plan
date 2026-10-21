@@ -16,6 +16,7 @@
 		{#if data.canCreate}<button class="btn btn-primary" type="button" onclick={() => (showForm = !showForm)}>Mitglied hinzufügen</button>{/if}
 	</div>
 </div>
+<p class="hint">Gemeindemitglieder für Ansprachen und Gebete. Ausgeblendete Mitglieder erscheinen in keiner Auswahlliste, zum Beispiel Kinder oder Weggezogene.</p>
 
 {#if form?.error}<div class="error">{form.error}</div>{/if}
 

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { ROLE_LABELS } from '$lib/roles';
 	import { onMount } from 'svelte';
 	import { page } from '$app/state';
 	import Icon from '$lib/components/Icon.svelte';
@@ -32,7 +33,6 @@
 	const isActive = (href: string) => (href === '/' ? section === '/' : section.startsWith(href));
 	const role = $derived(data.user?.role);
 	const accountRole = $derived(data.accountRole);
-	const ROLE_LABELS: Record<string, string> = { admin: 'Admin', bischofschaft: 'Bischofschaft', gebete: 'Gebete', musik: 'Musik', dirigent: 'Dirigent/in', jm_berater: 'JM-Berater', jd_leitung: 'JD-Präsidentschaft' };
 	function submitOnChange(e: Event) {
 		(e.currentTarget as HTMLSelectElement).form?.requestSubmit();
 	}
@@ -67,7 +67,7 @@
 </nav>
 {#if accountRole === 'admin' && role !== accountRole}
 	<div class="view-banner no-print">
-		Testansicht als {ROLE_LABELS[role ?? ''] ?? role}
+		Testansicht als {ROLE_LABELS[role as keyof typeof ROLE_LABELS] ?? role}
 		<form method="POST" action="/ansicht" class="inline-form">
 			<input type="hidden" name="role" value="admin" />
 			<button class="btn btn-small" type="submit">Zurück zu Admin</button>

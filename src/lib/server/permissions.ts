@@ -1,5 +1,6 @@
 import { error } from '@sveltejs/kit';
 import type { Role } from './db/schema';
+import { ROLE_LABELS } from '../roles';
 
 export type Action =
 	| 'program.view'
@@ -61,9 +62,7 @@ export function requireRole(user: { role: Role } | null | undefined, action: Act
 	if (!can(user.role, action)) error(403, 'Dafür fehlt dir die Berechtigung');
 }
 
-export function roleLabel(role: Role): string {
-	return { admin: 'Admin', bischofschaft: 'Bischofschaft', gebete: 'Gebete', musik: 'Musik', dirigent: 'Dirigent/in', jm_berater: 'JM-Berater', jd_leitung: 'JD-Präsidentschaft' }[role];
-}
+export const roleLabel = (role: Role): string => ROLE_LABELS[role];
 
 /** Youth leaders without program access: Jugend is their home, Sonntage is hidden. */
 export const youthOnly = (role: Role) => !can(role, 'meeting.view') && can(role, 'youth.view');

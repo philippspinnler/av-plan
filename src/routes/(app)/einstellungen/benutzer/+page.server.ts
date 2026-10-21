@@ -2,7 +2,7 @@ import { fail } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 import { createInvite, deleteInvite, findUserByEmail, listOpenInvites, listUsers, setUserActive, updateUserRole } from '$lib/server/auth';
 import { int, str } from '$lib/server/forms';
-import { inviteText } from '$lib/server/invite-text';
+import { inviteText, resetText } from '$lib/server/invite-text';
 import { requireRole } from '$lib/server/permissions';
 import { isRole } from '$lib/server/role-view';
 
@@ -25,7 +25,16 @@ export const actions: Actions = {
 		if (findUserByEmail(locals.db, email)) return fail(400, { error: 'Für diese E-Mail gibt es schon ein Konto.' });
 		const inv = createInvite(locals.db, { name, email, role, createdBy: locals.user!.id });
 		const link = `${url.origin}/einladung/${inv.token}`;
-		return { invited: { link, text: inviteText(name, link) } };
+		return { invited: { link, text: inviteText(name, link, role) } };
+	},
+	resetPassword: async ({ request, locals, url }) => {
+		requireRole(locals.user, 'users.manage');
+		const fd = await request.formData();
+		const target = listUsers(locals.db).find((u) => u.id === int(fd, 'id'));
+		if (!target || target.id === locals.user!.id) return fail(400, { error: 'Das eigene Passwort änderst du unter Konto.' });
+		const inv = createInvite(locals.db, { name: target.name, email: target.email, role: target.role, createdBy: locals.user!.id });
+		const link = `${url.origin}/einladung/${inv.token}`;
+		return { invited: { link, text: resetText(target.name, link) } };
 	},
 	setRole: async ({ request, locals }) => {
 		requireRole(locals.user, 'users.manage');

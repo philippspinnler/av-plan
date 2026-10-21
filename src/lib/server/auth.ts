@@ -167,14 +167,18 @@ export function getValidInvite(db: Db, tok: string, now: Date = new Date()): Inv
 	return inv;
 }
 
+/** Creates the account, or, if one exists for the invited e-mail, sets its new password (admin-issued reset). */
 export async function acceptInvite(db: Db, tok: string, password: string, now: Date = new Date()): Promise<User | null> {
 	const inv = getValidInvite(db, tok, now);
 	if (!inv) return null;
-	if (findUserByEmail(db, inv.email)) return null;
 	const result = db.update(invites).set({ usedAt: iso(now) }).where(and(eq(invites.id, inv.id), isNull(invites.usedAt))).run();
 	if (result.changes === 0) return null;
-	const user = await createUser(db, { email: inv.email, name: inv.name, role: inv.role, password });
-	return user;
+	const existing = findUserByEmail(db, inv.email);
+	if (!existing) return createUser(db, { email: inv.email, name: inv.name, role: inv.role, password });
+	const passwordHash = await hashPassword(password);
+	db.update(users).set({ passwordHash, updatedAt: iso(now) }).where(eq(users.id, existing.id)).run();
+	db.delete(sessions).where(eq(sessions.userId, existing.id)).run();
+	return { ...existing, passwordHash };
 }
 
 export function listUsers(db: Db): User[] {
