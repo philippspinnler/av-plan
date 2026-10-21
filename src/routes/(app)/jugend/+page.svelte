@@ -21,6 +21,8 @@
 	);
 </script>
 
+{#snippet cell(r: (typeof data.rows)[number], v: string | null)}{#if v}{v}{:else if r.status === 'open'}<span class="muted">offen</span>{/if}{/snippet}
+
 {#if link}
 	<p class="public-link">
 		<span class="muted">Jugendseite:</span> <a href={link} rel="noopener noreferrer">{link}</a>
@@ -92,12 +94,8 @@
 								<td></td><td></td><td></td>
 								<td>{r.offLabel ?? ''}</td>
 							{:else}
-								{#if r.status === 'open'}
-									<td colspan="2" class="muted">offen</td>
-								{:else}
-									<td data-label="JD">{r.jd ?? ''}</td>
-									<td data-label="JM">{r.jm ?? ''}</td>
-								{/if}
+								<td data-label="JD">{@render cell(r, r.jd)}</td>
+								<td data-label="JM">{@render cell(r, r.jm)}</td>
 								<td data-label={r.snack ? 'Snack' : null}>{r.snack ?? ''}</td>
 								<td>{r.hint ?? ''}</td>
 							{/if}
