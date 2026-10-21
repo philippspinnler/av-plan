@@ -12,7 +12,7 @@
 <div class="section-title">
 	<h2>Mitglieder</h2>
 	<div class="actions">
-		<a class="btn" href={data.showAll ? '/einstellungen/mitglieder' : '/einstellungen/mitglieder?alle=1'}>{data.showAll ? 'Nur aktive' : 'Alle anzeigen'}</a>
+		<a class="btn" href={data.showAll ? '/einstellungen/mitglieder' : '/einstellungen/mitglieder?alle=1'}>{data.showAll ? 'Nur auswählbare' : 'Alle anzeigen'}</a>
 		{#if data.canCreate}<button class="btn btn-primary" type="button" onclick={() => (showForm = !showForm)}>Mitglied hinzufügen</button>{/if}
 	</div>
 </div>
@@ -50,7 +50,7 @@
 						<td data-label="Letzte Ansprache"><span class:muted={m.noTalk}>{m.lastTalk}</span>{#if m.noteTalk}<span class="cell-note">{m.noteTalk}</span>{/if}</td>
 						<td data-label="Letztes Gebet"><span class:muted={m.noPrayer}>{m.lastPrayer}</span>{#if m.notePrayer}<span class="cell-note">{m.notePrayer}</span>{/if}</td>
 					{/if}
-					{#if data.showAll}<td data-label="Status">{m.active ? 'aktiv' : 'inaktiv'}</td>{/if}
+					{#if data.showAll}<td data-label="Status">{m.active ? 'auswählbar' : 'ausgeblendet'}</td>{/if}
 				</tr>
 			{/each}
 		</tbody>

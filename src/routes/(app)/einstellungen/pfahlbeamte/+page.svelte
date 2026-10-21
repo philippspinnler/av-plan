@@ -7,7 +7,7 @@
 <div class="section-title">
 	<h2>Pfahlbeamte</h2>
 	<div class="actions">
-		<a class="btn" href={data.showAll ? '/einstellungen/pfahlbeamte' : '/einstellungen/pfahlbeamte?alle=1'}>{data.showAll ? 'Nur aktive' : 'Alle anzeigen'}</a>
+		<a class="btn" href={data.showAll ? '/einstellungen/pfahlbeamte' : '/einstellungen/pfahlbeamte?alle=1'}>{data.showAll ? 'Nur auswählbare' : 'Alle anzeigen'}</a>
 		{#if data.canCreate}<button class="btn btn-primary" type="button" onclick={() => (showForm = !showForm)}>Pfahlbeamten hinzufügen</button>{/if}
 	</div>
 </div>
@@ -40,7 +40,7 @@
 				<tr class="clickable" onclick={() => goto(`/mitglieder/${o.id}`)}>
 					<td class="td-main"><a href="/mitglieder/{o.id}">{o.name}</a></td>
 					<td data-label={o.calling ? 'Berufung' : null}>{o.calling}</td>
-					{#if data.showAll}<td data-label="Status">{o.active ? 'aktiv' : 'inaktiv'}</td>{/if}
+					{#if data.showAll}<td data-label="Status">{o.active ? 'auswählbar' : 'ausgeblendet'}</td>{/if}
 				</tr>
 			{/each}
 		</tbody>

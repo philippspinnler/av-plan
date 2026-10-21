@@ -43,14 +43,14 @@
 					<label class="check"><input type="checkbox" name="noPrayer" value="1" checked={m.noPrayer} /> Möchte kein Gebet sprechen</label>
 				</div>
 			{/if}
-			<label class="check"><input type="checkbox" name="active" value="1" checked={m.active} /> Aktiv (erscheint in Auswahllisten)</label>
+			<label class="check"><input type="checkbox" name="active" value="1" checked={m.active} /> Auswählbar (erscheint in Auswahllisten)</label>
 		</form>
 		<div class="savebar no-print">
 			<span class="savebar-status" class:err={autosave.status.kind === 'error'}>{autosave.status.text}</span>
 			{#if autosave.conflict}<button class="btn btn-primary" type="button" onclick={() => location.reload()}>Seite neu laden</button>{/if}
 		</div>
 	{:else}
-		<p><strong>Art:</strong> {m.kind === 'pfahl' ? `Pfahlbeamter${m.calling ? ` (${m.calling})` : ''}` : `Gemeindemitglied${m.affiliation ? ` (${m.affiliation})` : ''}`} · <strong>Status:</strong> {m.active ? 'aktiv' : 'inaktiv'}</p>
+		<p><strong>Art:</strong> {m.kind === 'pfahl' ? `Pfahlbeamter${m.calling ? ` (${m.calling})` : ''}` : `Gemeindemitglied${m.affiliation ? ` (${m.affiliation})` : ''}`} · <strong>Status:</strong> {m.active ? 'auswählbar' : 'ausgeblendet'}</p>
 		{#if data.stats && m.kind === 'gemeinde'}
 			{#if m.noteTalk}<p><strong>Notiz Ansprache:</strong> {m.noteTalk}</p>{/if}
 			{#if m.notePrayer}<p><strong>Notiz Gebet:</strong> {m.notePrayer}</p>{/if}
