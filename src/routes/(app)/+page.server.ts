@@ -1,7 +1,7 @@
 import { redirect } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 import { formatDateLong, todayIso } from '$lib/dates';
-import { adjacentMeetingDates, listMeetings, loadMeetingFullByDate } from '$lib/server/meetings';
+import { adjacentMeetingDates, ensureSundays, listMeetings, loadMeetingFullByDate } from '$lib/server/meetings';
 import { overviewRange, summarize } from '$lib/server/overview';
 import { can, youthOnly } from '$lib/server/permissions';
 import { isWednesday, loadYouthEvent, type YouthEventFull } from '$lib/server/youth';
@@ -25,6 +25,7 @@ export const load: PageServerLoad = ({ locals, url }) => {
 	const role = locals.user!.role;
 	const showProgram = can(role, 'program.view');
 	if (youthOnly(role)) redirect(303, '/jugend');
+	ensureSundays(locals.db, today);
 	const showPrayers = can(role, 'meeting.prayers');
 	/** Role "Gebete": prayers only, no topics, hymns or music. */
 	const showHymns = can(role, 'hymns.view');

@@ -1,10 +1,8 @@
 import { fail } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
-import { todayIso } from '$lib/dates';
 import { failMessage, int, str } from '$lib/server/forms';
 import { requireRole } from '$lib/server/permissions';
 import { getAllSettings, setSetting } from '$lib/server/settings';
-import { ensureSundays } from '$lib/server/meetings';
 import { createStakeCalling, deleteStakeCalling, listStakeCallings, moveStakeCalling, renameStakeCalling, setStakeCallingPresides } from '$lib/server/stake-callings';
 
 export const load: PageServerLoad = ({ locals }) => {
@@ -61,11 +59,5 @@ export const actions: Actions = {
 		const fd = await request.formData();
 		moveStakeCalling(locals.db, int(fd, 'id'), str(fd, 'dir') === 'up' ? -1 : 1);
 		return { saved: true };
-	},
-	ensureSundays: ({ locals }) => {
-		requireRole(locals.user, 'settings.edit');
-		const created = ensureSundays(locals.db, todayIso(), 12);
-		return { created };
 	}
-
 };
