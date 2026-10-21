@@ -2,6 +2,7 @@ import type { PageServerLoad } from './$types';
 import { parseIso, todayIso, WEEKDAYS } from '$lib/dates';
 import { overviewRange } from '$lib/server/overview';
 import { requireRole } from '$lib/server/permissions';
+import { getSetting } from '$lib/server/settings';
 import { ensureYouthEvents, isFifthSunday, listYouthEvents, YOUTH_KIND_LABELS, type YouthEventFull } from '$lib/server/youth';
 import { YOUTH_GROUP_LABELS } from '$lib/server/youth-people';
 import { youthPageItems } from '$lib/server/youth-page';
@@ -44,5 +45,5 @@ export const load: PageServerLoad = ({ locals, url }) => {
 	for (let y = Number(today.slice(0, 4)) - 1; y <= Number(today.slice(0, 4)) + 1; y++) years.push(y);
 	// Same selection as the public youth page: the next two Sundays/Wednesdays from today.
 	const next = year ? [] : youthPageItems(locals.db, today, { big: 2, small: 0 }).big;
-	return { rows, years, year, today, next };
+	return { rows, years, year, today, next, youthToken: getSetting(locals.db, 'youth_page_token') };
 };

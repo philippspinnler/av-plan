@@ -4,7 +4,6 @@ import { todayIso } from '$lib/dates';
 import { int, str } from '$lib/server/forms';
 import { requireRole } from '$lib/server/permissions';
 import { getAllSettings, setSetting } from '$lib/server/settings';
-import { newYouthPageToken } from '$lib/server/youth-page';
 import { ensureSundays } from '$lib/server/meetings';
 import { createStakeCalling, deleteStakeCalling, listStakeCallings, moveStakeCalling, renameStakeCalling, setStakeCallingPresides } from '$lib/server/stake-callings';
 
@@ -23,11 +22,6 @@ export const actions: Actions = {
 		const ward = str(fd, 'ward_name');
 		if (!ward) return fail(400, { error: 'Der Gemeindename darf nicht leer sein.' });
 		setSetting(locals.db, 'ward_name', ward);
-		return { saved: true };
-	},
-	youthToken: ({ locals }) => {
-		requireRole(locals.user, 'settings.edit');
-		setSetting(locals.db, 'youth_page_token', newYouthPageToken());
 		return { saved: true };
 	},
 	presidesCalling: async ({ request, locals }) => {

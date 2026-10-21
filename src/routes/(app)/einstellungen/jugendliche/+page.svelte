@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
+	import { page } from '$app/state';
 	import MemberSelect from '$lib/components/MemberSelect.svelte';
 	let { data, form } = $props();
 	let newSide = $state<'jd' | 'jm'>('jd');
@@ -8,6 +9,25 @@
 
 {#if form?.error}<div class="error">{form.error}</div>{/if}
 {#if form?.saved}<div class="success">Gespeichert.</div>{/if}
+
+<div class="section">
+	<h2>Jugendseite</h2>
+	<p class="muted">Öffentliche Seite ohne Anmeldung mit den nächsten Terminen der Jugend. Wer den Link hat, kann sie sehen; mit «Neu erzeugen» wird der alte Link ungültig. Der Link steht auch oben auf der Seite Jugend.</p>
+	{#if data.youthToken}
+		{@const link = `${page.url.origin}/j/${data.youthToken}`}
+		<div class="field"><input type="text" readonly value={link} aria-label="Link zur Jugendseite" onfocus={(e) => e.currentTarget.select()} /></div>
+	{:else}
+		<p>Link: noch nicht erzeugt</p>
+	{/if}
+	<form method="POST" action="?/youthToken" use:enhance>
+		<div class="actions">
+			{#if data.youthToken}
+				<button class="btn" type="button" onclick={() => navigator.clipboard.writeText(`${page.url.origin}/j/${data.youthToken}`)}>Link kopieren</button>
+			{/if}
+			<button class="btn" type="submit">{data.youthToken ? 'Neu erzeugen' : 'Link erzeugen'}</button>
+		</div>
+	</form>
+</div>
 
 <div class="section">
 	<h2>Jugendliche</h2>
