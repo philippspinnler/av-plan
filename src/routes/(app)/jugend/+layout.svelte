@@ -2,14 +2,22 @@
 	import { page } from '$app/state';
 	let { children } = $props();
 	const tabs = [
+		{ href: '/jugend', label: 'Aktivitäten' },
+		{ href: '/jugend/sonntage', label: 'Sonntage' },
 		{ href: '/jugend/ideen', label: 'Ideen' },
 		{ href: '/jugend/ausfaelle', label: 'Ausfälle & Pfahltermine' }
 	];
+	// A date page belongs to the tab of its weekday.
+	const current = $derived.by(() => {
+		const p = page.url.pathname;
+		const m = p.match(/^\/jugend\/(\d{4}-\d{2}-\d{2})$/);
+		if (m) return new Date(m[1] + 'T00:00:00Z').getUTCDay() === 0 ? '/jugend/sonntage' : '/jugend';
+		return tabs.find((t) => t.href !== '/jugend' && p.startsWith(t.href))?.href ?? '/jugend';
+	});
 </script>
 
 <h1>Jugend</h1>
 <nav class="subnav">
-	<a href="/jugend" class:active={!tabs.some((t) => page.url.pathname.startsWith(t.href))}>Termine</a>
-	{#each tabs as t}<a href={t.href} class:active={page.url.pathname.startsWith(t.href)}>{t.label}</a>{/each}
+	{#each tabs as t}<a href={t.href} class:active={current === t.href}>{t.label}</a>{/each}
 </nav>
 {@render children()}

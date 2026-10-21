@@ -125,7 +125,7 @@
 	</div>
 {/snippet}
 
-<p class="no-print"><a href="/jugend">← Termine</a></p>
+<p class="no-print"><a href={data.isSunday ? '/jugend/sonntage' : '/jugend'}>← {data.isSunday ? 'Sonntage' : 'Aktivitäten'}</a></p>
 
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <div class="has-savebar" {...autosave.handlers}>

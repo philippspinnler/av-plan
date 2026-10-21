@@ -61,11 +61,11 @@ function toItem(e: YouthEventFull, names: Map<number, string>): YouthPageItem {
 	};
 }
 
-export function youthPageItems(db: Db, today: string, opts = { big: 2, small: 3 }): { big: YouthPageItem[]; small: YouthPageItem[] } {
+export function youthPageItems(db: Db, today: string, opts: { big: number; small: number; weekday?: 'sunday' | 'wednesday' } = { big: 2, small: 3 }): { big: YouthPageItem[]; small: YouthPageItem[] } {
 	const total = opts.big + opts.small;
 	// Leaders may give the thought, so their first names are allowed here too (still no last names).
 	const names = shortNames([...listYouth(db).map((y) => y.member), ...listAdults(db)]);
-	const events = listYouthEvents(db, today, addDays(today, 7 * total)).slice(0, total).map((e) => toItem(e, names));
+	const events = listYouthEvents(db, today, addDays(today, 7 * total)).filter((e) => !opts.weekday || e.weekday === opts.weekday).slice(0, total).map((e) => toItem(e, names));
 	const big = events.slice(0, opts.big);
 	const small = events.slice(opts.big);
 	const last = events[events.length - 1]?.date ?? today;
