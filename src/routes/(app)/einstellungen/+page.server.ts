@@ -1,7 +1,7 @@
 import { fail } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 import { todayIso } from '$lib/dates';
-import { int, str } from '$lib/server/forms';
+import { failMessage, int, str } from '$lib/server/forms';
 import { requireRole } from '$lib/server/permissions';
 import { getAllSettings, setSetting } from '$lib/server/settings';
 import { ensureSundays } from '$lib/server/meetings';
@@ -36,7 +36,7 @@ export const actions: Actions = {
 		try {
 			createStakeCalling(locals.db, str(fd, 'name'));
 		} catch (e) {
-			return fail(400, { error: (e as Error).message });
+			return fail(400, { error: failMessage(e) });
 		}
 		return { saved: true };
 	},
@@ -46,7 +46,7 @@ export const actions: Actions = {
 		try {
 			renameStakeCalling(locals.db, int(fd, 'id'), str(fd, 'name'));
 		} catch (e) {
-			return fail(400, { error: (e as Error).message });
+			return fail(400, { error: failMessage(e) });
 		}
 		return { saved: true };
 	},

@@ -1,3 +1,12 @@
+/** A message meant for the person at the form; anything else is logged and replaced by a generic text. */
+export class UserError extends Error {}
+
+export function failMessage(e: unknown): string {
+	if (e instanceof UserError) return e.message;
+	console.error(e);
+	return 'Speichern fehlgeschlagen.';
+}
+
 export function str(fd: FormData, key: string): string {
 	const v = fd.get(key);
 	return typeof v === 'string' ? v.trim() : '';

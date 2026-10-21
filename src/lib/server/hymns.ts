@@ -1,6 +1,7 @@
 import { asc, eq } from 'drizzle-orm';
 import type { Db } from './db';
 import { hymns, type Hymn } from './db/schema';
+import { UserError } from './forms';
 
 export function bookForNumber(n: number): 'gesangbuch' | 'neu' {
 	return n >= 1000 ? 'neu' : 'gesangbuch';
@@ -15,7 +16,7 @@ export function getHymnByNumber(db: Db, number: number): Hymn | undefined {
 }
 
 export function createHymn(db: Db, input: { number: number; title: string; durationSeconds?: number | null }): Hymn {
-	if (getHymnByNumber(db, input.number)) throw new Error('Nummer existiert bereits');
+	if (getHymnByNumber(db, input.number)) throw new UserError('Nummer existiert bereits');
 	return db
 		.insert(hymns)
 		.values({ number: input.number, title: input.title.trim(), book: bookForNumber(input.number), durationSeconds: input.durationSeconds ?? null })

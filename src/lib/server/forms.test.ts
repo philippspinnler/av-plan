@@ -1,5 +1,5 @@
-import { describe, expect, it } from 'vitest';
-import { int, optInt, optStr, rawStr, safeNext, str, strList } from './forms';
+import { describe, expect, it, vi } from 'vitest';
+import { failMessage, int, optInt, optStr, rawStr, safeNext, str, strList, UserError } from './forms';
 
 const fd = new FormData();
 fd.append('name', '  Anna ');
@@ -44,5 +44,14 @@ describe('safeNext', () => {
 		for (const next of ['//evil.example', '/\\evil.example', '\\\\evil.example', 'https://evil.example/', 'javascript:alert(1)', '/\\\\']) {
 			expect(safeNext(next, ORIGIN)).toBe('/');
 		}
+	});
+});
+
+describe('failMessage', () => {
+	it('passes our own messages through and hides everything else', () => {
+		const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
+		expect(failMessage(new UserError('Name darf nicht leer sein'))).toBe('Name darf nicht leer sein');
+		expect(failMessage(new Error('SQLITE_CONSTRAINT: UNIQUE'))).toBe('Speichern fehlgeschlagen.');
+		spy.mockRestore();
 	});
 });

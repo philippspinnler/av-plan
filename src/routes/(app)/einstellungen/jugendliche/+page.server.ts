@@ -2,7 +2,7 @@ import { fail } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 import { todayIso } from '$lib/dates';
 import { YOUTH_GROUPS, YOUTH_SIDES, type YouthSide } from '$lib/server/db/schema';
-import { int, str } from '$lib/server/forms';
+import { failMessage, int, str } from '$lib/server/forms';
 import { listMembers } from '$lib/server/members';
 import { requireRole } from '$lib/server/permissions';
 import { memberOptions } from '$lib/server/picker';
@@ -39,7 +39,7 @@ export const actions: Actions = {
 		try {
 			setYouth(locals.db, int(fd, 'memberId'), side as YouthSide, (YOUTH_GROUPS[side as YouthSide] as readonly string[]).includes(str(fd, 'group')) ? str(fd, 'group') : null);
 		} catch (e) {
-			return fail(400, { error: (e as Error).message });
+			return fail(400, { error: failMessage(e) });
 		}
 		return { saved: true };
 	},

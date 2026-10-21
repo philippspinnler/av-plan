@@ -2,7 +2,7 @@ import { fail, redirect } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 import { formatDateShort, todayIso } from '$lib/dates';
 import { formatDuration, parseDuration } from '$lib/duration';
-import { int, str } from '$lib/server/forms';
+import { failMessage, int, str } from '$lib/server/forms';
 import { createHymn, listHymns } from '$lib/server/hymns';
 import { can, requireRole } from '$lib/server/permissions';
 import { hymnUsage } from '$lib/server/stats';
@@ -39,7 +39,7 @@ export const actions: Actions = {
 		try {
 			createHymn(locals.db, { number, title, durationSeconds: parseDuration(durationText) });
 		} catch (e) {
-			return fail(400, { error: (e as Error).message });
+			return fail(400, { error: failMessage(e) });
 		}
 		redirect(303, `/lieder/${number}`);
 	}

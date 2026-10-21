@@ -1,7 +1,7 @@
 import { fail } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 import { YOUTH_BREAK_KINDS } from '$lib/server/db/schema';
-import { int, optStr, str } from '$lib/server/forms';
+import { failMessage, int, optStr, str } from '$lib/server/forms';
 import { requireRole } from '$lib/server/permissions';
 import { YOUTH_BREAK_KIND_LABELS, createBreak, deleteBreak, listBreaks } from '$lib/server/youth-breaks';
 import { todayIso } from '$lib/dates';
@@ -23,7 +23,7 @@ export const actions: Actions = {
 		try {
 			createBreak(locals.db, { fromDate, toDate, label: optStr(fd, 'label'), kind });
 		} catch (e) {
-			return fail(400, { error: (e as Error).message });
+			return fail(400, { error: failMessage(e) });
 		}
 	},
 	delete: async ({ request, locals }) => {

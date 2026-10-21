@@ -2,6 +2,7 @@ import { asc, eq, gte } from 'drizzle-orm';
 import { addDays, toIso, parseIso } from '$lib/dates';
 import type { Db } from './db';
 import { youthBreaks, type YouthBreak } from './db/schema';
+import { UserError } from './forms';
 
 export function listBreaks(db: Db, from?: string): YouthBreak[] {
 	const q = db.select().from(youthBreaks);
@@ -19,9 +20,9 @@ export const YOUTH_BREAK_KIND_LABELS: Record<YouthBreak['kind'], string> = { fer
 
 export function createBreak(db: Db, input: { fromDate: string; toDate: string; label: string | null; kind: YouthBreak['kind'] }): YouthBreak {
 	for (const d of [input.fromDate, input.toDate]) {
-		if (!/^\d{4}-\d{2}-\d{2}$/.test(d) || toIso(parseIso(d)) !== d) throw new Error('Ungültiges Datum');
+		if (!/^\d{4}-\d{2}-\d{2}$/.test(d) || toIso(parseIso(d)) !== d) throw new UserError('Ungültiges Datum');
 	}
-	if (input.toDate < input.fromDate) throw new Error('Das Enddatum liegt vor dem Startdatum.');
+	if (input.toDate < input.fromDate) throw new UserError('Das Enddatum liegt vor dem Startdatum.');
 	return db.insert(youthBreaks).values(input).returning().get();
 }
 

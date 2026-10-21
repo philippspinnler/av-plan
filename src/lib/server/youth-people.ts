@@ -3,6 +3,7 @@ import { getBishopricIds } from './bishopric';
 import type { Db } from './db';
 import { members, youth, youthLeaders, YOUTH_GROUPS, type Member, type YouthLeaderRole, type YouthSide } from './db/schema';
 import { memberQuery } from './members';
+import { UserError } from './forms';
 
 export const YOUTH_GROUP_LABELS: Record<string, string> = {
 	diakone: 'Diakone',
@@ -41,8 +42,8 @@ export function listYouth(db: Db, side?: YouthSide): YouthEntry[] {
 
 export function setYouth(db: Db, memberId: number, side: YouthSide, group: string | null): void {
 	const m = memberQuery(db, eq(members.id, memberId)).get();
-	if (!m || m.kind === 'pfahl') throw new Error('Mitglied ist kein Gemeindemitglied');
-	if (group !== null && !YOUTH_GROUPS[side].includes(group)) throw new Error('Ungültige Gruppe');
+	if (!m || m.kind === 'pfahl') throw new UserError('Mitglied ist kein Gemeindemitglied');
+	if (group !== null && !YOUTH_GROUPS[side].includes(group)) throw new UserError('Ungültige Gruppe');
 	db.insert(youth).values({ memberId, side, group }).onConflictDoUpdate({ target: youth.memberId, set: { side, group } }).run();
 }
 

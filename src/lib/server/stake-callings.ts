@@ -1,6 +1,7 @@
 import { asc, eq, sql } from 'drizzle-orm';
 import type { Db } from './db';
 import { members, stakeCallings, type StakeCalling } from './db/schema';
+import { UserError } from './forms';
 
 export function listStakeCallings(db: Db): StakeCalling[] {
 	return db.select().from(stakeCallings).orderBy(asc(stakeCallings.position), asc(stakeCallings.name)).all();
@@ -13,8 +14,8 @@ export function findStakeCallingByName(db: Db, name: string): StakeCalling | und
 
 export function createStakeCalling(db: Db, name: string): StakeCalling {
 	const clean = name.trim();
-	if (!clean) throw new Error('Name darf nicht leer sein');
-	if (findStakeCallingByName(db, clean)) throw new Error('Berufung existiert bereits');
+	if (!clean) throw new UserError('Name darf nicht leer sein');
+	if (findStakeCallingByName(db, clean)) throw new UserError('Berufung existiert bereits');
 	const max = db.select({ m: sql<number>`coalesce(max(${stakeCallings.position}), 0)` }).from(stakeCallings).get()?.m ?? 0;
 	return db.insert(stakeCallings).values({ name: clean, position: max + 1 }).returning().get();
 }
@@ -25,9 +26,9 @@ export function ensureStakeCalling(db: Db, name: string): StakeCalling {
 
 export function renameStakeCalling(db: Db, id: number, name: string): void {
 	const clean = name.trim();
-	if (!clean) throw new Error('Name darf nicht leer sein');
+	if (!clean) throw new UserError('Name darf nicht leer sein');
 	const other = findStakeCallingByName(db, clean);
-	if (other && other.id !== id) throw new Error('Berufung existiert bereits');
+	if (other && other.id !== id) throw new UserError('Berufung existiert bereits');
 	db.update(stakeCallings).set({ name: clean }).where(eq(stakeCallings.id, id)).run();
 }
 

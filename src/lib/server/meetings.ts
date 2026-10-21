@@ -8,6 +8,7 @@ import {
 } from './db/schema';
 import { getHymnByNumber } from './hymns';
 import { memberQuery } from './members';
+import { UserError } from './forms';
 
 export const KIND_LABELS: Record<MeetingKind, string> = {
 	normal: 'Normal',
@@ -58,7 +59,7 @@ export interface TalkInput { position: number; memberId: number | null; topic: s
 const nowIso = () => new Date().toISOString();
 
 export function createMeeting(db: Db, date: string): Meeting {
-	if (!isSunday(date)) throw new Error('Datum ist kein Sonntag');
+	if (!isSunday(date)) throw new UserError('Datum ist kein Sonntag');
 	return db.insert(meetings).values({ date }).returning().get();
 }
 

@@ -7,6 +7,7 @@ import {
 } from './db/schema';
 import { hasProgram, KIND_LABELS, membersById, versionHash } from './meetings';
 import { breakFor, listBreaks, YOUTH_BREAK_KIND_LABELS } from './youth-breaks';
+import { UserError } from './forms';
 
 export const YOUTH_KIND_LABELS: Record<YouthEventKind, string> = {
 	klasse: 'Klasse',
@@ -125,7 +126,7 @@ const touch = (tx: Reader, eventId: number) => tx.update(youthEvents).set({ upda
 
 function getEvent(db: Reader, eventId: number): YouthEvent {
 	const ev = db.select().from(youthEvents).where(eq(youthEvents.id, eventId)).get();
-	if (!ev) throw new Error('Termin nicht gefunden');
+	if (!ev) throw new UserError('Termin nicht gefunden');
 	return ev;
 }
 
@@ -165,7 +166,7 @@ export function saveYouthCommon(db: Db, eventId: number, input: YouthCommonInput
 
 export function saveYouthPart(db: Db, eventId: number, side: YouthPartSide, input: YouthPartInput): void {
 	const ev = getEvent(db, eventId);
-	if ((side === 'both') !== ev.joint) throw new Error('Seite passt nicht zum Termin');
+	if ((side === 'both') !== ev.joint) throw new UserError('Seite passt nicht zum Termin');
 	db.transaction((tx) => {
 		tx.insert(youthEventParts).values({ eventId, side, ...input })
 			.onConflictDoUpdate({ target: [youthEventParts.eventId, youthEventParts.side], set: input })
