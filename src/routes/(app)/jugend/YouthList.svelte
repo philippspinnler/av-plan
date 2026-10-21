@@ -76,8 +76,9 @@
 				</thead>
 				<tbody>
 					{#each g.items as r}
-						<tr class="clickable" class:muted={r.date < data.today} class:no-meeting={r.status === 'off'} onclick={() => goto(`/jugend/${r.date}`)}>
-							<td class="col-day td-main td-inline"><a href="/jugend/{r.date}">{r.dateLabel}</a></td>
+						{@const off = r.status === 'off'}
+						<tr class:clickable={!off} class:muted={r.date < data.today} class:no-meeting={off} onclick={off ? undefined : () => goto(`/jugend/${r.date}`)}>
+							<td class="col-day td-main td-inline">{#if off}{r.dateLabel}{:else}<a href="/jugend/{r.date}">{r.dateLabel}</a>{/if}</td>
 							<td class="td-inline td-kind">{r.kindLabel}</td>
 							{#if r.status === 'off'}
 								<td></td><td></td><td></td>
