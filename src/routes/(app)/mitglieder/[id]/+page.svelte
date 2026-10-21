@@ -43,13 +43,7 @@
 					<label class="check"><input type="checkbox" name="noPrayer" value="1" checked={m.noPrayer} /> Möchte kein Gebet sprechen</label>
 				</div>
 			{/if}
-			<div class="field">
-				<label for="active">Status</label>
-				<select id="active" name="active">
-					<option value="1" selected={m.active}>aktiv (erscheint in Auswahllisten)</option>
-					<option value="0" selected={!m.active}>inaktiv (Kind, weggezogen, Gast ohne weitere Einsätze)</option>
-				</select>
-			</div>
+			<label class="check"><input type="checkbox" name="active" value="1" checked={m.active} /> Aktiv (erscheint in Auswahllisten)</label>
 		</form>
 		<div class="savebar no-print">
 			<span class="savebar-status" class:err={autosave.status.kind === 'error'}>{autosave.status.text}</span>
