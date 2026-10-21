@@ -66,7 +66,7 @@ describe('youth page items', () => {
 		saveYouthCommon(db, id, { kind: 'basel', joint: true, details: null, topic: null, topicUrl: null, snack: null });
 		const { big } = youthPageItems(db, '2026-10-20');
 		expect(compactText(big[0])).toBe('Mit Basel – Basel leitet');
-		expect(big[0].parts).toEqual([]);
+		expect(big[0].parts).toMatchObject([{ side: 'both', planned: true, text: null }]);
 	});
 
 	it('shows first names only and hides people who are not youth', () => {

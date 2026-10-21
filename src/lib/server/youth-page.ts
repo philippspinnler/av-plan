@@ -45,8 +45,8 @@ function toItem(e: YouthEventFull, names: Map<number, string>): YouthPageItem {
 	const date = e.event.date;
 	const name = (m: Member | null) => (m ? (names.get(m.id) ?? null) : null);
 	const kindLabel = e.status === 'off' ? 'Kein JD/JM' : e.event.joint && !BASEL_KINDS.includes(e.event.kind) ? 'Gemeinsam' : YOUTH_KIND_LABELS[e.event.kind];
-	// Both sides are always listed, so an unplanned side is visible as such; with Basel leading there is nothing to plan.
-	const sides: YouthPartSide[] = e.event.kind === 'basel' ? [] : e.event.joint ? ['both'] : ['jd', 'jm'];
+	// Both sides are always listed, so an unplanned side is visible as such; with Basel leading there is nothing left to plan.
+	const sides: YouthPartSide[] = e.event.joint ? ['both'] : ['jd', 'jm'];
 	return {
 		date, weekday: e.weekday, ...labels(date), kindLabel, status: e.status, offLabel: e.offLabel,
 		topic: e.event.topic, topicUrl: e.event.topicUrl, snack: e.event.snack, joint: e.event.joint,
@@ -56,7 +56,7 @@ function toItem(e: YouthEventFull, names: Map<number, string>): YouthPageItem {
 			const thoughtName = name(p?.thought ?? null);
 			const teacherName = name(p?.teacher ?? null);
 			const text = p?.text ?? null;
-			return { side, label: SIDE_LABELS[side], planned: Boolean(text || leaderName || thoughtName || teacherName), text, details: p?.details ?? null, leaderName, thoughtName, teacherName };
+			return { side, label: SIDE_LABELS[side], planned: e.event.kind === 'basel' || Boolean(text || leaderName || thoughtName || teacherName), text, details: p?.details ?? null, leaderName, thoughtName, teacherName };
 		})
 	};
 }

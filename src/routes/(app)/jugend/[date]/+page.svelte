@@ -86,6 +86,7 @@
 				<p>{p?.details ?? '–'}</p>
 			{/if}
 		</div>
+		{#if kind !== 'basel'}
 		<div class="grid-2">
 			<div class="field">
 				<label for="{s.side}_leader">Leitung</label>
@@ -120,6 +121,7 @@
 				</div>
 			{/if}
 		</div>
+		{/if}
 	</div>
 {/snippet}
 
@@ -216,7 +218,7 @@
 		<p class="hint">Basel leitet: Leitung und Gedanke übernimmt Basel, der Snack ist freiwillig.</p>
 	{/if}
 	{#if !data.off}
-		{#if kind !== 'basel'}{#each sections as s (s.side)}{@render partSection(s)}{/each}{/if}
+		{#each sections as s (s.side)}{@render partSection(s)}{/each}
 
 		{#if !data.isSunday}
 		<div class="section">
