@@ -27,7 +27,7 @@
 	<h1>Jugend</h1>
 	{#if link}
 		<p class="public-link">
-			<a href={link} rel="noopener noreferrer">{link}</a>
+			<a href={link} rel="noopener noreferrer" data-sveltekit-reload>{link}</a>
 			<button class="btn btn-small" type="button" onclick={copy}>{copied ? 'Kopiert' : 'Link kopieren'}</button>
 		</p>
 	{/if}
