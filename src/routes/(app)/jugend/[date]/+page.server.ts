@@ -7,7 +7,7 @@ import { displayName } from '$lib/server/members';
 import { can, requireRole } from '$lib/server/permissions';
 import { memberOptions } from '$lib/server/picker';
 import {
-	ensureYouthEvents, isWednesday, loadYouthEvent, OFF_KINDS, saveYouthAdults, saveYouthCommon, saveYouthPart,
+	BASEL_KINDS, ensureYouthEvents, isWednesday, loadYouthEvent, OFF_KINDS, saveYouthAdults, saveYouthCommon, saveYouthPart,
 	SUNDAY_KINDS, WEDNESDAY_KINDS, YOUTH_KIND_LABELS, youthSectionVersions, type YouthEventFull
 } from '$lib/server/youth';
 import { openIdeasFor, planIdea } from '$lib/server/youth-ideas';
@@ -134,7 +134,7 @@ export const actions: Actions = {
 		if (topicUrl && !/^https?:\/\//i.test(topicUrl)) return fail(400, { error: 'Der Link muss mit http:// oder https:// beginnen.' });
 		saveYouthCommon(locals.db, full.event.id, {
 			kind,
-			joint: kind === 'basel' || fd.get('joint') === '1',
+			joint: BASEL_KINDS.includes(kind) || fd.get('joint') === '1',
 			details: optStr(fd, 'details'),
 			topic: optStr(fd, 'topic'),
 			topicUrl,

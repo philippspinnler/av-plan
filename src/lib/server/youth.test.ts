@@ -72,6 +72,15 @@ describe('youth events', () => {
 		common(load('2026-10-21'), { kind: 'fireside' });
 		expect([load('2026-10-25').status, load('2026-10-21').status]).toEqual(['planned', 'planned']);
 	});
+	it('with Basel leading nothing is needed, with us leading someone must be planned', () => {
+		ensureYouthEvents(db, '2026-10-19', 1);
+		common(load('2026-10-21'), { kind: 'basel', joint: true });
+		expect(load('2026-10-21').status).toBe('planned');
+		common(load('2026-10-21'), { kind: 'basel_wir', joint: true });
+		expect(load('2026-10-21').status).toBe('open');
+		saveYouthPart(db, load('2026-10-21').event.id, 'both', { ...none, text: 'Grillen' });
+		expect(load('2026-10-21').status).toBe('planned');
+	});
 	it('toggling joint merges and splits parts', () => {
 		ensureYouthEvents(db, '2026-10-19', 1);
 		const e = load('2026-10-21');

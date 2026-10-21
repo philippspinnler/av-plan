@@ -2,7 +2,7 @@ import { randomBytes } from 'node:crypto';
 import { addDays, MONTHS_LONG, MONTHS_SHORT, parseIso, WEEKDAYS, WEEKDAYS_LONG } from '../dates';
 import type { Db } from './db';
 import type { Member, YouthPartSide } from './db/schema';
-import { listYouthEvents, YOUTH_KIND_LABELS, type YouthEventFull } from './youth';
+import { BASEL_KINDS, listYouthEvents, YOUTH_KIND_LABELS, type YouthEventFull } from './youth';
 import { listBreaks, YOUTH_BREAK_KIND_LABELS } from './youth-breaks';
 import { listAdults, listYouth, YOUTH_GROUP_LABELS } from './youth-people';
 
@@ -44,9 +44,9 @@ function labels(date: string) {
 function toItem(e: YouthEventFull, names: Map<number, string>): YouthPageItem {
 	const date = e.event.date;
 	const name = (m: Member | null) => (m ? (names.get(m.id) ?? null) : null);
-	const kindLabel = e.status === 'off' ? 'Kein JD/JM' : e.event.joint && e.event.kind !== 'basel' ? 'Gemeinsam' : YOUTH_KIND_LABELS[e.event.kind];
-	// Both sides are always listed, so an unplanned side is visible as such.
-	const sides: YouthPartSide[] = e.event.joint ? ['both'] : ['jd', 'jm'];
+	const kindLabel = e.status === 'off' ? 'Kein JD/JM' : e.event.joint && !BASEL_KINDS.includes(e.event.kind) ? 'Gemeinsam' : YOUTH_KIND_LABELS[e.event.kind];
+	// Both sides are always listed, so an unplanned side is visible as such; with Basel leading there is nothing to plan.
+	const sides: YouthPartSide[] = e.event.kind === 'basel' ? [] : e.event.joint ? ['both'] : ['jd', 'jm'];
 	return {
 		date, weekday: e.weekday, ...labels(date), kindLabel, status: e.status, offLabel: e.offLabel,
 		topic: e.event.topic, topicUrl: e.event.topicUrl, snack: e.event.snack, joint: e.event.joint,

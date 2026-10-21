@@ -11,7 +11,7 @@
 	type Idea = { id: number; text: string; note: string | null };
 
 	const ev = $derived(data.full.event);
-	/** Follows the select before it is saved; "Gemeinsam mit Basel" is always joint. */
+	/** Follows the select before it is saved; "Mit Basel" is always joint. */
 	let kind = $derived(ev.kind);
 	const kindLabel = $derived(data.kinds.find((k) => k.value === ev.kind)?.label ?? ev.kind);
 	const part = (side: Side) => data.full.parts.find((p) => p.side === side);
@@ -161,7 +161,7 @@
 			<div class="field">
 				<span class="label">JD und JM</span>
 				{#if data.canCommon}
-					<label class="check"><input type="checkbox" name="joint" value="1" form="commonForm" checked={ev.joint || kind === 'basel'} disabled={kind === 'basel'} /> gemeinsam</label>
+					<label class="check"><input type="checkbox" name="joint" value="1" form="commonForm" checked={ev.joint || kind.startsWith('basel')} disabled={kind.startsWith('basel')} /> gemeinsam</label>
 				{:else}
 					<p>{ev.joint ? 'gemeinsam' : 'getrennt'}</p>
 				{/if}
@@ -212,8 +212,11 @@
 		{/if}
 	</div>
 
+	{#if !data.off && kind === 'basel'}
+		<p class="hint">Basel leitet: Leitung und Gedanke übernimmt Basel, der Snack ist freiwillig.</p>
+	{/if}
 	{#if !data.off}
-		{#each sections as s (s.side)}{@render partSection(s)}{/each}
+		{#if kind !== 'basel'}{#each sections as s (s.side)}{@render partSection(s)}{/each}{/if}
 
 		{#if !data.isSunday}
 		<div class="section">
