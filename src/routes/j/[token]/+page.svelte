@@ -11,6 +11,7 @@
 	<h1>JD / JM {data.ward}</h1>
 	<p class="ward">Sonntagsklasse und Mittwochaktivität</p>
 
+	<div class="cards">
 	{#each data.big as ev (ev.date)}
 		<div class="ev big">
 			<div class="when">{ev.weekdayLabel}</div>
@@ -45,6 +46,7 @@
 			{/if}
 		</div>
 	{/each}
+	</div>
 
 	{#if data.small.length}
 		<div class="ev compact">
@@ -81,4 +83,14 @@
 	.compact .d { flex: 0 0 92px; font-weight: 700; }
 	.compact .t { flex: 1; color: #333; }
 	.muted { color: #888; }
+	@media (min-width: 720px) {
+		main { max-width: 900px; padding: 24px; }
+		h1 { font-size: 24px; }
+		.cards { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; }
+		.cards .ev { margin-bottom: 0; }
+		.ev.big { padding: 20px; }
+		.date { font-size: 26px; }
+		.what, .topic { font-size: 17px; }
+		.who, .meta, .compact .row { font-size: 14px; }
+	}
 </style>
