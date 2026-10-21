@@ -4,7 +4,6 @@ import { overviewRange } from './overview';
 import { ensureYouthEvents, isFifthSunday, listYouthEvents, YOUTH_KIND_LABELS, type YouthEventFull } from './youth';
 import { youthPageItems } from './youth-page';
 import { YOUTH_GROUP_LABELS } from './youth-people';
-import { getSetting } from './settings';
 
 export type YouthWeekday = 'sunday' | 'wednesday';
 
@@ -46,5 +45,5 @@ export function youthList(db: Db, url: URL, weekday: YouthWeekday) {
 	for (let y = Number(today.slice(0, 4)) - 1; y <= Number(today.slice(0, 4)) + 1; y++) years.push(y);
 	// Same cards as the public youth page, limited to this weekday.
 	const next = year ? [] : youthPageItems(db, today, { big: 2, small: 0, weekday }).big;
-	return { weekday, rows, years, year, today, next, youthToken: getSetting(db, 'youth_page_token') };
+	return { weekday, rows, years, year, today, next };
 }

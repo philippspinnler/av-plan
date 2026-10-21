@@ -5,13 +5,6 @@
 	import type { youthList } from '$lib/server/youth-list';
 	let { data }: { data: ReturnType<typeof youthList> } = $props();
 	const sunday = $derived(data.weekday === 'sunday');
-	const link = $derived(data.youthToken ? `${page.url.origin}/j/${data.youthToken}` : '');
-	let copied = $state(false);
-	async function copy() {
-		await navigator.clipboard.writeText(link);
-		copied = true;
-		setTimeout(() => (copied = false), 2000);
-	}
 	const groups = $derived(
 		data.rows.reduce<{ label: string; items: typeof data.rows }[]>((acc, r) => {
 			const label = monthLabel(r.date);
@@ -24,13 +17,6 @@
 </script>
 
 {#snippet cell(r: (typeof data.rows)[number], v: string | null)}{#if v}{v}{:else if r.status === 'open'}<span class="muted">offen</span>{/if}{/snippet}
-
-{#if link}
-	<p class="public-link">
-		<span class="muted">Jugendseite:</span> <a href={link} rel="noopener noreferrer">{link}</a>
-		<button class="btn btn-small" type="button" onclick={copy}>{copied ? 'Kopiert' : 'Link kopieren'}</button>
-	</p>
-{/if}
 
 {#if data.next.length}
 	<div class="next-grid">
@@ -110,8 +96,6 @@
 {/if}
 
 <style>
-	.public-link { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; margin: 0 0 1rem; }
-	.public-link a { overflow-wrap: anywhere; }
 	.next-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
 	.next-grid .card { margin-bottom: 0; }
 	.next-date { font-size: 1.25rem; }
