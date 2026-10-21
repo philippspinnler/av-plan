@@ -4,7 +4,7 @@
 	const tabs = [
 		{ href: '/jugend', label: 'Aktivitäten' },
 		{ href: '/jugend/sonntage', label: 'Sonntage' },
-		{ href: '/jugend/ideen', label: 'Ideen' },
+		{ href: '/jugend/ideen', label: 'Aktivitäts-Ideen' },
 		{ href: '/jugend/ausfaelle', label: 'Ausfälle & Pfahltermine' }
 	];
 	// A date page belongs to the tab of its weekday.

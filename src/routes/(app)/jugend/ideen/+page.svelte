@@ -5,7 +5,7 @@
 	const SIDES: Record<string, string> = { jd: 'JD', jm: 'JM', both: 'beide' };
 </script>
 
-<div class="section-title"><h2>Ideen</h2></div>
+<div class="section-title"><h2>Ideen für Aktivitäten</h2></div>
 
 {#if form?.error}<div class="error">{form.error}</div>{/if}
 
@@ -42,7 +42,7 @@
 					</td>
 				</tr>
 			{:else}
-				<tr><td colspan="6">Keine offenen Ideen.</td></tr>
+				<tr><td colspan="6">Keine offenen Ideen für Aktivitäten.</td></tr>
 			{/each}
 		</tbody>
 	</table>
