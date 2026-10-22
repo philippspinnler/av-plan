@@ -16,8 +16,8 @@ export type SessionUser = Pick<User, 'id' | 'email' | 'name' | 'role'>;
 
 const iso = (d: Date) => d.toISOString();
 const token = () => randomBytes(32).toString('hex');
-/** The cookie carries the raw token; the table stores only its hash, so a DB export yields no usable sessions. */
-const sessionKey = (raw: string) => createHash('sha256').update(raw).digest('hex');
+/** Cookies and invite links carry the raw token; the tables store only its hash, so a DB export yields no usable sessions or invites. */
+const tokenKey = (raw: string) => createHash('sha256').update(raw).digest('hex');
 const normEmail = (e: string) => e.trim().toLowerCase();
 const MAX_EMAIL_LENGTH = 254;
 
@@ -86,7 +86,7 @@ export function pruneLoginAttempts(db: Db, now: Date = new Date()): void {
 export function createSession(db: Db, userId: number, now: Date = new Date()): { id: string; expiresAt: string } {
 	const id = token();
 	const expiresAt = iso(new Date(now.getTime() + SESSION_DAYS * DAY_MS));
-	db.insert(sessions).values({ id: sessionKey(id), userId, expiresAt }).run();
+	db.insert(sessions).values({ id: tokenKey(id), userId, expiresAt }).run();
 	return { id, expiresAt };
 }
 
@@ -95,7 +95,7 @@ export function validateSession(
 	rawSessionId: string,
 	now: Date = new Date()
 ): { user: SessionUser; expiresAt: string } | null {
-	const sessionId = sessionKey(rawSessionId);
+	const sessionId = tokenKey(rawSessionId);
 	const row = db
 		.select({ expiresAt: sessions.expiresAt, id: users.id, email: users.email, name: users.name, role: users.role, active: users.active })
 		.from(sessions)
@@ -133,13 +133,13 @@ export async function changePassword(
 	if (!user || !(await verifyPassword(user.passwordHash, currentPassword))) return 'wrong';
 	const passwordHash = await hashPassword(newPassword);
 	db.update(users).set({ passwordHash, updatedAt: iso(new Date()) }).where(eq(users.id, userId)).run();
-	const others = keepSessionId ? and(eq(sessions.userId, userId), ne(sessions.id, sessionKey(keepSessionId))) : eq(sessions.userId, userId);
+	const others = keepSessionId ? and(eq(sessions.userId, userId), ne(sessions.id, tokenKey(keepSessionId))) : eq(sessions.userId, userId);
 	db.delete(sessions).where(others).run();
 	return 'ok';
 }
 
 export function deleteSession(db: Db, rawSessionId: string): void {
-	db.delete(sessions).where(eq(sessions.id, sessionKey(rawSessionId))).run();
+	db.delete(sessions).where(eq(sessions.id, tokenKey(rawSessionId))).run();
 }
 
 export function createInvite(
@@ -147,10 +147,11 @@ export function createInvite(
 	input: { email: string; name: string; role: Role; createdBy: number },
 	now: Date = new Date()
 ): Invite {
-	return db
+	const raw = token();
+	const inv = db
 		.insert(invites)
 		.values({
-			token: token(),
+			token: tokenKey(raw),
 			email: normEmail(input.email),
 			name: input.name.trim(),
 			role: input.role,
@@ -159,10 +160,11 @@ export function createInvite(
 		})
 		.returning()
 		.get();
+	return { ...inv, token: raw };
 }
 
 export function getValidInvite(db: Db, tok: string, now: Date = new Date()): Invite | null {
-	const inv = db.select().from(invites).where(eq(invites.token, tok)).get();
+	const inv = db.select().from(invites).where(eq(invites.token, tokenKey(tok))).get();
 	if (!inv || inv.usedAt || new Date(inv.expiresAt).getTime() <= now.getTime()) return null;
 	return inv;
 }

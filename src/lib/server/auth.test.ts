@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { createDb, type Db } from './db';
-import { loginAttempts, sessions } from './db/schema';
+import { invites, loginAttempts, sessions } from './db/schema';
 import {
 	acceptInvite, changePassword, createInvite, createSession, createUser, deleteSession, findUserByEmail, getValidInvite,
 	hashPassword, listOpenInvites, loginWithPassword, userCount, validateSession, verifyPassword
@@ -114,6 +114,7 @@ describe('invites', () => {
 		expect(inv.token).toHaveLength(64);
 		expect(listOpenInvites(db, t0)).toHaveLength(1);
 		expect(getValidInvite(db, inv.token, t0)?.email).toBe('m@b.ch');
+		expect(db.select().from(invites).all()[0].token).not.toBe(inv.token);
 		const user = await acceptInvite(db, inv.token, 'passwort1', t0);
 		expect(user?.role).toBe('musik');
 		expect(getValidInvite(db, inv.token, t0)).toBeNull();

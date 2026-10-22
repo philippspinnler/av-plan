@@ -10,7 +10,7 @@ export const load: PageServerLoad = ({ locals }) => {
 	requireRole(locals.user, 'users.manage');
 	return {
 		users: listUsers(locals.db).map((u) => ({ id: u.id, name: u.name, email: u.email, role: u.role, active: u.active })),
-		invites: listOpenInvites(locals.db).map((i) => ({ id: i.id, name: i.name, email: i.email, role: i.role, expiresAt: i.expiresAt, token: i.token }))
+		invites: listOpenInvites(locals.db).map((i) => ({ id: i.id, name: i.name, email: i.email, role: i.role, expiresAt: i.expiresAt}))
 	};
 };
 
